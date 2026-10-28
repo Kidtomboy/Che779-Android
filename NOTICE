@@ -1,0 +1,14 @@
+Che779 Emulator (Android)
+
+Dự án này là bản chỉnh sửa của J2ME Loader
+  https://github.com/nikita36078/J2ME-Loader
+  Copyright (C) Nikita Shakarun và những người đóng góp
+  Licensed under the Apache License, Version 2.0
+
+Thành phần bên thứ ba có trong mã nguồn (xem thư mục tương ứng để biết giấy phép):
+  - TinySoundFont (schellingb) - app/src/main/cpp/mmapi_tsf/TinySoundFont
+  - Các thành phần khác nằm sẵn trong cây mã nguồn gốc của J2ME Loader; giữ nguyên
+    thông báo bản quyền trong từng file.
+
+Các thay đổi của Che779: đổi tên ứng dụng và applicationId, khóa ký thử nghiệm,
+cấu hình build tự động bằng GitHub Actions.
