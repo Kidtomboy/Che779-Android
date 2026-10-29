@@ -93,6 +93,12 @@ public class MainActivity extends BaseActivity {
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+		ru.playsoftware.j2meloader.slots.Bubble.ensure(this);
+	}
+
 	private void checkAndCreateDirs() {
 		String emulatorDir = Config.getEmulatorDir();
 		File dir = new File(emulatorDir);

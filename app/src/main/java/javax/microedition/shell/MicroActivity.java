@@ -162,6 +162,8 @@ public class MicroActivity extends AppCompatActivity {
 				throw new RuntimeException("Can't access file system");
 			}
 		}
+		ru.playsoftware.j2meloader.slots.Slots.markRunning(this, appName, getTaskId());
+		ru.playsoftware.j2meloader.slots.SlotService.start(this);
 		String arguments = intent.getStringExtra(KEY_START_ARGUMENTS);
 		if (arguments != null) {
 			MidletSystem.setProperty("com.nokia.mid.cmdline", arguments);
@@ -771,6 +773,10 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	protected void onDestroy() {
+		if (isFinishing()) {
+			ru.playsoftware.j2meloader.slots.Slots.markStopped(this);
+			ru.playsoftware.j2meloader.slots.SlotService.stop(this);
+		}
 		binding = null;
 		super.onDestroy();
 	}

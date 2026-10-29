@@ -24,6 +24,11 @@
         android:orderInCategory="2">
     </item>
     <item
+        android:id="@+id/action_bubble"
+        android:title="@string/che779_bubble_toggle"
+        app:showAsAction="never"
+        android:orderInCategory="2" />
+    <item
         android:id="@+id/action_about"
         android:title="@string/about"
         app:showAsAction="never"

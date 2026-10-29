@@ -55,7 +55,13 @@ public class AppClassLoader extends DexClassLoader {
 	}
 
 	public static void setDataDir(File appDir) {
-		dataDir = appDir.getParentFile().getParent() + Config.MIDLET_DATA_DIR + appDir.getName();
+		String name = appDir.getName();
+		int slot = ru.playsoftware.j2meloader.slots.Slots.current();
+		if (slot > 0) {
+			// moi tab co du lieu RMS rieng (dang nhap rieng tung tab)
+			name += "_tab" + (slot + 1);
+		}
+		dataDir = appDir.getParentFile().getParent() + Config.MIDLET_DATA_DIR + name;
 	}
 
 	public static InputStream getResourceAsStream(Class<?> resClass, String resName) {

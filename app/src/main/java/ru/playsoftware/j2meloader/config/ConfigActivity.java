@@ -845,7 +845,13 @@ public class ConfigActivity extends BaseActivity implements View.OnClickListener
 	}
 
 	private void startMIDlet() {
-		Intent i = new Intent(this, MicroActivity.class);
+		int slot = ru.playsoftware.j2meloader.slots.Slots.pickSlot(this);
+		if (slot < 0) {
+			Toast.makeText(this, "Đã mở đủ " + ru.playsoftware.j2meloader.slots.Slots.COUNT
+					+ " tab. Hãy đóng bớt một tab.", Toast.LENGTH_LONG).show();
+			return;
+		}
+		Intent i = new Intent(this, ru.playsoftware.j2meloader.slots.Slots.activityClass(slot));
 		i.setData(getIntent().getData());
 		i.putExtra(KEY_MIDLET_NAME, getIntent().getStringExtra(KEY_MIDLET_NAME));
 		startActivity(i);

@@ -4,6 +4,9 @@
     android:installLocation="auto">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -125,9 +128,162 @@
         <activity
             android:name="javax.microedition.shell.MicroActivity"
             android:exported="false"
+            android:label="Tab 1"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab1"
             android:theme="@style/AppTheme.NoActionBar"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
             android:process=":midlet" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity1"
+            android:exported="false"
+            android:label="Tab 2"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab2"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot1" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity2"
+            android:exported="false"
+            android:label="Tab 3"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab3"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot2" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity3"
+            android:exported="false"
+            android:label="Tab 4"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab4"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot3" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity4"
+            android:exported="false"
+            android:label="Tab 5"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab5"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot4" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity5"
+            android:exported="false"
+            android:label="Tab 6"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab6"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot5" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity6"
+            android:exported="false"
+            android:label="Tab 7"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab7"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot6" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity7"
+            android:exported="false"
+            android:label="Tab 8"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab8"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot7" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity8"
+            android:exported="false"
+            android:label="Tab 9"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab9"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot8" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity9"
+            android:exported="false"
+            android:label="Tab 10"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab10"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot9" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity10"
+            android:exported="false"
+            android:label="Tab 11"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab11"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot10" />
+        <activity
+            android:name="javax.microedition.shell.MicroActivity11"
+            android:exported="false"
+            android:label="Tab 12"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.che779.emulator.tab12"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
+            android:process=":slot11" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService0"
+            android:exported="false"
+            android:process=":midlet" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService1"
+            android:exported="false"
+            android:process=":slot1" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService2"
+            android:exported="false"
+            android:process=":slot2" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService3"
+            android:exported="false"
+            android:process=":slot3" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService4"
+            android:exported="false"
+            android:process=":slot4" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService5"
+            android:exported="false"
+            android:process=":slot5" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService6"
+            android:exported="false"
+            android:process=":slot6" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService7"
+            android:exported="false"
+            android:process=":slot7" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService8"
+            android:exported="false"
+            android:process=":slot8" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService9"
+            android:exported="false"
+            android:process=":slot9" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService10"
+            android:exported="false"
+            android:process=":slot10" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.SlotService11"
+            android:exported="false"
+            android:process=":slot11" />
+        <service
+            android:name="ru.playsoftware.j2meloader.slots.BubbleService"
+            android:exported="false" />
         <activity android:name=".settings.SettingsActivity"
             android:exported="false">
             <intent-filter>

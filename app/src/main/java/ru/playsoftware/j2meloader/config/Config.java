@@ -76,7 +76,7 @@ public class Config {
 
 	static {
 		Context context = ContextHolder.getAppContext();
-		String appName = "J2ME-Loader";
+		String appName = "J2ME-Che779";
 		if (!BuildConfig.FULL_EMULATOR) {
 			appName = context.getString(R.string.app_name);
 		}
@@ -86,6 +86,10 @@ public class Config {
 		String path = FileUtils.isExternalStorageLegacy() ?
 				preferences.getString(PREF_EMULATOR_DIR, null) :
 				context.getExternalFilesDir(null).getPath();
+		// Bo duong dan cu nam trong Android/data (ban truoc khi chuyen sang J2ME-Che779)
+		if (path != null && path.contains("/Android/data/") && FileUtils.isExternalStorageLegacy()) {
+			path = null;
+		}
 		if (path == null) {
 			path = Environment.getExternalStorageDirectory() + "/" + appName;
 		}
@@ -148,8 +152,17 @@ public class Config {
 			intent.putExtra(KEY_START_ARGUMENTS, arguments);
 			context.startActivity(intent);
 		} else {
+			int slot = ru.playsoftware.j2meloader.slots.Slots.pickSlot(context);
+			if (slot < 0) {
+				android.widget.Toast.makeText(context, "Đã mở đủ " + ru.playsoftware.j2meloader.slots.Slots.COUNT
+						+ " tab. Hãy đóng bớt một tab.", android.widget.Toast.LENGTH_LONG).show();
+				return;
+			}
 			Intent intent = new Intent(Intent.ACTION_DEFAULT, Uri.parse(path),
-					context, MicroActivity.class);
+					context, ru.playsoftware.j2meloader.slots.Slots.activityClass(slot));
+			if (!(context instanceof android.app.Activity)) {
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			}
 			intent.putExtra(KEY_MIDLET_NAME, name);
 			intent.putExtra(KEY_START_ARGUMENTS, arguments);
 			context.startActivity(intent);

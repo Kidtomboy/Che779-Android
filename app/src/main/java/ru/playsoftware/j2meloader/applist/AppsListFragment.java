@@ -378,6 +378,8 @@ public class AppsListFragment extends Fragment implements MenuProvider {
 				e.printStackTrace();
 				Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show();
 			}
+		} else if (itemId == R.id.action_bubble) {
+			ru.playsoftware.j2meloader.slots.Bubble.toggle(activity);
 		} else if (itemId == R.id.action_exit_app) {
 			activity.finish();
 		} else if (itemId == R.id.action_sort) {
