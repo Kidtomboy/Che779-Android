@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build APK
@@ -50,3 +53,14 @@ jobs:
           name: Che779-Emulator-APK
           path: dist/Che779-Emulator.apk
           if-no-files-found: error
+
+      - name: Publish to Releases (tai khong can dang nhap)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest dist/Che779-Emulator.apk \
+            --prerelease \
+            --title "Che779 Emulator - ban moi nhat" \
+            --notes "Ban build tu dong tu commit ${GITHUB_SHA::7}. Tai file Che779-Emulator.apk va cai dat." \
+            --target "$GITHUB_SHA"
