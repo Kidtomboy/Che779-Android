@@ -1247,7 +1247,16 @@ public abstract class Canvas extends Displayable {
 
 	}
 
+	private final Runnable flushLater = this::flushToScreen;
+
 	private void requestFlushToScreen() {
+		if (!ru.playsoftware.j2meloader.slots.Treo.allowFlush(flushLater)) {
+			return;
+		}
+		flushToScreen();
+	}
+
+	private void flushToScreen() {
 		if (graphicsMode == 1) {
 			if (innerView != null) {
 				renderer.requestRender();

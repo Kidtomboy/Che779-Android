@@ -50,12 +50,14 @@ public final class Slots {
 		public final boolean running;
 		public final String title;
 		public final int taskId;
+		public final int pid;
 
-		Info(int slot, boolean running, String title, int taskId) {
+		Info(int slot, boolean running, String title, int taskId, int pid) {
 			this.slot = slot;
 			this.running = running;
 			this.title = title;
 			this.taskId = taskId;
+			this.pid = pid;
 		}
 	}
 
@@ -166,7 +168,7 @@ public final class Slots {
 	public static Info info(Context c, int slot) {
 		File f = new File(dir(c), "slot" + slot);
 		if (!f.exists()) {
-			return new Info(slot, false, "", -1);
+			return new Info(slot, false, "", -1, -1);
 		}
 		try (BufferedReader r = new BufferedReader(new FileReader(f))) {
 			int pid = Integer.parseInt(r.readLine().trim());
@@ -174,12 +176,12 @@ public final class Slots {
 			String title = r.readLine();
 			if (!isAlive(c, slot, pid)) {
 				f.delete();
-				return new Info(slot, false, "", -1);
+				return new Info(slot, false, "", -1, -1);
 			}
-			return new Info(slot, true, title == null ? "" : title, task);
+			return new Info(slot, true, title == null ? "" : title, task, pid);
 		} catch (Exception e) {
 			f.delete();
-			return new Info(slot, false, "", -1);
+			return new Info(slot, false, "", -1, -1);
 		}
 	}
 
@@ -194,6 +196,19 @@ public final class Slots {
 		} catch (IOException e) {
 			return false;
 		}
+	}
+
+	/** Dong han mot tab: tat tien trinh cua tab do (giai phong o). */
+	public static void killSlot(Context c, int slot) {
+		Info i = info(c, slot);
+		if (i.running && i.pid > 0) {
+			android.os.Process.killProcess(i.pid);
+		}
+		new File(dir(c), "slot" + slot).delete();
+	}
+
+	static File stateDir(Context c) {
+		return dir(c);
 	}
 
 	public static int runningCount(Context c) {

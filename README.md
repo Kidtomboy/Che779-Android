@@ -14,3 +14,8 @@ Bản build dùng khóa ký thử nghiệm cố định, nên bản mới cài �
 ## Nguồn gốc & giấy phép
 Dựa trên [J2ME Loader](https://github.com/nikita36078/J2ME-Loader) của Nikita Shakarun và những người đóng góp, phát hành theo Apache License 2.0. Xem `LICENSE` và `NOTICE`.
 Các file đã sửa đổi so với bản gốc mang thông báo thay đổi trong lịch sử git của repo này.
+
+## Ghi công
+Ý tưởng chế độ Treo, hẹn giờ tắt, ô Cài đặt nhanh và bong bóng điều khiển tham khảo từ **J2ME NST (NST Tiến)**.
+Ý tưởng chia nhiều màn hình, Sleep Tab, proxy theo game và dọn RAM nền tham khảo từ **J2ME Loader v10 (Hùng Hero)**.
+Mã nguồn được viết lại độc lập.
