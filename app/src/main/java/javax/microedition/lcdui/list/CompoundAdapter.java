@@ -1,7 +1,6 @@
 /*
  * Copyright 2012 Kulikov Dmitriy
  * Copyright 2018 Nikita Shakarun
- * Copyright 2019-2026 Yury Kharchenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,56 +17,92 @@
 
 package javax.microedition.lcdui.list;
 
+import android.content.Context;
 import android.database.DataSetObserver;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.DynamicDrawableSpan;
-import android.text.style.ImageSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.TextView;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.ArrayList;
 
+import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.ViewHandler;
+import javax.microedition.lcdui.event.SimpleEvent;
 
 public abstract class CompoundAdapter implements Adapter {
-	private static final String TAG = "CompoundAdapter";
+	private ArrayList<CompoundItem> items;
+	private ArrayList<DataSetObserver> observers;
+	protected Context context;
 
-	private final Set<DataSetObserver> observers = new CopyOnWriteArraySet<>();
-	private final List<CompoundItem> items;
-	private final Runnable dataSetChangedEvent = this::notifyObservers;
+	private SimpleEvent msgDataSetChanged = new SimpleEvent() {
+		@Override
+		public void process() {
+			for (DataSetObserver observer : observers) {
+				try {
+					observer.onChanged();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	};
 
-	public CompoundAdapter(List<CompoundItem> items) {
-		this.items = items;
+	private SimpleEvent msgDataSetInvalidated = new SimpleEvent() {
+		@Override
+		public void process() {
+			for (DataSetObserver observer : observers) {
+				observer.onInvalidated();
+			}
+		}
+	};
+
+	public CompoundAdapter(Context context) {
+		this.context = context;
+
+		items = new ArrayList<>();
+		observers = new ArrayList<>();
+	}
+
+	public void append(String stringPart, Image imagePart) {
+		items.add(new CompoundItem(stringPart, imagePart));
+		notifyDataSetChanged();
+	}
+
+	public void insert(int elementNum, String stringPart, Image imagePart) {
+		items.add(elementNum, new CompoundItem(stringPart, imagePart));
+		notifyDataSetChanged();
+	}
+
+	public void set(int elementNum, String stringPart, Image imagePart) {
+		items.set(elementNum, new CompoundItem(stringPart, imagePart));
+		notifyDataSetChanged();
+	}
+
+	public void delete(int elementNum) {
+		items.remove(elementNum);
+		notifyDataSetChanged();
+	}
+
+	public void deleteAll() {
+		items.clear();
+		notifyDataSetChanged();
 	}
 
 	@Override
 	public int getCount() {
-		synchronized (items) {
-			return items.size();
-		}
+		return items.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		synchronized (items) {
-			return items.isEmpty();
-		}
+		return items.isEmpty();
 	}
 
 	@Override
 	public CompoundItem getItem(int position) {
-		synchronized (items) {
-			return items.get(position);
-		}
+		return items.get(position);
 	}
 
 	@Override
@@ -90,36 +125,37 @@ public abstract class CompoundAdapter implements Adapter {
 		return 0;
 	}
 
-	View getView(int position, View convertView, ViewGroup parent, int viewResourceID) {
+	protected View getView(int position, View convertView, ViewGroup parent, int viewResourceID, boolean useImagePart) {
 		TextView textview;
 
 		if (convertView instanceof TextView) {
 			textview = (TextView) convertView;
 		} else {
-			textview = (TextView) LayoutInflater.from(parent.getContext()).inflate(viewResourceID, parent, false);
+			textview = (TextView) LayoutInflater.from(context).inflate(viewResourceID, null);
 		}
 
-		CompoundItem item = getItem(position);
+		CompoundItem item = items.get(position);
+		textview.setText(item.getString());
 
-		if (item.getImage() != null) {
-			Paint.FontMetrics fm = textview.getPaint().getFontMetrics();
-			float lineHeight = fm.leading + fm.bottom - fm.top;
-			Drawable drawable = item.getDrawable(lineHeight);
-			SpannableStringBuilder ssb = new SpannableStringBuilder("   ");
-			ImageSpan imageSpan = new ImageSpan(drawable, DynamicDrawableSpan.ALIGN_BOTTOM);
-			ssb.setSpan(imageSpan, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-			ssb.append(item.getString());
-			textview.setText(ssb);
-		} else {
-			textview.setText(item.getString());
+		if (useImagePart) {
+			textview.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+				textview.setCompoundDrawablesWithIntrinsicBounds(item.getDrawable(textview.getHeight()),
+						null, null, null);
+				textview.setCompoundDrawablePadding(textview.getPaddingLeft());
+			});
 		}
 
 		return textview;
 	}
 
 	@Override
+	public abstract View getView(int position, View convertView, ViewGroup parent);
+
+	@Override
 	public void registerDataSetObserver(DataSetObserver observer) {
-		observers.add(observer);
+		if (!observers.contains(observer)) {
+			observers.add(observer);
+		}
 	}
 
 	@Override
@@ -128,18 +164,10 @@ public abstract class CompoundAdapter implements Adapter {
 	}
 
 	public void notifyDataSetChanged() {
-		ViewHandler.postEvent(dataSetChangedEvent);
+		ViewHandler.postEvent(msgDataSetChanged);
 	}
 
-	private void notifyObservers() {
-		for (DataSetObserver observer : observers) {
-			try {
-				synchronized(items) {
-					observer.onChanged();
-				}
-			} catch (Exception e) {
-				Log.e(TAG, "notifyDataSetChanged: ", e);
-			}
-		}
+	public void notifyDataSetInvalidated() {
+		ViewHandler.postEvent(msgDataSetInvalidated);
 	}
 }

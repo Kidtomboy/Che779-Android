@@ -28,14 +28,12 @@ import javax.microedition.util.ContextHolder;
 
 public class Vibrator {
 	public static void startVibrator() {
-		ContextHolder.vibrate(3000);
 	}
 
 	public static void stopVibrator() {
-		ContextHolder.vibrate(0);
 	}
 
 	public static void triggerVibrator(int duration) {
-		ContextHolder.vibrate(Math.max(duration, 0));
+		ContextHolder.vibrate(duration);
 	}
 }

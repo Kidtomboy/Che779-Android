@@ -1,7 +1,6 @@
 /*
  * Copyright 2015-2016 Nickolay Savchenko
- * Copyright 2017-2019 Nikita Shakarun
- * Copyright 2019-2023 Yury Kharchenko
+ * Copyright 2017-2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,81 +17,89 @@
 
 package ru.playsoftware.j2meloader.applist;
 
-import android.graphics.drawable.Drawable;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.ListAdapter;
-import androidx.recyclerview.widget.RecyclerView;
-
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import ru.playsoftware.j2meloader.R;
-import ru.playsoftware.j2meloader.config.Config;
-import ru.playsoftware.j2meloader.databinding.ListRowGridJarBinding;
-import ru.playsoftware.j2meloader.databinding.ListRowJarBinding;
 
-class AppsListAdapter extends ListAdapter<AppItem, AppsListAdapter.AppViewHolder> implements Filterable {
-	static final int LAYOUT_TYPE_LIST = 0;
-	static final int LAYOUT_TYPE_GRID = 1;
+public class AppsListAdapter extends BaseAdapter implements Filterable {
 
-	private final View.OnCreateContextMenuListener contextMenuListener;
-	private List<AppItem> list = new ArrayList<>();
-	private final AppFilter appFilter = new AppFilter();
-	private CharSequence filterConstraint;
-	private View emptyView;
-	private int layout = LAYOUT_TYPE_LIST;
+	private List<AppItem> list;
+	private List<AppItem> filteredList;
+	private final LayoutInflater layoutInflater;
+	private Context context;
+	private AppFilter appFilter;
 
-	AppsListAdapter(View.OnCreateContextMenuListener contextMenuListener) {
-		super(new DiffUtil.ItemCallback<AppItem>() {
-			@Override
-			public boolean areItemsTheSame(@NonNull AppItem oldItem, @NonNull AppItem newItem) {
-				return oldItem.getId() == newItem.getId();
-			}
-
-			@Override
-			public boolean areContentsTheSame(@NonNull AppItem oldItem, @NonNull AppItem newItem) {
-				return oldItem.getTitle().equals(newItem.getTitle()) &&
-						oldItem.getVersion().equals(newItem.getVersion());
-			}
-		});
-		this.contextMenuListener = contextMenuListener;
+	public AppsListAdapter(Context context) {
+		this.list = new ArrayList<>();
+		this.filteredList = new ArrayList<>();
+		this.layoutInflater = LayoutInflater.from(context);
+		this.context = context;
+		this.appFilter = new AppFilter();
 	}
 
 	@Override
-	public int getItemViewType(int position) {
-		return layout;
+	public int getCount() {
+		return filteredList.size();
 	}
 
-	@NonNull
 	@Override
-	public AppViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-		LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-		if (viewType == 1) {
-			ListRowGridJarBinding binding = ListRowGridJarBinding.inflate(inflater, parent, false);
-			return new AppViewHolder(binding, contextMenuListener);
+	public AppItem getItem(int position) {
+		return filteredList.get(position);
+	}
+
+	@Override
+	public long getItemId(int position) {
+		return position;
+	}
+
+	@Override
+	public View getView(int position, View view, ViewGroup viewGroup) {
+		ViewHolder holder;
+		if (view == null) {
+			view = layoutInflater.inflate(R.layout.list_row_jar, viewGroup, false);
+			holder = new ViewHolder();
+			holder.icon = view.findViewById(R.id.list_image);
+			holder.name = view.findViewById(R.id.list_title);
+			holder.author = view.findViewById(R.id.list_author);
+			holder.version = view.findViewById(R.id.list_version);
+			view.setTag(holder);
 		} else {
-			ListRowJarBinding binding = ListRowJarBinding.inflate(inflater, parent, false);
-			return new AppListViewHolder(binding, contextMenuListener);
+			holder = (ViewHolder) view.getTag();
 		}
+		AppItem item = filteredList.get(position);
+
+		File iconFile = new File(item.getImagePathExt());
+		if (iconFile.isFile()) {
+			Bitmap iconBitmap = BitmapFactory.decodeFile(iconFile.getAbsolutePath());
+			holder.icon.setImageBitmap(iconBitmap);
+		} else {
+			holder.icon.setImageResource(R.mipmap.ic_launcher);
+		}
+		holder.name.setText(item.getTitle());
+		holder.author.setText(item.getAuthorExt(context));
+		holder.version.setText(item.getVersionExt(context));
+
+		return view;
 	}
 
-	@Override
-	public void onBindViewHolder(@NonNull AppViewHolder holder, int position) {
-		holder.onBind(getItem(position));
-	}
-
-	void setItems(List<AppItem> items) {
+	public void setItems(List<AppItem> items) {
 		list = items;
-		appFilter.filter(filterConstraint);
+		filteredList = items;
+		notifyDataSetChanged();
 	}
 
 	@Override
@@ -100,84 +107,26 @@ class AppsListAdapter extends ListAdapter<AppItem, AppsListAdapter.AppViewHolder
 		return appFilter;
 	}
 
-	void setEmptyView(View emptyView) {
-		this.emptyView = emptyView;
+	private static class ViewHolder {
+		ImageView icon;
+		TextView name;
+		TextView author;
+		TextView version;
 	}
 
-	void setLayout(int layout) {
-		this.layout = layout;
-	}
-
-	static class AppViewHolder extends RecyclerView.ViewHolder {
-		private final ImageView icon;
-		private final TextView name;
-
-		AppViewHolder(ListRowGridJarBinding binding, View.OnCreateContextMenuListener contextMenuListener) {
-			this(binding.getRoot(), binding.listTitle, binding.listImage, contextMenuListener);
-		}
-
-		AppViewHolder(View itemView,
-					  TextView listTitle,
-					  ImageView listImage,
-					  View.OnCreateContextMenuListener contextMenuListener) {
-			super(itemView);
-			icon = listImage;
-			name = listTitle;
-
-			itemView.setOnClickListener(v -> {
-				AppsListAdapter adapter = (AppsListAdapter) getBindingAdapter();
-				if (adapter != null) {
-					AppItem item = adapter.getItem(getLayoutPosition());
-					Config.startApp(v.getContext(), item.getTitle(), item.getPathExt(), false);
-				}
-			});
-			itemView.setOnCreateContextMenuListener(contextMenuListener);
-		}
-
-		void onBind(AppItem item) {
-			Drawable icon = Drawable.createFromPath(item.getImagePathExt());
-			if (icon != null) {
-				icon.setFilterBitmap(false);
-				this.icon.setImageDrawable(icon);
-			} else {
-				this.icon.setImageResource(R.mipmap.ic_launcher);
-			}
-			name.setText(item.getTitle());
-			itemView.setTag(item);
-		}
-	}
-
-	static class AppListViewHolder extends AppViewHolder {
-		private final TextView author;
-		private final TextView version;
-
-		AppListViewHolder(ListRowJarBinding binding, View.OnCreateContextMenuListener contextMenuListener) {
-			super(binding.getRoot(), binding.listTitle, binding.listImage, contextMenuListener);
-			author = binding.listAuthor;
-			version = binding.listVersion;
-		}
-
-		@Override
-		void onBind(AppItem item) {
-			super.onBind(item);
-			author.setText(item.getAuthor());
-			version.setText(item.getVersion());
-		}
-	}
-
-	class AppFilter extends Filter {
+	private class AppFilter extends Filter {
 
 		@Override
 		protected FilterResults performFiltering(CharSequence constraint) {
 			FilterResults results = new FilterResults();
-			if (isEmpty(constraint)) {
+			if (constraint.equals("")) {
 				results.count = list.size();
 				results.values = list;
 			} else {
 				ArrayList<AppItem> resultList = new ArrayList<>();
 				for (AppItem item : list) {
-					if (item.getTitle().toLowerCase().contains(constraint) ||
-							item.getAuthor().toLowerCase().contains(constraint)) {
+					if (item.getTitle().toLowerCase().contains(constraint)
+							|| item.getAuthor().toLowerCase().contains(constraint)) {
 						resultList.add(item);
 					}
 				}
@@ -187,25 +136,13 @@ class AppsListAdapter extends ListAdapter<AppItem, AppsListAdapter.AppViewHolder
 			return results;
 		}
 
-		boolean isEmpty(CharSequence constraint) {
-			return constraint == null || constraint.toString().trim().length() == 0;
-		}
-
 		@Override
 		protected void publishResults(CharSequence constraint, FilterResults results) {
-			filterConstraint = constraint;
-			//noinspection unchecked
-			submitList((List<AppItem>) results.values);
-			if (results.count > 0) {
-				emptyView.setVisibility(View.GONE);
+			if (results.values != null) {
+				filteredList = (List<AppItem>) results.values;
+				notifyDataSetChanged();
 			} else {
-				if (list.isEmpty()) {
-					((TextView) emptyView).setText(R.string.no_data_for_display);
-				} else {
-					String msg = emptyView.getResources().getString(R.string.msg_no_matches, constraint);
-					((TextView) emptyView).setText(msg);
-				}
-				emptyView.setVisibility(View.VISIBLE);
+				notifyDataSetInvalidated();
 			}
 		}
 	}

@@ -20,7 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import javax.microedition.media.Manager;
-import javax.microedition.media.MediaException;
 import javax.microedition.media.Player;
 
 public class Clip {
@@ -62,8 +61,6 @@ public class Clip {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (MediaException e) {
-			throw new RuntimeException(e);
 		}
 		return player;
 	}

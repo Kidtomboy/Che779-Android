@@ -20,7 +20,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
-import android.os.Build;
 
 import java.util.Hashtable;
 
@@ -37,7 +36,7 @@ public class LocalDevice implements ActivityResultListener {
 	private Object monitor = new Object();
 
 	static {
-		properties = new Hashtable<>();
+		properties = new Hashtable<String, String>();
 		properties.put("bluetooth.api.version", "1.1");
 		properties.put("bluetooth.master.switch", "true");
 		properties.put("bluetooth.sd.attr.retrievable.max", "256");
@@ -53,18 +52,7 @@ public class LocalDevice implements ActivityResultListener {
 	private LocalDevice() throws BluetoothStateException {
 		agent = new DiscoveryAgent();
 		ContextHolder.addActivityResultListener(this);
-		boolean permissionsGranted;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-			String[] permissions = {
-					Manifest.permission.BLUETOOTH_CONNECT,
-					Manifest.permission.BLUETOOTH_SCAN,
-					Manifest.permission.BLUETOOTH_ADVERTISE,
-			};
-			permissionsGranted = ContextHolder.requestPermissions(permissions);
-		} else {
-			permissionsGranted = ContextHolder.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION);
-		}
-		if (!permissionsGranted) {
+		if (!ContextHolder.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
 			throw new BluetoothStateException();
 		}
 		if (!DiscoveryAgent.adapter.isEnabled()) {
@@ -113,6 +101,16 @@ public class LocalDevice implements ActivityResultListener {
 		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 		lock = true;
 		ContextHolder.getActivity().startActivityForResult(discoverableIntent, 1);
+		while (lock) {
+			synchronized (monitor) {
+				try {
+					monitor.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					lock = false;
+				}
+			}
+		}
 		return true;
 	}
 

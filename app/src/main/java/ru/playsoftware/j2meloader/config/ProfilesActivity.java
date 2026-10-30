@@ -16,8 +16,6 @@
 
 package ru.playsoftware.j2meloader.config;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -33,43 +31,17 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.preference.PreferenceManager;
-
 import ru.playsoftware.j2meloader.R;
 import ru.playsoftware.j2meloader.base.BaseActivity;
 
-import static ru.playsoftware.j2meloader.util.Constants.*;
+public class ProfilesActivity extends BaseActivity implements EditNameAlert.Callback, AdapterView.OnItemClickListener {
 
-public class ProfilesActivity extends BaseActivity implements EditNameDialog.Callback, AdapterView.OnItemClickListener {
+	static final int REQUEST_CODE_EDIT = 5;
 	private ProfilesAdapter adapter;
 	private SharedPreferences preferences;
-	private final ActivityResultLauncher<String> editProfileLauncher = registerForActivityResult(
-			new ActivityResultContract<String, String>() {
-				@NonNull
-				@Override
-				public Intent createIntent(@NonNull Context context, String input) {
-					return new Intent(ACTION_EDIT_PROFILE, Uri.parse(input),
-							getApplicationContext(), ConfigActivity.class);
-				}
-
-				@Override
-				public String parseResult(int resultCode, @Nullable Intent intent) {
-					if (resultCode == Activity.RESULT_OK && intent != null) {
-						return intent.getDataString();
-					}
-					return null;
-				}
-			},
-			name -> {
-				if (name != null) {
-					adapter.addItem(new Profile(name));
-				}
-			});
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,9 +59,9 @@ public class ProfilesActivity extends BaseActivity implements EditNameDialog.Cal
 		TextView emptyView = findViewById(R.id.empty_view);
 		listView.setEmptyView(emptyView);
 		registerForContextMenu(listView);
-		adapter = new ProfilesAdapter(getLayoutInflater(), profiles);
+		adapter = new ProfilesAdapter(this, profiles);
 		listView.setAdapter(adapter);
-		final String def = preferences.getString(PREF_DEFAULT_PROFILE, null);
+		final String def = preferences.getString(Config.PREF_DEFAULT_PROFILE, null);
 		if (def != null) {
 			for (int i = profiles.size() - 1; i >= 0; i--) {
 				Profile profile = profiles.get(i);
@@ -110,14 +82,14 @@ public class ProfilesActivity extends BaseActivity implements EditNameDialog.Cal
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		int itemId = item.getItemId();
-		if (itemId == android.R.id.home) {
-			finish();
-			return true;
-		} else if (itemId == R.id.add) {
-			EditNameDialog.newInstance(getString(R.string.enter_name), -1, null)
-					.show(getSupportFragmentManager(), "alert_create_profile");
-			return true;
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				finish();
+				return true;
+			case R.id.add:
+				EditNameAlert.newInstance(getString(R.string.enter_name), -1)
+						.show(getSupportFragmentManager(), "alert_create_profile");
+				return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -139,38 +111,55 @@ public class ProfilesActivity extends BaseActivity implements EditNameDialog.Cal
 		AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 		int index = info.position;
 		final Profile profile = adapter.getItem(index);
-		int itemId = item.getItemId();
-		if (itemId == R.id.action_context_default) {
-			preferences.edit().putString(PREF_DEFAULT_PROFILE, profile.getName()).apply();
-			adapter.setDefault(profile);
-			return true;
-		} else if (itemId == R.id.action_context_edit) {
-			final Intent intent = new Intent(ACTION_EDIT_PROFILE,
-					Uri.parse(profile.getName()),
-					getApplicationContext(), ConfigActivity.class);
-			startActivity(intent);
-			return true;
-		} else if (itemId == R.id.action_context_rename) {
-			EditNameDialog.newInstance(getString(R.string.enter_new_name), index, profile.getName())
-					.show(getSupportFragmentManager(), "alert_rename_profile");
-		} else if (itemId == R.id.action_context_delete) {
-			profile.delete();
-			adapter.removeItem(index);
+		switch (item.getItemId()) {
+			case R.id.action_context_default:
+				preferences.edit().putString(Config.PREF_DEFAULT_PROFILE, profile.getName()).apply();
+				adapter.setDefault(profile);
+				return true;
+			case R.id.action_context_edit:
+				final Intent intent = new Intent(ConfigActivity.ACTION_EDIT_PROFILE,
+						Uri.parse(profile.getName()),
+						getApplicationContext(), ConfigActivity.class);
+				startActivity(intent);
+				return true;
+			case R.id.action_context_rename:
+				EditNameAlert.newInstance(getString(R.string.enter_new_name), index)
+						.show(getSupportFragmentManager(), "alert_rename_profile");
+				break;
+			case R.id.action_context_delete:
+				profile.delete();
+				adapter.removeItem(index);
+				break;
 		}
 		return super.onContextItemSelected(item);
 	}
 
 	@Override
+	protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+		if (requestCode != REQUEST_CODE_EDIT
+				|| resultCode != RESULT_OK
+				|| data == null)
+			return;
+		final String name = data.getDataString();
+		if (name == null)
+			return;
+		adapter.addItem(new Profile(name));
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	@Override
 	public void onNameChanged(int id, String newName) {
 		if (id == -1) {
-			editProfileLauncher.launch(newName);
+			final Intent intent = new Intent(ConfigActivity.ACTION_EDIT_PROFILE,
+					Uri.parse(newName), getApplicationContext(), ConfigActivity.class);
+			startActivityForResult(intent, REQUEST_CODE_EDIT);
 			return;
 		}
 		Profile profile = adapter.getItem(id);
 		profile.renameTo(newName);
 		adapter.notifyDataSetChanged();
 		if (adapter.getDefault() == profile) {
-			preferences.edit().putString(PREF_DEFAULT_PROFILE, newName).apply();
+			preferences.edit().putString(Config.PREF_DEFAULT_PROFILE, newName).apply();
 		}
 	}
 

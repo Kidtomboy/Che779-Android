@@ -24,12 +24,6 @@
 
 package com.nokia.mid.ui;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
-
-import javax.microedition.lcdui.Displayable;
-import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 
@@ -37,15 +31,6 @@ import javax.microedition.lcdui.Image;
  * This class is a placeholder for utility methods. It contains methods for converting standard lcdui classes to Nokia UI classes and vice versa, and a method for creating images that are empty with pixels either transparent or colored, and creating mutable images from encoded image byte arrays.
  */
 public class DirectUtils {
-
-	// S40v6 getFont(int) constants
-	private static final int SMALL_FONT = 1;
-	private static final int MEDIUM_FONT = 2;
-	private static final int LARGE_FONT = 3;
-	private static final int MEDIUM_BOLD_FONT = 4;
-	private static final int DEFAULT_FONT = 5;
-	private static final int IDLE_SCREEN_FONT = 6;
-	private static final int IDLE_SCREEN_FOCUSED_FONT = 7;
 
 	/**
 	 * Converts standard javax.microedition.lcdui.Graphics to DirectGraphics. The returned object refers to the same graphics context. This means that calling draw operations or changing the state, for example, drawing color etc., via the original Graphics reference affect the DirectGraphics object, and vice versa.
@@ -69,12 +54,11 @@ public class DirectUtils {
 	 * @param imageLength the length of the data in the array
 	 * @return the created mutable image
 	 */
-	public static Image createImage(byte[] imageData, int imageOffset, int imageLength) {
-		BitmapFactory.Options opts = new BitmapFactory.Options();
-		opts.inMutable = true;
-		Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, imageOffset, imageLength, opts);
-		if (!bitmap.isMutable()) Log.w(DirectUtils.class.getName(), "createImage: bitmap not is mutable");
-		return new Image(bitmap);
+	public static Image createImage(byte imageData[], int imageOffset, int imageLength) {
+		Image source = Image.createImage(imageData, imageOffset, imageLength);
+		Image target = Image.createTransparentImage(source.getWidth(), source.getHeight());
+		target.getGraphics().drawImage(source, 0, 0, 0);
+		return target;
 	}
 
 	/**
@@ -86,35 +70,11 @@ public class DirectUtils {
 	 * @return the created image
 	 */
 	public static Image createImage(int width, int height, int argb) {
-		return Image.createImage(width, height, argb);
+		Image img = Image.createTransparentImage(width, height);
+		Graphics g = img.getGraphics();
+		g.setColorAlpha(argb);
+		g.fillRect(0, 0, width, height);
+		return img;
 	}
 
-	public static Font getFont(int identifier) {
-		switch(identifier) {
-			case SMALL_FONT:
-				return Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL);
-			case MEDIUM_FONT:
-				return Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
-			case LARGE_FONT:
-				return Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_LARGE);
-			case MEDIUM_BOLD_FONT:
-				return Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM);
-			default:
-				return Font.getDefaultFont();
-		}
-	}
-
-	public static javax.microedition.lcdui.Font getFont(int face, int style, int height) {
-		return FreeSizeFontInvoker.getFont(face, style, height);
-	}
-
-	public static boolean setHeader(Displayable displayable,
-									String headerText,
-									Image headerImage,
-									int headerTextColor,
-									int headerBgColor,
-									int headerDividerColor) {
-		// TODO: 12.04.2021 stub
-		return false;
-	}
 }

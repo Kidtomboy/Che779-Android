@@ -1,7 +1,6 @@
 /*
  * Copyright 2012 Kulikov Dmitriy
  * Copyright 2018 Nikita Shakarun
- * Copyright 2019-2023 Yury Kharchenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,63 +17,54 @@
 
 package javax.microedition.lcdui.list;
 
+import android.R.layout;
 import android.content.Context;
-import android.graphics.Color;
-import android.os.Build;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckedTextView;
 import android.widget.ListAdapter;
 
-import androidx.core.content.ContextCompat;
-
-import java.util.ArrayList;
-
 import javax.microedition.lcdui.Choice;
-import javax.microedition.util.ContextHolder;
-
-import ru.playsoftware.j2meloader.R;
 
 public class CompoundListAdapter extends CompoundAdapter implements ListAdapter {
-	private static int highlightColor;
+	protected int listType;
+	protected int viewResourceID;
+	protected ItemSelector selector;
 
-	private final int listType;
-	private final int viewResourceID;
+	public CompoundListAdapter(Context context, ItemSelector selector, int type) {
+		super(context);
 
-	public CompoundListAdapter(int type, ArrayList<CompoundItem> items) {
-		super(items);
+		this.listType = type;
+		this.selector = selector;
+
 		switch (type) {
 			case Choice.IMPLICIT:
-				viewResourceID = android.R.layout.simple_list_item_1;
-				if (highlightColor == 0) {
-					TypedValue typedValue = new TypedValue();
-					Context context = ContextHolder.getActivity();
-					context.getTheme().resolveAttribute(androidx.appcompat.R.attr.colorControlHighlight, typedValue, true);
-					highlightColor = ContextCompat.getColor(context, typedValue.resourceId);
-				}
+				viewResourceID = layout.simple_list_item_1;
 				break;
+
 			case Choice.EXCLUSIVE:
-				viewResourceID = android.R.layout.simple_list_item_single_choice;
+				viewResourceID = layout.simple_list_item_single_choice;
 				break;
+
 			case Choice.MULTIPLE:
-				viewResourceID = android.R.layout.simple_list_item_multiple_choice;
+				viewResourceID = layout.simple_list_item_multiple_choice;
 				break;
+
 			default:
 				throw new IllegalArgumentException("list type " + type + " is not supported");
 		}
-		listType = type;
+
+		if (type != Choice.IMPLICIT && selector == null) {
+			throw new IllegalArgumentException("ItemSelector is requered for this list type");
+		}
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		convertView = getView(position, convertView, parent, viewResourceID);
+		convertView = getView(position, convertView, parent, viewResourceID, true);
 
-		boolean selected = getItem(position).isSelected();
-		if (listType == Choice.IMPLICIT) {
-			convertView.setBackgroundColor(selected ? highlightColor : Color.TRANSPARENT);
-		} else {
-			((CheckedTextView) convertView).setChecked(selected);
+		if (listType != Choice.IMPLICIT && convertView instanceof CheckedTextView) {
+			((CheckedTextView) convertView).setChecked(selector.isSelected(position));
 		}
 
 		return convertView;

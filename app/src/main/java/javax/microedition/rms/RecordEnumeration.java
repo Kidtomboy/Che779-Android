@@ -21,31 +21,39 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  */
+
 package javax.microedition.rms;
+
 
 public interface RecordEnumeration {
 
-	void destroy();
+	int numRecords();
+
+	byte[] nextRecord()
+			throws InvalidRecordIDException, RecordStoreNotOpenException, RecordStoreException;
+
+	int nextRecordId()
+			throws InvalidRecordIDException;
+
+	byte[] previousRecord()
+			throws InvalidRecordIDException, RecordStoreNotOpenException, RecordStoreException;
+
+	int previousRecordId()
+			throws InvalidRecordIDException;
 
 	boolean hasNextElement();
 
 	boolean hasPreviousElement();
 
-	boolean isKeptUpdated();
-
-	void keepUpdated(boolean keepUpdated);
-
-	byte[] nextRecord() throws RecordStoreException;
-
-	int nextRecordId() throws InvalidRecordIDException;
-
-	int numRecords();
-
-	byte[] previousRecord() throws RecordStoreException;
-
-	int previousRecordId() throws InvalidRecordIDException;
+	void reset();
 
 	void rebuild();
 
-	void reset();
+	void keepUpdated(boolean keepUpdated);
+
+	boolean isKeptUpdated();
+
+	void destroy();
+
 }
+

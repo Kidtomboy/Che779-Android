@@ -19,20 +19,15 @@ package ru.playsoftware.j2meloader.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.google.gson.stream.JsonReader;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
 
 import androidx.preference.PreferenceManager;
 import ru.playsoftware.j2meloader.config.Config;
 import ru.playsoftware.j2meloader.config.ProfileModel;
 import ru.playsoftware.j2meloader.config.ProfilesManager;
-
-import static ru.playsoftware.j2meloader.util.Constants.PREF_DEFAULT_PROFILE;
 
 public class MigrationUtils {
 
@@ -88,14 +83,8 @@ public class MigrationUtils {
 			if (params == null) {
 				params = new ProfileModel(newDir);
 			}
-			SparseIntArrayAdapter arrayAdapter = new SparseIntArrayAdapter();
-			JsonReader jsonReader = new JsonReader(new StringReader(json));
-			try {
-				params.keyMappings = arrayAdapter.read(jsonReader);
-				ProfilesManager.saveConfig(params);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			params.keyMappings = json;
+			ProfilesManager.saveConfig(params);
 			return true;
 		}
 		return false;
@@ -161,12 +150,12 @@ public class MigrationUtils {
 				File profiles = new File(Config.getProfilesDir());
 				if (moveDefaultToProfiles()) {
 					PreferenceManager.getDefaultSharedPreferences(context)
-							.edit().putString(PREF_DEFAULT_PROFILE, "default")
+							.edit().putString(Config.PREF_DEFAULT_PROFILE, "default")
 							.apply();
 				}
 				if (moveKeyMappings(context)) {
 					PreferenceManager.getDefaultSharedPreferences(context)
-							.edit().putString(PREF_DEFAULT_PROFILE, "default")
+							.edit().putString(Config.PREF_DEFAULT_PROFILE, "default")
 							.apply();
 				}
 				moveDatabase(context);

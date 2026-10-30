@@ -24,7 +24,6 @@ import java.io.InterruptedIOException;
 import javax.wireless.messaging.Message;
 import javax.wireless.messaging.MessageConnection;
 import javax.wireless.messaging.MessageListener;
-import javax.wireless.messaging.TextMessage;
 
 public class Connection implements MessageConnection, ConnectionImplementation {
 
@@ -61,20 +60,12 @@ public class Connection implements MessageConnection, ConnectionImplementation {
 
 	@Override
 	public Message newMessage(String type) {
-		return newMessage(type, address);
+		return new MessageImpl(type, address);
 	}
 
 	@Override
 	public Message newMessage(String type, String address) {
-		Message message;
-		if (type.equals(TEXT_MESSAGE)) {
-			message = new TextMessageImpl(address, 0);
-		} else if (type.equals(BINARY_MESSAGE)) {
-			message = new BinaryMessageImpl(address, 0);
-		} else {
-			throw new IllegalArgumentException("Message type is invalid: " + type);
-		}
-		return message;
+		return new MessageImpl(type, address);
 	}
 
 	@Override
@@ -91,7 +82,7 @@ public class Connection implements MessageConnection, ConnectionImplementation {
 				e.printStackTrace();
 			}
 		}
-		TextMessage message = new TextMessageImpl(address, System.currentTimeMillis());
+		MessageImpl message = new MessageImpl(MessageConnection.TEXT_MESSAGE, address);
 		message.setPayloadText("sms");
 		noMessages = true;
 		return message;

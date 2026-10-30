@@ -40,8 +40,4 @@ public class ConnectionNotFoundException extends IOException {
 		super(s);
 	}
 
-	public ConnectionNotFoundException(Throwable e) {
-		super(e);
-	}
-
 }

@@ -1,6 +1,5 @@
 /*
  * Copyright 2018 cerg2010cerg2010
- * Copyright 2026 Yury Kharchenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +20,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.util.Log;
 
 import org.microemu.microedition.io.ConnectionImplementation;
 
@@ -33,20 +31,18 @@ import javax.microedition.io.StreamConnection;
 import javax.microedition.io.StreamConnectionNotifier;
 
 public class Connection implements ConnectionImplementation, StreamConnectionNotifier {
-	private static final String TAG = "btspp.Connection";
 	private BluetoothServerSocket serverSocket = null;
 	private BluetoothServerSocket nameServerSocket = null;
 	public BluetoothSocket socket = null;
 	public javax.bluetooth.UUID connUuid = null;
 	private boolean skipAfterWrite = false;
 
-	@Override
 	public javax.microedition.io.Connection openConnection(String name, int mode, boolean timeouts) throws IOException {
-		if (name == null) {
+		if (name == null)
 			throw new IllegalArgumentException("URL is null");
-		}
-		Log.d(TAG, "***** Connection URL: " + name);
+		System.out.println("***** Connection URL: " + name);
 
+		int port = -1;
 		int portSepIndex = name.lastIndexOf(':');
 		if (portSepIndex == -1) {
 			throw new IllegalArgumentException("Port missing");
@@ -54,23 +50,21 @@ public class Connection implements ConnectionImplementation, StreamConnectionNot
 		String host = name.substring("btspp://".length(), portSepIndex);
 
 		int argsStart = name.indexOf(";");
+		String[] args = name.substring(argsStart + 1).split(";");
 		boolean authenticate = false, encrypt = false, secure;
 		String srvname = "";
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].startsWith("authenticate="))
+				authenticate = Boolean.parseBoolean(args[i].substring(args[i].indexOf("=") + 1));
+			if (args[i].startsWith("encrypt="))
+				encrypt = Boolean.parseBoolean(args[i].substring(args[i].indexOf("=") + 1));
+			if (args[i].startsWith("name="))
+				srvname = args[i].substring(args[i].indexOf("=") + 1);
+			if (args[i].startsWith("skipAfterWrite="))
+				skipAfterWrite = Boolean.parseBoolean(args[i].substring(args[i].indexOf("=") + 1));
+		}
 		if (argsStart == -1) {
-			argsStart = name.length();
-		} else {
-			String[] args = name.substring(argsStart + 1).split(";");
-			for (String arg : args) {
-				if (arg.startsWith("authenticate=")) {
-					authenticate = Boolean.parseBoolean(arg.substring(arg.indexOf("=") + 1));
-				} else if (arg.startsWith("encrypt=")) {
-					encrypt = Boolean.parseBoolean(arg.substring(arg.indexOf("=") + 1));
-				} else if (arg.startsWith("name=")) {
-					srvname = arg.substring(arg.indexOf("=") + 1);
-				} else if (arg.startsWith("skipAfterWrite=")) {
-					skipAfterWrite = Boolean.parseBoolean(arg.substring(arg.indexOf("=") + 1));
-				}
-			}
+			argsStart = name.length() - 1;
 		}
 		secure = authenticate && encrypt;
 
@@ -79,9 +73,8 @@ public class Connection implements ConnectionImplementation, StreamConnectionNot
 		java.util.UUID btUuid = connUuid.uuid;
 
 		BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-		if (adapter.isDiscovering()) {
+		if (adapter.isDiscovering())
 			adapter.cancelDiscovery();
-		}
 		// java.util.UUID btUuid = getJavaUUID(uuid);
 		// "localhost" indicates that we are acting as server
 		if (host.equals("localhost")) {
@@ -106,40 +99,36 @@ public class Connection implements ConnectionImplementation, StreamConnectionNot
 					os.flush();
 					nameServerSocket.close();
 				} catch (IOException e) {
-					Log.w(TAG, "openConnection: ", e);
+					e.printStackTrace();
 				}
 			});
 			connectThread.start();
-			if (secure) {
+			if (secure)
 				serverSocket = adapter.listenUsingRfcommWithServiceRecord(finalSrvname, btUuid);
-			} else {
+			else
 				serverSocket = adapter.listenUsingInsecureRfcommWithServiceRecord(finalSrvname, btUuid);
-			}
 			return this;
 		} else {
 			StringBuilder sb = new StringBuilder(host);
-			for (int i = 2; i < sb.length(); i += 3) {
+			for (int i = 2; i < sb.length(); i += 3)
 				sb.insert(i, ':');
-			}
 			String addr = sb.toString();
 
 			BluetoothDevice dev = adapter.getRemoteDevice(addr);
-			if (secure) {
+			if (secure)
 				socket = dev.createRfcommSocketToServiceRecord(btUuid);
-			} else {
+			else
 				socket = dev.createInsecureRfcommSocketToServiceRecord(btUuid);
-			}
 
 			try {
 				socket.connect();
 			} catch (IOException e) {
-				Log.w(TAG, "openConnection: ", e);
+				e.printStackTrace();
 			}
 			return new SPPConnectionImpl(socket, false);
 		}
 	}
 
-	@Override
 	public StreamConnection acceptAndOpen() throws IOException {
 		if (serverSocket == null) {
 			throw new IOException();
@@ -148,13 +137,10 @@ public class Connection implements ConnectionImplementation, StreamConnectionNot
 		return new SPPConnectionImpl(socket, skipAfterWrite);
 	}
 
-	@Override
 	public void close() throws IOException {
-		if (serverSocket != null) {
+		if (serverSocket != null)
 			serverSocket.close();
-		}
-		if (nameServerSocket != null) {
+		if (nameServerSocket != null)
 			nameServerSocket.close();
-		}
 	}
 }

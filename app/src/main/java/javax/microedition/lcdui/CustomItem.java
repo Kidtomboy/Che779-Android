@@ -23,8 +23,6 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
 
-import javax.microedition.util.ContextHolder;
-
 public abstract class CustomItem extends Item {
 	protected static final int KEY_PRESS = 4;
 	protected static final int KEY_RELEASE = 8;
@@ -39,6 +37,7 @@ public abstract class CustomItem extends Item {
 	private InnerView view;
 	private Image offscreen;
 	private final RectF bounds = new RectF();
+	private Graphics graphics;
 
 	private class InnerView extends View {
 		public InnerView(Context context) {
@@ -76,7 +75,6 @@ public abstract class CustomItem extends Item {
 				default:
 					return super.onTouchEvent(event);
 			}
-			super.onTouchEvent(event);
 			return true;
 		}
 	}
@@ -115,8 +113,8 @@ public abstract class CustomItem extends Item {
 
 	protected final void repaint(int x, int y, int width, int height) {
 		if (view == null) return;
-		Graphics graphics = offscreen.getSingleGraphics();
-		graphics.reset(x, y, x + width, y + height);
+		graphics.reset();
+		graphics.setClip(x, y, width, height);
 		try {
 			paint(graphics, width, height);
 		} catch (Throwable t) {
@@ -173,13 +171,13 @@ public abstract class CustomItem extends Item {
 	@Override
 	protected View getItemContentView() {
 		if (view == null) {
-			view = new InnerView(ContextHolder.getActivity());
+			view = new InnerView(getOwnerForm().getParentActivity());
 			int width = getMinContentWidth();
 			int height = getMinContentHeight();
 			view.setMinimumWidth(width);
 			view.setMinimumHeight(height);
-			offscreen = Image.createImage(width, height, 0);
-			view.setOnClickListener(v -> fireDefaultCommandAction());
+			offscreen = Image.createTransparentImage(width, height);
+			graphics = offscreen.getSingleGraphics();
 		}
 
 		return view;

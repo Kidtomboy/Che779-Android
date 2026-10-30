@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package javax.microedition.media.protocol;
 
 import java.io.IOException;
@@ -22,23 +21,25 @@ import javax.microedition.media.Controllable;
 
 public interface SourceStream extends Controllable {
 
-	int NOT_SEEKABLE = 0;
+	public static final int NOT_SEEKABLE = 0;
 
-	int SEEKABLE_TO_START = 1;
+	public static final int SEEKABLE_TO_START = 1;
 
-	int RANDOM_ACCESSIBLE = 2;
+	public static final int RANDOM_ACCESSIBLE = 2;
 
-	ContentDescriptor getContentDescriptor();
+	public abstract ContentDescriptor getContentDescriptor();
 
-	long getContentLength();
+	public abstract long getContentLength();
 
-	int getSeekType();
+	public abstract int getSeekType();
 
-	int getTransferSize();
+	public abstract int getTransferSize();
 
-	int read(byte[] buffer, int offset, int length) throws IOException;
+	public abstract int read(byte[] buffer, int offset, int length) throws IOException;
 
-	long seek(long pos) throws IOException;
+	public abstract long seek(long pos) throws IOException;
 
-	long tell();
+	public abstract long tell();
+
+
 }

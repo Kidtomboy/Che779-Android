@@ -30,11 +30,7 @@ public class Sound {
 		if (data == null) {
 			throw new NullPointerException("sound data is null!");
 		}
-		try {
-			player = Manager.createPlayer(new ByteArrayInputStream(data), "audio/xmf");
-		} catch (MediaException e) {
-			throw new RuntimeException(e);
-		}
+		player = Manager.createPlayer(new ByteArrayInputStream(data), "audio/xmf");
 		try {
 			player.realize();
 		} catch (MediaException e) {

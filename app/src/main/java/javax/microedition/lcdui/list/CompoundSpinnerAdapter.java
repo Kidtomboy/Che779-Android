@@ -1,6 +1,5 @@
 /*
  * Copyright 2012 Kulikov Dmitriy
- * Copyright 2019-2023 Yury Kharchenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +16,23 @@
 
 package javax.microedition.lcdui.list;
 
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SpinnerAdapter;
 
-import java.util.ArrayList;
-
 public class CompoundSpinnerAdapter extends CompoundAdapter implements SpinnerAdapter {
-	public CompoundSpinnerAdapter(ArrayList<CompoundItem> items) {
-		super(items);
+	public CompoundSpinnerAdapter(Context context) {
+		super(context);
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		return getView(position, convertView, parent, android.R.layout.simple_spinner_item);
+		return getView(position, convertView, parent, android.R.layout.simple_spinner_item, false);
 	}
 
 	@Override
 	public View getDropDownView(int position, View convertView, ViewGroup parent) {
-		return getView(position, convertView, parent, android.R.layout.simple_spinner_dropdown_item);
+		return getView(position, convertView, parent, android.R.layout.simple_spinner_dropdown_item, true);
 	}
 }

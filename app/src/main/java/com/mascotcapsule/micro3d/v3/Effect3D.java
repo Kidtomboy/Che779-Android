@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Yury Kharchenko
+ * Copyright 2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,137 +16,148 @@
 
 package com.mascotcapsule.micro3d.v3;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 public class Effect3D {
 	public static final int NORMAL_SHADING = 0;
 	public static final int TOON_SHADING = 1;
-
-	Light light;
-	Texture texture;
-	int shading;
-	int toonHigh;
-	int toonLow;
-	int toonThreshold;
-	boolean isTransparency;
+	private boolean myEnable;
+	private Light myLight;
+	private int myShading;
+	private Texture myTex;
+	private int myToonH;
+	private int myToonL;
+	private int myToonT;
 
 	public Effect3D() {
-		shading = NORMAL_SHADING;
-		isTransparency = true;
+		this.myShading = NORMAL_SHADING;
+		this.myEnable = true;
 	}
 
 	public Effect3D(Light light, int shading, boolean isEnableTrans, Texture tex) {
-		setShadingType(shading);
-		setSphereTexture(tex);
-		setLight(light);
-		isTransparency = isEnableTrans;
+		switch (shading) {
+			case 0:
+			case 1:
+				if (tex != null) {
+					if (tex.isModel) {
+						throw new IllegalArgumentException();
+					}
+				}
+				this.myLight = light;
+				this.myShading = shading;
+				this.myEnable = isEnableTrans;
+				this.myTex = tex;
+				return;
+			default:
+				throw new IllegalArgumentException();
+		}
 	}
 
 	public final Light getLight() {
-		return light;
-	}
-
-	@Deprecated
-	public final int getShading() {
-		return shading;
-	}
-
-	public final int getShadingType() {
-		return shading;
-	}
-
-	@Deprecated
-	public final Texture getSphereMap() {
-		return texture;
-	}
-
-	public final Texture getSphereTexture() {
-		return texture;
-	}
-
-	@Deprecated
-	public final int getThreshold() {
-		return toonThreshold;
-	}
-
-	@Deprecated
-	public final int getThresholdHigh() {
-		return toonHigh;
-	}
-
-	@Deprecated
-	public final int getThresholdLow() {
-		return toonLow;
-	}
-
-	public final int getToonHigh() {
-		return toonHigh;
-	}
-
-	public final int getToonLow() {
-		return toonLow;
-	}
-
-	public final int getToonThreshold() {
-		return toonThreshold;
-	}
-
-	@Deprecated
-	public final boolean isSemiTransparentEnabled() {
-		return isTransparency;
-	}
-
-	public final boolean isTransparency() {
-		return isTransparency;
+		return this.myLight;
 	}
 
 	public final void setLight(Light light) {
-		this.light = light;
+		this.myLight = light;
 	}
 
-	@Deprecated
-	public final void setSemiTransparentEnabled(boolean isEnable) {
-		isTransparency = isEnable;
+	public final int getShading() {
+		return getShadingType();
 	}
 
-	@Deprecated
+	public final int getShadingType() {
+		return this.myShading;
+	}
+
 	public final void setShading(int shading) {
 		setShadingType(shading);
 	}
 
 	public final void setShadingType(int shading) {
-		if ((shading & ~TOON_SHADING) != 0) {
-			throw new IllegalArgumentException();
+		switch (shading) {
+			case 0:
+			case 1:
+				this.myShading = shading;
+				return;
+			default:
+				throw new IllegalArgumentException();
 		}
-		this.shading = shading;
 	}
 
-	@Deprecated
-	public final void setSphereMap(Texture tex) {
-		setSphereTexture(tex);
+	public final int getThreshold() {
+		return getToonThreshold();
 	}
 
-	public final void setSphereTexture(Texture tex) {
-		if (tex != null && tex.isForModel) {
-			throw new IllegalArgumentException();
-		}
-		texture = tex;
+	public final int getToonThreshold() {
+		return this.myToonT;
 	}
 
-	@Deprecated
+	public final int getThresholdHigh() {
+		return getToonHigh();
+	}
+
+	public final int getToonHigh() {
+		return this.myToonH;
+	}
+
+	public final int getThresholdLow() {
+		return getToonLow();
+	}
+
+	public final int getToonLow() {
+		return this.myToonL;
+	}
+
 	public final void setThreshold(int threshold, int high, int low) {
 		setToonParams(threshold, high, low);
 	}
 
 	public final void setToonParams(int threshold, int high, int low) {
-		if (((threshold & ~0xff) | (high & ~0xff) | (low & ~0xff)) != 0) {
+		if (threshold < 0 || threshold > 255) {
 			throw new IllegalArgumentException();
+		} else if (high < 0 || high > 255) {
+			throw new IllegalArgumentException();
+		} else if (low < 0 || low > 255) {
+			throw new IllegalArgumentException();
+		} else {
+			this.myToonT = threshold;
+			this.myToonH = high;
+			this.myToonL = low;
 		}
-		toonThreshold = threshold;
-		toonHigh = high;
-		toonLow = low;
+	}
+
+	public final boolean isSemiTransparentEnabled() {
+		return isTransparency();
+	}
+
+	public final boolean isTransparency() {
+		return this.myEnable;
+	}
+
+	public final void setSemiTransparentEnabled(boolean isEnable) {
+		setTransparency(isEnable);
 	}
 
 	public final void setTransparency(boolean isEnable) {
-		isTransparency = isEnable;
+		this.myEnable = isEnable;
+	}
+
+	public final Texture getSphereMap() {
+		return getSphereTexture();
+	}
+
+	public final Texture getSphereTexture() {
+		return this.myTex;
+	}
+
+	public final void setSphereMap(Texture tex) {
+		setSphereTexture(tex);
+	}
+
+	public final void setSphereTexture(Texture tex) {
+		if (tex != null) {
+			if (tex.isModel) {
+				throw new IllegalArgumentException();
+			}
+		}
+		this.myTex = tex;
 	}
 }

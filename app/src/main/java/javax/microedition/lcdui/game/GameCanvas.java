@@ -32,11 +32,9 @@ public class GameCanvas extends Canvas {
 	public static final int GAME_C_PRESSED = 1 << Canvas.GAME_C;
 	public static final int GAME_D_PRESSED = 1 << Canvas.GAME_D;
 
-	private final Image image;
-	private final boolean suppressCommands;
-
-	private int keyState;
-	private int currentKeyState;
+	private Image image;
+	private int key;
+	private boolean suppressCommands;
 
 	public GameCanvas(boolean suppressCommands) {
 		super();
@@ -81,67 +79,44 @@ public class GameCanvas extends Canvas {
 
 	@Override
 	public void postKeyPressed(int keyCode) {
-		if (setKeyStates(keyCode)) {
-			return;
+		int code = convertGameKeyCode(keyCode);
+		key |= code;
+		if (!(suppressCommands && code != 0)) {
+			super.postKeyPressed(keyCode);
 		}
-		super.postKeyPressed(keyCode);
-	}
-
-	@Override
-	public void postKeyRepeated(int keyCode) {
-		if (setKeyStates(keyCode)) {
-			return;
-		}
-		super.postKeyRepeated(keyCode);
 	}
 
 	@Override
 	public void postKeyReleased(int keyCode) {
 		int code = convertGameKeyCode(keyCode);
-		if (code != 0) {
-			currentKeyState &= ~code;
-			if (suppressCommands) {
-				return;
-			}
+		key &= ~code;
+		if (!(suppressCommands && code != 0)) {
+			super.postKeyReleased(keyCode);
 		}
-		super.postKeyReleased(keyCode);
 	}
 
-	private boolean setKeyStates(int keyCode) {
+	@Override
+	public void postKeyRepeated(int keyCode) {
 		int code = convertGameKeyCode(keyCode);
-		if (code == 0) {
-			return false;
+		key |= code;
+		if (!(suppressCommands && code != 0)) {
+			super.postKeyRepeated(keyCode);
 		}
-		this.keyState |= code;
-		this.currentKeyState |= code;
-		return suppressCommands;
 	}
 
-	@SuppressWarnings("unused")
 	public int getKeyStates() {
-		int keyStates = isShown() ? this.keyState | this.currentKeyState : 0;
-		this.keyState = 0;
-		return keyStates;
+		return key;
 	}
 
 	public Graphics getGraphics() {
 		return image.getGraphics();
 	}
 
-	@SuppressWarnings("unused")
 	public void flushGraphics() {
 		flushGraphics(0, 0, width, height);
 	}
 
-	@SuppressWarnings("WeakerAccess")
 	public void flushGraphics(int x, int y, int width, int height) {
 		flushBuffer(image, x, y, width, height);
-	}
-
-	@Override
-	public void doShowNotify() {
-		keyState = 0;
-		currentKeyState = 0;
-		super.doShowNotify();
 	}
 }

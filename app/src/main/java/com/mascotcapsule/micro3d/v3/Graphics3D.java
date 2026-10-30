@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Yury Kharchenko
+ * Copyright 2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,29 @@
 
 package com.mascotcapsule.micro3d.v3;
 
+import android.widget.Toast;
+
 import javax.microedition.lcdui.Graphics;
+import javax.microedition.lcdui.ViewHandler;
+import javax.microedition.util.ContextHolder;
 
-import ru.woesss.j2me.micro3d.Render;
-
-@SuppressWarnings("unused, WeakerAccess")
 public class Graphics3D {
-	public static final int COMMAND_AFFINE_INDEX = 0x87000000;
-	public static final int COMMAND_AMBIENT_LIGHT = 0xA0000000;
-	public static final int COMMAND_ATTRIBUTE = 0x83000000;
-	public static final int COMMAND_CENTER = 0x85000000;
-	public static final int COMMAND_CLIP = 0x84000000;
-	public static final int COMMAND_DIRECTION_LIGHT = 0xA1000000;
-	public static final int COMMAND_END = 0x80000000;
-	public static final int COMMAND_FLUSH = 0x82000000;
-	public static final int COMMAND_LIST_VERSION_1_0 = 0xFE000001;
-	public static final int COMMAND_NOP = 0x81000000;
-	public static final int COMMAND_PARALLEL_SCALE = 0x90000000;
-	public static final int COMMAND_PARALLEL_SIZE = 0x91000000;
-	public static final int COMMAND_PERSPECTIVE_FOV = 0x92000000;
-	public static final int COMMAND_PERSPECTIVE_WH = 0x93000000;
-	public static final int COMMAND_TEXTURE_INDEX = 0x86000000;
-	public static final int COMMAND_THRESHOLD = 0xAF000000;
+	public static final int COMMAND_AFFINE_INDEX = -2030043136;
+	public static final int COMMAND_AMBIENT_LIGHT = -1610612736;
+	public static final int COMMAND_ATTRIBUTE = -2097152000;
+	public static final int COMMAND_CENTER = -2063597568;
+	public static final int COMMAND_CLIP = -2080374784;
+	public static final int COMMAND_DIRECTION_LIGHT = -1593835520;
+	public static final int COMMAND_END = Integer.MIN_VALUE;
+	public static final int COMMAND_FLUSH = -2113929216;
+	public static final int COMMAND_LIST_VERSION_1_0 = -33554431;
+	public static final int COMMAND_NOP = -2130706432;
+	public static final int COMMAND_PARALLEL_SCALE = -1879048192;
+	public static final int COMMAND_PARALLEL_SIZE = -1862270976;
+	public static final int COMMAND_PERSPECTIVE_FOV = -1845493760;
+	public static final int COMMAND_PERSPECTIVE_WH = -1828716544;
+	public static final int COMMAND_TEXTURE_INDEX = -2046820352;
+	public static final int COMMAND_THRESHOLD = -1358954496;
 	public static final int ENV_ATTR_LIGHTING = 1;
 	public static final int ENV_ATTR_SEMI_TRANSPARENT = 8;
 	public static final int ENV_ATTR_SPHERE_MAP = 2;
@@ -64,159 +65,102 @@ public class Graphics3D {
 	public static final int POINT_SPRITE_NO_PERS = 2;
 	public static final int POINT_SPRITE_PERSPECTIVE = 0;
 	public static final int POINT_SPRITE_PIXEL_SIZE = 1;
-	public static final int PRIMITVE_LINES = 0x2000000;
-	public static final int PRIMITVE_POINTS = 0x1000000;
-	public static final int PRIMITVE_POINT_SPRITES = 0x5000000;
-	public static final int PRIMITVE_QUADS = 0x4000000;
-	public static final int PRIMITVE_TRIANGLES = 0x3000000;
+	public static final int PRIMITVE_LINES = 33554432;
+	public static final int PRIMITVE_POINTS = 16777216;
+	public static final int PRIMITVE_POINT_SPRITES = 83886080;
+	public static final int PRIMITVE_QUADS = 67108864;
+	public static final int PRIMITVE_TRIANGLES = 50331648;
+	private static int ID = 0;
+	private static boolean mIsBound = false;
+	private Graphics mGraphics;
 
-	private Graphics graphics;
-	private Render render;
-
-	public Graphics3D() {}
-
-	public final synchronized void bind(Graphics graphics) {
-		if (graphics == null) {
-			throw new NullPointerException("Argument 'Graphics' is NULL");
+	private final void checkTargetIsValid() throws IllegalStateException {
+		if (this.mGraphics == null) {
+			throw new IllegalStateException("No target is bound");
 		}
-		if (render != null) {
+	}
+
+	public Graphics3D() {
+	}
+
+	public final synchronized void bind(Graphics graphics) throws IllegalStateException, NullPointerException {
+		if (mIsBound) {
 			throw new IllegalStateException("Target already bound");
 		}
-		render = Render.getRender();
-		render.bind(graphics);
-		this.graphics = graphics;
+		this.mGraphics = graphics;
+		mIsBound = true;
+	}
+
+	public final synchronized void release(Graphics graphics) throws IllegalArgumentException, NullPointerException {
+		if (graphics != this.mGraphics) {
+			throw new IllegalArgumentException("Unknown target");
+		} else if (graphics == this.mGraphics && mIsBound) {
+			this.mGraphics = null;
+			mIsBound = false;
+		}
+	}
+
+	public final void renderPrimitives(Texture texture, int x, int y, FigureLayout layout, Effect3D effect, int command, int numPrimitives, int[] vertexCoords, int[] normals, int[] textureCoords, int[] colors) {
+		if (layout == null || effect == null) {
+			throw new NullPointerException();
+		} else if (vertexCoords == null || normals == null || textureCoords == null || colors == null) {
+			throw new NullPointerException();
+		} else if (command < 0) {
+			throw new IllegalArgumentException();
+		} else if (numPrimitives <= 0 || numPrimitives >= 256) {
+			throw new IllegalArgumentException();
+		}
+	}
+
+	public final void drawCommandList(Texture[] textures, int x, int y, FigureLayout layout, Effect3D effect, int[] commandList) {
+		if (layout == null || effect == null) {
+			throw new NullPointerException();
+		}
+		if (textures != null) {
+			for (Texture texture : textures) {
+				if (texture == null) {
+					throw new NullPointerException();
+				}
+			}
+		}
+		if (commandList == null) {
+			throw new NullPointerException();
+		}
+	}
+
+	public final void drawCommandList(Texture texture, int x, int y, FigureLayout layout, Effect3D effect, int[] commandList) {
+		Texture[] ta = null;
+		if (texture != null) {
+			ta = new Texture[]{texture};
+		}
+		drawCommandList(ta, x, y, layout, effect, commandList);
+	}
+
+	public final void renderFigure(Figure figure, int x, int y, FigureLayout layout, Effect3D effect) throws IllegalStateException {
+		checkTargetIsValid();
+		if (figure == null || layout == null || effect == null) {
+			throw new NullPointerException();
+		}
+	}
+
+	public final void drawFigure(Figure figure, int x, int y, FigureLayout layout, Effect3D effect) throws IllegalStateException {
+		checkTargetIsValid();
+		if (figure == null || layout == null || effect == null) {
+			throw new NullPointerException();
+		}
+	}
+
+	public final void flush() throws IllegalStateException {
+		checkTargetIsValid();
 	}
 
 	public final void dispose() {
-		// TODO: 27.01.2020 not implemented method
 	}
 
-	public final void drawCommandList(Texture[] textures,
-									  int x, int y,
-									  FigureLayout layout,
-									  Effect3D effect,
-									  int[] commandList) {
-		checkTargetIsValid();
-		if (layout == null || effect == null || commandList == null) {
-			throw new NullPointerException();
-		}
-
-		RenderProxy.getViewTrans(layout.affine, render.getViewMatrix(), 0);
-		RenderProxy.setTextureArray(render, textures);
-		RenderProxy.setAffineArray(render, layout.affineArray);
-		render.setCenter(layout.centerX + x, layout.centerY + y);
-		RenderProxy.setProjection(render, layout);
-		RenderProxy.setEffects(render, effect);
-
-		render.drawCommandList(commandList);
-	}
-
-	public final void drawCommandList(Texture texture,
-									  int x,
-									  int y,
-									  FigureLayout layout,
-									  Effect3D effect,
-									  int[] commandList) {
-		checkTargetIsValid();
-		if (layout == null || effect == null || commandList == null) {
-			throw new NullPointerException();
-		}
-
-		RenderProxy.getViewTrans(layout.affine, render.getViewMatrix(), 0);
-		RenderProxy.setAffineArray(render, layout.affineArray);
-		render.setCenter(layout.centerX + x, layout.centerY + y);
-		RenderProxy.setProjection(render, layout);
-		RenderProxy.setEffects(render, effect);
-		if (texture != null) {
-			render.setTexture(texture.impl);
-		}
-
-		render.drawCommandList(commandList);
-	}
-
-	public final void drawFigure(Figure figure, int x, int y, FigureLayout layout, Effect3D effect) {
-		checkTargetIsValid();
-		if (figure == null || layout == null || effect == null) {
-			throw new NullPointerException();
-		}
-
-		RenderProxy.getViewTrans(layout.affine, render.getViewMatrix(), 0);
-		render.setCenter(layout.centerX + x, layout.centerY + y);
-		RenderProxy.setProjection(render, layout);
-		RenderProxy.setEffects(render, effect);
-		Texture texture = figure.getTexture();
-		if (texture != null) {
-			render.setTexture(texture.impl);
-		}
-
-		render.drawFigure(figure.impl);
-	}
-
-	public final void flush() {
-		checkTargetIsValid();
-		render.flush();
-	}
-
-	public final synchronized void release(Graphics graphics) {
-		if (graphics == null) {
-			throw new NullPointerException("Argument 'Graphics' is NULL");
-		}
-		if (graphics != this.graphics) {
-			if (render != null) {
-				render.reset();
-			}
-			render = null;
-			return;
-		}
-		if (render != null) {
-			render.release();
-		}
-		render = null;
-	}
-
-	public final void renderFigure(Figure figure, int x, int y,
-								   FigureLayout layout, Effect3D effect) {
-		checkTargetIsValid();
-		if (figure == null || layout == null || effect == null) {
-			throw new NullPointerException();
-		}
-
-		RenderProxy.getViewTrans(layout.affine, render.getViewMatrix(), 0);
-		RenderProxy.setTextureArray(render, figure.textures);
-		render.setCenter(layout.centerX + x, layout.centerY + y);
-		RenderProxy.setProjection(render, layout);
-		RenderProxy.setEffects(render, effect);
-
-		render.postFigure(figure.impl);
-	}
-
-	public final void renderPrimitives(Texture texture, int x, int y,
-									   FigureLayout layout, Effect3D effect,
-									   int command, int numPrimitives, int[] vertexCoords,
-									   int[] normals, int[] textureCoords, int[] colors) {
-		checkTargetIsValid();
-		if (layout == null || effect == null || vertexCoords == null || normals == null
-				|| textureCoords == null || colors == null) {
-			throw new NullPointerException();
-		}
-		if (command < 0 || numPrimitives <= 0 || numPrimitives >= 256) {
-			throw new IllegalArgumentException();
-		}
-
-		RenderProxy.getViewTrans(layout.affine, render.getViewMatrix(), 0);
-		render.setCenter(layout.centerX + x, layout.centerY + y);
-		RenderProxy.setProjection(render, layout);
-		RenderProxy.setEffects(render, effect);
-		if (texture != null) {
-			render.setTexture(texture.impl);
-		}
-
-		render.postPrimitives(command | numPrimitives << 16, vertexCoords, 0, normals, 0, textureCoords, 0, colors, 0);
-	}
-
-	private void checkTargetIsValid() throws IllegalStateException {
-		if (render == null) {
-			throw new IllegalStateException("No target is bound");
-		}
+	static {
+		ViewHandler.postEvent(
+				() -> Toast.makeText(ContextHolder.getActivity(),
+						"Mascot Capsule 3D!",
+						Toast.LENGTH_LONG).show());
 	}
 }

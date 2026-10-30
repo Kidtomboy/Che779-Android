@@ -1,61 +1,50 @@
 /*
- *  Copyright 2018 Nikita Shakarun
- *  Copyright 2021 Yury Kharchenko
+ * Copyright 2018 Nikita Shakarun
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.siemens.mp.io;
 
-import android.annotation.SuppressLint;
-import android.util.SparseArray;
-
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.microedition.shell.AppClassLoader;
 import javax.microedition.util.ContextHolder;
 
 import ru.playsoftware.j2meloader.util.FileUtils;
 
 public class File {
+
 	public static final int INSIDE_STORAGE_PATH = 1;
 	public static final int OUTSIDE_STORAGE_PATH = 0;
 	public static final String STORAGE_DRIVE = "a:";
 
-	private static final SparseArray<RandomAccessFile> OPENED_FILES = new SparseArray<>();
-	private static int lastDescriptor;
-
-	public static String buildPath(String fileName) {
-		// FIXME: 12.07.2021
-		return fileName;
-	}
-
-	public static int checkFileName(String fileName) {
-		return fileName.indexOf(':') == -1 ? INSIDE_STORAGE_PATH : OUTSIDE_STORAGE_PATH;
-	}
+	private final static String ROOT_SEP_STR = ":/";
+	private FileInputStream inputStream;
+	private FileOutputStream outputStream;
 
 	public int close(int fileDescriptor) throws IOException {
-		RandomAccessFile file = OPENED_FILES.get(fileDescriptor);
-		if (file != null) {
-			OPENED_FILES.delete(fileDescriptor);
-			file.close();
-			return fileDescriptor;
+		if (inputStream != null && outputStream != null) {
+			inputStream.close();
+			outputStream.close();
+			return 1;
+		} else {
+			return -1;
 		}
-		return -1;
 	}
 
 	public static int copy(String source, String dest) throws IOException {
@@ -64,38 +53,45 @@ public class File {
 	}
 
 	public static int debugWrite(String fileName, String infoString) throws IOException {
-		try (FileWriter writer = new FileWriter(getFile(fileName), true)) {
-			writer.write(infoString);
-		}
+		FileWriter writer = new FileWriter(getFile(fileName), true);
+		writer.append(infoString).close();
 		return 1;
 	}
 
 	public static int delete(String fileName) {
-		return getFile(fileName).delete() ? 1 : -1;
+		if (getFile(fileName).delete()) {
+			return 1;
+		} else {
+			return -1;
+		}
 	}
 
 	public static int exists(String fileName) throws IOException {
-		return getFile(fileName).exists() ? 1 : -1;
+		java.io.File file = getFile(fileName);
+		if (file.exists()) {
+			return 1;
+		} else {
+			return -1;
+		}
 	}
 
 	public static boolean getIsHidden(String fileName) throws IOException {
-		return getFile(fileName).isHidden();
+		java.io.File file = getFile(fileName);
+		return file.isHidden();
 	}
 
 	public static long getLastModified(String fileName) throws IOException {
-		return getFile(fileName).lastModified();
+		java.io.File file = getFile(fileName);
+		return file.lastModified();
 	}
 
 	public static boolean isDirectory(String fileName) throws IOException {
-		return getFile(fileName).isDirectory();
+		java.io.File file = getFile(fileName);
+		return file.isDirectory();
 	}
 
 	public int length(int fileDescriptor) throws IOException {
-		RandomAccessFile file = OPENED_FILES.get(fileDescriptor);
-		if (file == null) {
-			return -1;
-		}
-		return (int) file.length();
+		return inputStream.available();
 	}
 
 	public static String[] list(String pathName) throws IOException {
@@ -103,72 +99,60 @@ public class File {
 	}
 
 	public static String[] list(String pathName, boolean includeHidden) throws IOException {
-		FilenameFilter filter = includeHidden ? null : (dir, name) -> name.charAt(0) != '.';
-		String[] files = getFile(pathName).list(filter);
+		java.io.File[] files = getFile(pathName).listFiles();
 		if (files == null) {
 			return new String[0];
 		}
 		Arrays.sort(files);
-		return files;
+		ArrayList<String> list = new ArrayList<>();
+		for (java.io.File file : files) {
+			if (!includeHidden || !file.isHidden()) {
+				list.add(file.getName());
+			}
+		}
+		return list.toArray(new String[0]);
 	}
 
 	public int open(String fileName) throws IOException {
 		java.io.File file = getFile(fileName);
-		RandomAccessFile raf = new RandomAccessFile(file, "rw");
-		int fd = ++lastDescriptor;
-		OPENED_FILES.append(fd, raf);
-		return fd;
+		if (!file.exists()) {
+			file.createNewFile();
+		}
+		inputStream = new FileInputStream(file);
+		outputStream = new FileOutputStream(file);
+		return 1;
 	}
 
 	public int read(int fileDescriptor, byte[] buf, int offset, int numBytes) throws IOException {
-		RandomAccessFile file = OPENED_FILES.get(fileDescriptor);
-		if (file == null) {
-			return -1;
-		}
-		return file.read(buf, offset, numBytes);
+		return inputStream.read(buf, offset, numBytes);
 	}
 
 	public static int rename(String source, String dest) {
-		return getFile(source).renameTo(getFile(dest)) ? 1 : -1;
+		if (getFile(source).renameTo(getFile(dest))) {
+			return 1;
+		} else {
+			return -1;
+		}
 	}
 
 	public int seek(int fileDescriptor, int seekpos) throws IOException {
-		RandomAccessFile file = OPENED_FILES.get(fileDescriptor);
-		if (file == null) {
-			return -1;
-		}
-		file.seek(seekpos);
-		return (int) file.getFilePointer();
+		return (int) inputStream.skip(seekpos);
 	}
 
-	@SuppressLint("UsableSpace")
 	public static int spaceAvailable() throws IOException {
-		return (int) new java.io.File(AppClassLoader.getDataDir()).getUsableSpace();
-	}
-
-	public static void truncate(int fileDescriptor, int size) throws IOException {
-		RandomAccessFile file = OPENED_FILES.get(fileDescriptor);
-		if (file == null) {
-			return;
-		}
-		file.setLength(size);
+		return 1024;
 	}
 
 	public int write(int fileDescriptor, byte[] buf, int offset, int numBytes) throws IOException {
-		RandomAccessFile file = OPENED_FILES.get(fileDescriptor);
-		if (file == null) {
-			return -1;
-		}
-		file.write(buf, offset, numBytes);
-		return numBytes;
+		outputStream.write(buf, offset, numBytes);
+		return 1;
 	}
 
 	private static java.io.File getFile(String fileName) {
-		int colon = fileName.indexOf(':');
-		if (colon == -1) {
+		if (!fileName.contains(":/")) {
 			return ContextHolder.getFileByName(fileName);
 		} else {
-			fileName = fileName.substring(colon + 2);
+			fileName = fileName.replace(OUTSIDE_STORAGE_PATH + ROOT_SEP_STR, "");
 			return new java.io.File(System.getProperty("user.home"), fileName);
 		}
 	}

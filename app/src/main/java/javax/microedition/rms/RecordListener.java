@@ -21,7 +21,9 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  */
+
 package javax.microedition.rms;
+
 
 public interface RecordListener {
 
@@ -30,4 +32,6 @@ public interface RecordListener {
 	void recordChanged(RecordStore recordStore, int recordId);
 
 	void recordDeleted(RecordStore recordStore, int recordId);
+
 }
+

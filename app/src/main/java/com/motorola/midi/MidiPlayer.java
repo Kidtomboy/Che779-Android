@@ -31,8 +31,7 @@ public class MidiPlayer {
 	private static Player player;
 
 	public static void play(String filename, int mode) {
-		int slash = filename.indexOf('/');
-		String location = slash != -1 ? filename.substring(slash) : filename;
+		String location = filename.substring(filename.indexOf('/'));
 		if (player != null) {
 			player.close();
 		}

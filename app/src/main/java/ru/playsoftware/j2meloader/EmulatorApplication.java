@@ -19,28 +19,28 @@ package ru.playsoftware.j2meloader;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Build;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.preference.PreferenceManager;
-
 import org.acra.ACRA;
-import org.acra.config.CoreConfigurationBuilder;
-import org.acra.config.DialogConfigurationBuilder;
+import org.acra.annotation.AcraCore;
+import org.acra.annotation.AcraDialog;
 
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-import ru.playsoftware.j2meloader.util.Constants;
-import ru.playsoftware.j2meloader.util.FileUtils;
+import javax.microedition.util.ContextHolder;
 
+import ru.playsoftware.j2meloader.crashes.AppCenterSenderFactory;
+
+@AcraCore(buildConfigClass = BuildConfig.class, reportSenderFactoryClasses = {AppCenterSenderFactory.class},
+		parallel = false)
+@AcraDialog(resTitle = R.string.crash_dialog_title, resText = R.string.crash_dialog_message,
+		resPositiveButtonText = R.string.report_crash, resNegativeButtonText = android.R.string.cancel,
+		resTheme = R.style.Theme_AppCompat_Dialog)
 public class EmulatorApplication extends Application {
 	private static final String[] VALID_SIGNATURES = {
 			"78EF7758720A9902F731ED706F72C669C39B765C", // GPlay
@@ -48,54 +48,18 @@ public class EmulatorApplication extends Application {
 			"FA8AA497194847D5715BAA62C6344D75A936EBA6" // Private
 	};
 
-	private static EmulatorApplication instance;
-
-	private final SharedPreferences.OnSharedPreferenceChangeListener themeListener = (sharedPreferences, key) -> {
-		if (key.equals(Constants.PREF_THEME)) {
-			setNightMode(sharedPreferences.getString(Constants.PREF_THEME, null));
-		}
-	};
-	public static EmulatorApplication getInstance() {
-		return instance;
-	}
-
 	@SuppressWarnings("ConstantConditions")
 	@Override
 	protected void attachBaseContext(Context base) {
 		super.attachBaseContext(base);
-		instance = this;
-
-		ACRA.init(this, new CoreConfigurationBuilder()
-				.withBuildConfigClass(BuildConfig.class)
-				.withParallel(false)
-				.withSendReportsInDevMode(false)
-				.withPluginConfigurations(new DialogConfigurationBuilder()
-						.withTitle(getString(R.string.crash_dialog_title))
-						.withText(getString(R.string.crash_dialog_message))
-						.withPositiveButtonText(getString(R.string.report_crash))
-						.withResTheme(androidx.appcompat.R.style.Theme_AppCompat_DayNight_Dialog)
-						.withEnabled(true)
-						.build()
-				));
-		boolean enabled = isSignatureValid() && !BuildConfig.FLAVOR.equals("dev");
-		ACRA.getErrorReporter().setEnabled(enabled);
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		sp.registerOnSharedPreferenceChangeListener(themeListener);
-		setNightMode(sp.getString(Constants.PREF_THEME, null));
-		AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
-	}
-
-	@NonNull
-	public static String getProcessName() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-			return Application.getProcessName();
-		} else {
-			return FileUtils.getText("/proc/self/cmdline").trim();
-		}
+		ContextHolder.setApplication(this);
+		if (isSignatureValid() && !BuildConfig.FLAVOR.equals("dev")) ACRA.init(this);
+		ACRA.getErrorReporter().putCustomData("Flavor", BuildConfig.FLAVOR);
 	}
 
 	@SuppressLint("PackageManagerGetSignatures")
 	private boolean isSignatureValid() {
+		boolean result = true;
 		try {
 			Signature[] signatures;
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -107,44 +71,34 @@ public class EmulatorApplication extends Application {
 						.getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);
 				signatures = info.signatures;
 			}
-			MessageDigest md = MessageDigest.getInstance("SHA-1");
 			for (Signature signature : signatures) {
+				MessageDigest md = MessageDigest.getInstance("SHA-1");
 				md.update(signature.toByteArray());
-				String sha1 = String.format("%032X", new BigInteger(1, md.digest()));
-				if (Arrays.asList(VALID_SIGNATURES).contains(sha1)) {
-					return true;
+				String sha1 = bytesToHex(md.digest());
+				if (!Arrays.asList(VALID_SIGNATURES).contains(sha1)) {
+					result = false;
 				}
 			}
 		} catch (PackageManager.NameNotFoundException e) {
 			e.printStackTrace();
+			result = false;
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
+			result = false;
 		}
-		return false;
+		return result;
 	}
 
-	void setNightMode(String theme) {
-		if (theme == null) {
-			theme = getString(R.string.pref_theme_default);
+	private String bytesToHex(byte[] bytes) {
+		final char[] hexArray = {'0', '1', '2', '3', '4', '5', '6', '7', '8',
+				'9', 'A', 'B', 'C', 'D', 'E', 'F'};
+		char[] hexChars = new char[bytes.length * 2];
+		int v;
+		for (int i = 0; i < bytes.length; i++) {
+			v = bytes[i] & 0xFF;
+			hexChars[i * 2] = hexArray[v >>> 4];
+			hexChars[i * 2 + 1] = hexArray[v & 0x0F];
 		}
-		switch (theme) {
-			case "light":
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-				break;
-			case "dark":
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-				break;
-			case "auto-battery":
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY);
-				break;
-			case "auto-time":
-				//noinspection deprecation
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_AUTO_TIME);
-				break;
-			default:
-			case "system":
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-				break;
-		}
+		return new String(hexChars);
 	}
 }

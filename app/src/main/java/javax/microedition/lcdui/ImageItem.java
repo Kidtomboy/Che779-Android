@@ -1,6 +1,5 @@
 /*
  * Copyright 2012 Kulikov Dmitriy
- * Copyright 2021 Arman Jussupgaliyev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +16,16 @@
 
 package javax.microedition.lcdui;
 
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.URLSpan;
 import android.view.View;
 import android.widget.ImageView;
 
-import androidx.appcompat.widget.AppCompatImageView;
-
-import javax.microedition.lcdui.event.SimpleEvent;
 import javax.microedition.util.ContextHolder;
 
 public class ImageItem extends Item {
 	private Image image;
-	private ImageView imageView;
+	private ImageView imgview;
 	private String altText;
-	private final int appearanceMode;
-
-	private final SimpleEvent msgUpdateImageView = new SimpleEvent() {
-		@Override
-		public void process() {
-			updateImageView();
-		}
-	};
+	private int appearanceMode;
 
 	public ImageItem(String label, Image image, int layout, String altText) {
 		this(label, image, layout, altText, PLAIN);
@@ -56,8 +42,8 @@ public class ImageItem extends Item {
 	public void setImage(Image img) {
 		image = img;
 
-		if (imageView != null) {
-			ViewHandler.postEvent(msgUpdateImageView);
+		if (imgview != null) {
+			updateImageView();
 		}
 	}
 
@@ -81,31 +67,31 @@ public class ImageItem extends Item {
 		if (image != null) {
 			int virtualWidth = Displayable.getVirtualWidth();
 			int displayWidth = ContextHolder.getDisplayWidth();
-			float mul = (float) displayWidth / virtualWidth;
-			int width = (int) (image.getWidth() * mul);
-			int height = (int) (image.getHeight() * mul);
-			imageView.setMinimumWidth(width);
-			imageView.setMinimumHeight(height);
-			imageView.setImageBitmap(image.getBitmap());
+			float mult = (float) displayWidth / virtualWidth;
+			int width = (int) (image.getWidth() * mult);
+			int height = (int) (image.getHeight() * mult);
+			imgview.setMinimumWidth(width);
+			imgview.setMinimumHeight(height);
+			imgview.setImageBitmap(image.getBitmap());
 		} else {
-			imageView.setImageBitmap(null);
+			imgview.setImageBitmap(null);
 		}
 	}
 
 	@Override
 	public View getItemContentView() {
-		if (imageView == null) {
-			imageView = new AppCompatImageView(ContextHolder.getActivity());
-			imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-			imageView.setOnClickListener(v -> fireDefaultCommandAction());
+		if (imgview == null) {
+			imgview = new ImageView(getOwnerForm().getParentActivity());
+			imgview.setScaleType(ImageView.ScaleType.FIT_XY);
+			imgview.setOnClickListener(v -> fireDefaultCommandAction());
 			updateImageView();
 		}
 
-		return imageView;
+		return imgview;
 	}
 
 	@Override
 	public void clearItemContentView() {
-		imageView = null;
+		imgview = null;
 	}
 }

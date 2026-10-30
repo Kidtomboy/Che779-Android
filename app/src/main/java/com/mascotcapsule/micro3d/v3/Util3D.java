@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Yury Kharchenko
+ * Copyright 2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,16 @@
 
 package com.mascotcapsule.micro3d.v3;
 
-import ru.woesss.j2me.micro3d.MathUtil;
-
-@SuppressWarnings({"unused", "WeakerAccess"})
 public class Util3D {
-
-	public static int sqrt(int p) {
-		return MathUtil.uSqrt(p);
+	public static final int sqrt(int p) {
+		return (int) Math.sqrt(p);
 	}
 
-	public static int sin(int p) {
-		return MathUtil.iSin(p);
+	public static final int sin(int p) {
+		return (int) Math.sin(p);
 	}
 
-	public static int cos(int p) {
-		return MathUtil.iCos(p);
+	public static final int cos(int p) {
+		return (int) Math.cos(p);
 	}
 }

@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.TypedValue;
@@ -16,16 +15,14 @@ import javax.microedition.util.ContextHolder;
 public class CanvasWrapper {
 	private static final float TEXT_SIZE_KEYBOARD = 22;
 
+	private final float textAscent;
+	private final float textCenterOffset;
 	private final Paint drawPaint = new Paint();
 	private final Paint fillPaint = new Paint();
 	private final Paint textPaint = new Paint();
 	private final Paint imgPaint = new Paint();
-	private final float textSize;
-
-	private float textAscent;
-	private float textCenterOffset;
-	private float textHeight;
 	private Canvas canvas;
+	private float textHeight;
 
 	public CanvasWrapper(boolean filterBitmap) {
 		imgPaint.setFilterBitmap(filterBitmap);
@@ -36,8 +33,8 @@ public class CanvasWrapper {
 		Resources res = ContextHolder.getAppContext().getResources();
 		Typeface typeface = Typeface.createFromAsset(res.getAssets(), "Roboto-Regular.ttf");
 		textPaint.setTypeface(typeface);
-		textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, TEXT_SIZE_KEYBOARD, res.getDisplayMetrics());
-		textPaint.setTextSize(textSize);
+		float size = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, TEXT_SIZE_KEYBOARD, res.getDisplayMetrics());
+		textPaint.setTextSize(size);
 		textPaint.setTextAlign(Paint.Align.CENTER);
 		textAscent = textPaint.ascent();
 		float descent = textPaint.descent();
@@ -79,11 +76,6 @@ public class CanvasWrapper {
 		canvas.drawBitmap(bitmap, image.getBounds(), dst, imgPaint);
 	}
 
-	public void drawBitmap(Bitmap bitmap, Rect src, RectF dst) {
-		bitmap.prepareToDraw();
-		canvas.drawBitmap(bitmap, src, dst, imgPaint);
-	}
-
 	public void fillRect(RectF rect) {
 		canvas.drawRect(rect, fillPaint);
 	}
@@ -108,21 +100,5 @@ public class CanvasWrapper {
 		float width = textPaint.measureText(text);
 		canvas.drawRect(0, 0, width, textHeight, fillPaint);
 		canvas.drawText(text, width / 2.0f, -textAscent, textPaint);
-	}
-
-	public float getTextHeight() {
-		return textHeight;
-	}
-
-	public void setTextAlign(Paint.Align align) {
-		textPaint.setTextAlign(align);
-	}
-
-	public void setTextScale(float scale) {
-		textPaint.setTextSize(textSize * scale);
-		textAscent = textPaint.ascent();
-		float descent = textPaint.descent();
-		textHeight = descent - textAscent;
-		textCenterOffset = ((descent + textAscent) / 2);
 	}
 }

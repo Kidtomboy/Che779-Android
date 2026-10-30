@@ -16,50 +16,20 @@
 
 package com.motorola.graphics.j3d;
 
-public class Light {
-	Vector3D direction;
-	int dirIntensity;
-	int ambIntensity;
-
+public class Light extends com.mascotcapsule.micro3d.v3.Light {
 	public Light() {
-		direction = new Vector3D(0, 0, 4096);
-		this.dirIntensity = 4096;
-		this.ambIntensity = 0;
+		super();
 	}
 
 	public Light(Vector3D dir, int dirIntensity, int ambIntensity) {
-		if (dir == null) {
-			throw new NullPointerException();
-		}
-		direction = dir;
-		this.dirIntensity = dirIntensity;
-		this.ambIntensity = ambIntensity;
-	}
-
-	public int getAmbIntensity() {
-		return ambIntensity;
+		super(dir, dirIntensity, ambIntensity);
 	}
 
 	public Vector3D getDirection() {
-		return direction;
+		return (Vector3D) super.getDirection();
 	}
 
-	public int getDirIntensity() {
-		return dirIntensity;
-	}
-
-	public void setAmbIntensity(int ambIntensity) {
-		this.ambIntensity = ambIntensity;
-	}
-
-	public void setDirection(Vector3D dir) {
-		if (dir == null) {
-			throw new NullPointerException();
-		}
-		direction = dir;
-	}
-
-	public void setDirIntensity(int dirIntensity) {
-		this.dirIntensity = dirIntensity;
+	public void setDirection(Vector3D vector3D) {
+		super.setDirection(vector3D);
 	}
 }

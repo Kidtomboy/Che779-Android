@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Yury Kharchenko
+ * Copyright 2019 Kharchenko Yury
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ public class FpsCounter extends TimerTask implements Layer {
 	private final View view;
 	private String prevFrameCount = "0";
 	private int totalFrameCount;
-	private final Timer timer;
+	private Timer mTimer;
 
 	public FpsCounter(View view) {
 		this.view = view;
-		timer = new Timer("FpsCounter", true);
-		timer.scheduleAtFixedRate(this, 0, 1000);
+		mTimer = new Timer("FpsCounter", true);
+		mTimer.scheduleAtFixedRate(this, 0, 1000);
 	}
 
 	public void run() {
@@ -52,6 +52,6 @@ public class FpsCounter extends TimerTask implements Layer {
 	}
 
 	public void stop() {
-		timer.cancel();
+		mTimer.cancel();
 	}
 }

@@ -1,16 +1,13 @@
 <?xml version= "1.0" encoding = "utf-8" ?>
-<ru.playsoftware.j2meloader.applist.AppItemLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:background="?android:selectableItemBackground"
-    android:padding="10dp"
-    android:focusable="true"
-    tools:showIn="@layout/fragment_apps_list">
+    android:padding="10dp">
 
+    <!--  ListRow Left sided Thumbnail image -->
     <ImageView
         android:id="@+id/list_image"
         android:layout_width="36dip"
@@ -26,6 +23,7 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
+        <!-- Title Of App-->
         <TextView
             android:id="@+id/list_title"
             android:layout_width="wrap_content"
@@ -33,7 +31,7 @@
             android:textAppearance="?android:textAppearance"
             android:textSize="15sp"
             android:textStyle="bold"
-            tools:text="Example MIDlet Name" />
+            tools:text="MIDlet Name" />
 
         <!-- Author and version app -->
         <LinearLayout
@@ -45,7 +43,6 @@
 
             <TextView
                 android:id="@+id/list_author"
-                style="@style/TextViewVendor"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -53,7 +50,7 @@
                 android:textAppearance="?android:textAppearance"
                 android:textColor="?textColorSecondary"
                 android:textSize="12sp"
-                tools:text="Example MIDlet Vendor Ltd." />
+                tools:text="Vendor: MIDlet Vendor ltd." />
 
             <TextView
                 android:id="@+id/list_version"
@@ -62,8 +59,8 @@
                 android:textAppearance="?android:textAppearance"
                 android:textColor="?textColorSecondary"
                 android:textSize="12sp"
-                tools:text="1.0.254" />
+                tools:text="Version: 1.0" />
         </LinearLayout>
     </LinearLayout>
 
-</ru.playsoftware.j2meloader.applist.AppItemLayout>
+</LinearLayout>

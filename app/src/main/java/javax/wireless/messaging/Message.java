@@ -28,9 +28,10 @@ import java.util.Date;
 
 public interface Message {
 
-	String getAddress();
+	public String getAddress();
 
-	Date getTimestamp();
+	public Date getTimestamp();
 
-	void setAddress(String address);
+	public void setAddress(String address);
+
 }

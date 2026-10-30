@@ -1,7 +1,5 @@
 /*
- * Copyright 2018-2019 Nikita Shakarun
- * Copyright 2020-2023 Yury Kharchenko
- * Copyright 2022 Arman Jussupgaliyev
+ * Copyright 2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,47 +16,34 @@
 
 package ru.playsoftware.j2meloader.config;
 
-import static ru.playsoftware.j2meloader.util.Constants.ACTION_EDIT;
-import static ru.playsoftware.j2meloader.util.Constants.KEY_MIDLET_NAME;
-import static ru.playsoftware.j2meloader.util.Constants.PREF_EMULATOR_DIR;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 
-import androidx.annotation.Keep;
-import androidx.preference.PreferenceManager;
-
 import java.io.File;
 
 import javax.microedition.shell.MicroActivity;
 import javax.microedition.util.ContextHolder;
 
-import ru.playsoftware.j2meloader.BuildConfig;
+import androidx.preference.PreferenceManager;
 import ru.playsoftware.j2meloader.R;
 
-import static ru.playsoftware.j2meloader.util.Constants.*;
-
-import ru.playsoftware.j2meloader.util.FileUtils;
-
 public class Config {
-	public static final String DEX_OPT_CACHE_DIR = "dex_opt";
-	public static final String FS_DIR = "/fs/";
-	public static final String MIDLET_CONFIG_FILE = "/config.json";
-	public static final String MIDLET_CONFIGS_DIR = "/configs/";
-	public static final String MIDLET_DATA_DIR = "/data/";
-	public static final String MIDLET_DEX_FILE = "/converted.dex";
-	public static final String MIDLET_ICON_FILE = "/icon.png";
-	public static final String MIDLET_KEY_LAYOUT_FILE = "/VirtualKeyboardLayout";
-	public static final String MIDLET_MANIFEST_FILE = MIDLET_DEX_FILE + ".conf";
-	public static final String MIDLET_RES_DIR = "/res";
-	public static final String MIDLET_RES_FILE = "/res.jar";
+
+	private static final String MIDLET_DIR = "/converted/";
 	public static final String SCREENSHOTS_DIR;
-	public static final String SHADERS_DIR = "/shaders/";
-	public static final String SOUNDBANKS_DIR = "/soundbanks/";
-	public static final String APPS_DB_NAME = "/J2ME-apps.db";
+	public static final String DEX_OPT_CACHE_DIR = "dex_opt";
+	public static final String MIDLET_RES_DIR = "/res";
+	public static final String MIDLET_DEX_FILE = "/converted.dex";
+	public static final String MIDLET_RES_FILE = "/res.jar";
+	public static final String MIDLET_ICON_FILE = "/icon.png";
+	public static final String MIDLET_MANIFEST_FILE = MIDLET_DEX_FILE + ".conf";
+	public static final String MIDLET_KEY_LAYOUT_FILE = "/VirtualKeyboardLayout";
+	public static final String MIDLET_CONFIG_FILE = "/config.json";
+	public static final String PREF_EMULATOR_DIR = "emulator_dir";
+	public static final String PREF_DEFAULT_PROFILE = "default_profile";
 
 	private static String emulatorDir;
 	private static String dataDir;
@@ -66,36 +51,12 @@ public class Config {
 	private static String profilesDir;
 	private static String appDir;
 
-	@Keep
-	private static final SharedPreferences.OnSharedPreferenceChangeListener sPrefListener =
-			(sharedPreferences, key) -> {
-				if (PREF_EMULATOR_DIR.equals(key)) {
-					initDirs(sharedPreferences.getString(key, emulatorDir));
-				}
-			};
+	private static SharedPreferences.OnSharedPreferenceChangeListener sPrefListener = (sharedPreferences, key) -> {
+		if (key.equals(PREF_EMULATOR_DIR)) {
+			initDirs(sharedPreferences.getString(key, emulatorDir));
+		}
+	};
 
-	static {
-		Context context = ContextHolder.getAppContext();
-		String appName = "J2ME-Che779";
-		if (!BuildConfig.FULL_EMULATOR) {
-			appName = context.getString(R.string.app_name);
-		}
-		SCREENSHOTS_DIR = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-				+ "/" + appName;
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-		String path = FileUtils.isExternalStorageLegacy() ?
-				preferences.getString(PREF_EMULATOR_DIR, null) :
-				context.getExternalFilesDir(null).getPath();
-		// Bo duong dan cu nam trong Android/data (ban truoc khi chuyen sang J2ME-Che779)
-		if (path != null && path.contains("/Android/data/") && FileUtils.isExternalStorageLegacy()) {
-			path = null;
-		}
-		if (path == null) {
-			path = Environment.getExternalStorageDirectory() + "/" + appName;
-		}
-		initDirs(path);
-		preferences.registerOnSharedPreferenceChangeListener(sPrefListener);
-	}
 
 	public static String getEmulatorDir() {
 		return emulatorDir;
@@ -118,62 +79,41 @@ public class Config {
 	}
 
 	public static String getShadersDir() {
-		return emulatorDir + SHADERS_DIR;
-	}
-
-	public static String getSoundbanksDir() {
-		return emulatorDir + SOUNDBANKS_DIR;
-	}
-
-	public static String getFsInternalDir() {
-		return emulatorDir + FS_DIR + "c/";
-	}
-
-	public static String getFsExternalDir() {
-		if (FileUtils.isExternalStorageLegacy()) {
-			return Environment.getExternalStorageDirectory().getPath() + "/";
-		} else {
-			return emulatorDir + FS_DIR + "e/";
-		}
+		return emulatorDir + "/shaders/";
 	}
 
 	public static void startApp(Context context, String name, String path, boolean showSettings) {
-		startApp(context, name, path, showSettings, null);
-	}
-
-	public static void startApp(Context context, String name, String path, boolean showSettings, String arguments) {
-		File appDir = new File(path);
-		String workDir = appDir.getParentFile().getParent();
-		File file = new File(workDir + Config.MIDLET_CONFIGS_DIR + appDir.getName());
+		File file = new File(Config.configsDir, path);
 		if (showSettings || !file.exists()) {
-			Intent intent = new Intent(ACTION_EDIT, Uri.parse(path),
+			Intent intent = new Intent(ConfigActivity.ACTION_EDIT, Uri.parse(path),
 					context, ConfigActivity.class);
-			intent.putExtra(KEY_MIDLET_NAME, name);
-			intent.putExtra(KEY_START_ARGUMENTS, arguments);
+			intent.putExtra(ConfigActivity.MIDLET_NAME_KEY, name);
 			context.startActivity(intent);
 		} else {
-			int slot = ru.playsoftware.j2meloader.slots.Slots.pickSlot(context);
-			if (slot < 0) {
-				android.widget.Toast.makeText(context, "Đã mở đủ " + ru.playsoftware.j2meloader.slots.Slots.COUNT
-						+ " tab. Hãy đóng bớt một tab.", android.widget.Toast.LENGTH_LONG).show();
-				return;
-			}
 			Intent intent = new Intent(Intent.ACTION_DEFAULT, Uri.parse(path),
-					context, ru.playsoftware.j2meloader.slots.Slots.activityClass(slot));
-			if (!(context instanceof android.app.Activity)) {
-				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			}
-			intent.putExtra(KEY_MIDLET_NAME, name);
-			intent.putExtra(KEY_START_ARGUMENTS, arguments);
+					context, MicroActivity.class);
+			intent.putExtra(ConfigActivity.MIDLET_NAME_KEY, name);
 			context.startActivity(intent);
 		}
 	}
 
 	private static void initDirs(String path) {
 		emulatorDir = path;
-		dataDir = emulatorDir + MIDLET_DATA_DIR;
-		configsDir = emulatorDir + MIDLET_CONFIGS_DIR;
+		dataDir = emulatorDir + "/data/";
+		configsDir = emulatorDir + "/configs/";
 		profilesDir = emulatorDir + "/templates/";
-		appDir = emulatorDir + "/converted/";
+		appDir = emulatorDir + MIDLET_DIR;
+	}
+
+	static {
+		Context context = ContextHolder.getAppContext();
+		String appName = "J2ME-Loader";
+		SCREENSHOTS_DIR = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+				+ "/" + appName;
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+		String path = preferences.getString(PREF_EMULATOR_DIR, null);
+		if (path == null) path = Environment.getExternalStorageDirectory() + "/" + appName;
+		initDirs(path);
+		preferences.registerOnSharedPreferenceChangeListener(sPrefListener);
 	}
 }

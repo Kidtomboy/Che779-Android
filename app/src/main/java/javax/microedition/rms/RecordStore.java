@@ -22,17 +22,21 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  */
+
 package javax.microedition.rms;
 
 import javax.microedition.rms.impl.AndroidRecordStoreManager;
 
 public class RecordStore {
+
 	public static final int AUTHMODE_PRIVATE = 0;
+
 	public static final int AUTHMODE_ANY = 1;
 
-	private static final AndroidRecordStoreManager recordStoreManager = new AndroidRecordStoreManager();
+	private static AndroidRecordStoreManager recordStoreManager = new AndroidRecordStoreManager();
 
-	public static void deleteRecordStore(String recordStoreName) throws RecordStoreException {
+	public static void deleteRecordStore(String recordStoreName)
+			throws RecordStoreException, RecordStoreNotFoundException {
 		recordStoreManager.deleteRecordStore(recordStoreName);
 	}
 
@@ -41,98 +45,133 @@ public class RecordStore {
 	}
 
 	public static RecordStore openRecordStore(String recordStoreName, boolean createIfNecessary)
-			throws RecordStoreException {
+			throws RecordStoreException, RecordStoreFullException, RecordStoreNotFoundException {
 		return recordStoreManager.openRecordStore(recordStoreName, createIfNecessary);
 	}
 
-	public static RecordStore openRecordStore(String recordStoreName, boolean createIfNecessary,
-											  int authmode, boolean writable)
-			throws RecordStoreException {
+	public static RecordStore openRecordStore(String recordStoreName, boolean createIfNecessary, int authmode, boolean writable)
+			throws RecordStoreException, RecordStoreFullException, RecordStoreNotFoundException {
 		// TODO Not yet implemented
 		return openRecordStore(recordStoreName, createIfNecessary);
 	}
 
-	public static RecordStore openRecordStore(String recordStoreName,
-											  String vendorName,
-											  String suiteName)
-			throws RecordStoreException {
+	public static RecordStore openRecordStore(String recordStoreName, String vendorName, String suiteName)
+			throws RecordStoreException, RecordStoreNotFoundException {
 		// TODO Not yet implemented
 		return openRecordStore(recordStoreName, false);
 	}
 
-	public void closeRecordStore() throws RecordStoreException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public void closeRecordStore()
+			throws RecordStoreNotOpenException, RecordStoreException {
+		// Must be overriden
 	}
 
-	public String getName() throws RecordStoreNotOpenException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public String getName()
+			throws RecordStoreNotOpenException {
+		// Must be overriden
+
+		return null;
 	}
 
-	public int getVersion() throws RecordStoreNotOpenException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public int getVersion()
+			throws RecordStoreNotOpenException {
+		// Must be overriden
+
+		return -1;
 	}
 
-	public int getNumRecords() throws RecordStoreNotOpenException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public int getNumRecords()
+			throws RecordStoreNotOpenException {
+		// Must be overriden
+
+		return -1;
 	}
 
-	public int getSize() throws RecordStoreNotOpenException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public int getSize()
+			throws RecordStoreNotOpenException {
+		// Must be overriden
+
+		return -1;
 	}
 
-	public int getSizeAvailable() throws RecordStoreNotOpenException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public int getSizeAvailable()
+			throws RecordStoreNotOpenException {
+		// Must be overriden
+
+		return -1;
 	}
 
-	public long getLastModified() throws RecordStoreNotOpenException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public long getLastModified()
+			throws RecordStoreNotOpenException {
+		// Must be overriden
+
+		return -1;
 	}
 
 	public void addRecordListener(RecordListener listener) {
-		throw new UnsupportedOperationException("Not implemented method");
+		// Must be overriden
 	}
 
 	public void removeRecordListener(RecordListener listener) {
-		throw new UnsupportedOperationException("Not implemented method");
+		// Must be overriden
 	}
 
-	public int getNextRecordID() throws RecordStoreException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public int getNextRecordID()
+			throws RecordStoreNotOpenException, RecordStoreException {
+		// Must be overriden
+
+		return -1;
 	}
 
-	public int addRecord(byte[] data, int offset, int numBytes) throws RecordStoreException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public int addRecord(byte[] data, int offset, int numBytes)
+			throws RecordStoreNotOpenException, RecordStoreException, RecordStoreFullException {
+		// Must be overriden
+
+		return -1;
 	}
 
-	public void deleteRecord(int recordId) throws RecordStoreException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public void deleteRecord(int recordId)
+			throws RecordStoreNotOpenException, InvalidRecordIDException, RecordStoreException {
+		// Must be overriden
 	}
 
-	public int getRecordSize(int recordId) throws RecordStoreException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public int getRecordSize(int recordId)
+			throws RecordStoreNotOpenException, InvalidRecordIDException, RecordStoreException {
+		// Must be overriden
+
+		return -1;
 	}
 
-	public int getRecord(int recordId, byte[] buffer, int offset) throws RecordStoreException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public int getRecord(int recordId, byte[] buffer, int offset)
+			throws RecordStoreNotOpenException, InvalidRecordIDException, RecordStoreException {
+		// Must be overriden
+
+		return -1;
 	}
 
-	public byte[] getRecord(int recordId) throws RecordStoreException {
-		throw new UnsupportedOperationException("Not implemented method");
+	public byte[] getRecord(int recordId)
+			throws RecordStoreNotOpenException, InvalidRecordIDException, RecordStoreException {
+		// Must be overriden
+
+		return null;
 	}
 
-	public void setMode(int authmode, boolean writable) throws RecordStoreException {
+	public void setMode(int authmode, boolean writable)
+			throws RecordStoreException {
 		// TODO Not yet implemented
 	}
 
 	public void setRecord(int recordId, byte[] newData, int offset, int numBytes)
-			throws RecordStoreException {
-		throw new UnsupportedOperationException("Not implemented method");
+			throws RecordStoreNotOpenException, InvalidRecordIDException, RecordStoreException, RecordStoreFullException {
+		// Must be overriden
 	}
 
-	public RecordEnumeration enumerateRecords(RecordFilter filter,
-											  RecordComparator comparator,
-											  boolean keepUpdated)
+	public RecordEnumeration enumerateRecords(RecordFilter filter, RecordComparator comparator, boolean keepUpdated)
 			throws RecordStoreNotOpenException {
-		throw new UnsupportedOperationException("Not implemented method");
+		// Must be overriden
+
+		return null;
 	}
+
 }
+

@@ -1,4 +1,4 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// Che779 Emulator - nen: J2ME Loader 1.6.7 (Apache-2.0) + chinh sua cua Hung Hero v10 + y tuong NST.
 plugins {
     id 'com.android.application' version '9.4.1' apply false
     id 'com.android.library' version '9.4.1' apply false
@@ -9,8 +9,8 @@ tasks.register('clean', Delete) {
 }
 
 ext {
-    COMPILE_SDK = 37
+    COMPILE_SDK = 34
     MIN_SDK = 21
     TARGET_SDK = 29
-    NDK_VERSION = '29.0.14206865'
+    NDK_VERSION = '25.1.8937393'
 }

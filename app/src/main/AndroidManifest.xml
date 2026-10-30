@@ -1,74 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:installLocation="auto">
-
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.REORDER_TASKS" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+   
+    android:installLocation="auto" >
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
-        android:usesPermissionFlags="neverForLocation"
-        tools:targetApi="s" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
 
-    <uses-sdk tools:overrideLibrary="com.google.oboe,com.arthenica.ffmpegkit,androidx.*" />
+    <uses-sdk tools:overrideLibrary="com.arthenica.mobileffmpeg"/>
 
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
     <uses-feature android:name="android.hardware.location" android:required="false" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-
     <application
         android:name=".EmulatorApplication"
         android:allowBackup="false"
         android:appCategory="game"
-        android:hasFragileUserData="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:enableOnBackInvokedCallback="false"
-        android:preserveLegacyExternalStorage="true"
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        tools:targetApi="33"
-        tools:ignore="RtlEnabled">
+        tools:targetApi="o">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
-            android:exported="true"
-            android:launchMode="singleTask">
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:mimeType="application/java" />
                 <data android:mimeType="application/java-archive" />
-                <data android:mimeType="application/x-java-archive" />
                 <data android:mimeType="text/vnd.sun.j2me.app-descriptor" />
                 <data android:host="*" />
                 <data android:scheme="file" />
@@ -76,266 +49,65 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:mimeType="text/vnd.sun.j2me.app-descriptor" />
-                <data android:host="*" />
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:mimeType="*/*" />
-                <data android:host="*" />
+                <data android:host="*"/>
                 <data android:scheme="file" />
                 <data android:scheme="content" />
-                <data android:pathPattern=".*.jar" />
-                <data android:pathPattern=".*..*.jar" />
-                <data android:pathPattern=".*..*..*.jar" />
-                <data android:pathPattern=".*..*..*..*.jar" />
-                <data android:pathPattern=".*.JAR" />
-                <data android:pathPattern=".*..*.JAR" />
-                <data android:pathPattern=".*..*..*.JAR" />
-                <data android:pathPattern=".*..*..*..*.JAR" />
-                <data android:pathPattern=".*.jad" />
-                <data android:pathPattern=".*..*.jad" />
-                <data android:pathPattern=".*..*..*.jad" />
-                <data android:pathPattern=".*..*..*..*.jad" />
-                <data android:pathPattern=".*.JAD" />
-                <data android:pathPattern=".*..*.JAD" />
-                <data android:pathPattern=".*..*..*.JAD" />
-                <data android:pathPattern=".*..*..*..*.JAD" />
-                <data android:pathPattern=".*.kjx" />
-                <data android:pathPattern=".*..*.kjx" />
-                <data android:pathPattern=".*..*..*.kjx" />
-                <data android:pathPattern=".*..*..*..*.kjx" />
-                <data android:pathPattern=".*.KJX" />
-                <data android:pathPattern=".*..*.KJX" />
-                <data android:pathPattern=".*..*..*.KJX" />
-                <data android:pathPattern=".*..*..*..*.KJX" />
+                <data android:pathPattern=".*\\.jar" />
+                <data android:pathPattern=".*\\..*\\.jar" />
+                <data android:pathPattern=".*\\..*\\..*\\.jar" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.jar" />
+                <data android:pathPattern=".*\\.JAR" />
+                <data android:pathPattern=".*\\..*\\.JAR" />
+                <data android:pathPattern=".*\\..*\\..*\\.JAR" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.JAR" />
+                <data android:pathPattern=".*\\.jad" />
+                <data android:pathPattern=".*\\..*\\.jad" />
+                <data android:pathPattern=".*\\..*\\..*\\.jad" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.jad" />
+                <data android:pathPattern=".*\\.JAD" />
+                <data android:pathPattern=".*\\..*\\.JAD" />
+                <data android:pathPattern=".*\\..*\\..*\\.JAD" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.JAD" />
             </intent-filter>
         </activity>
         <activity
             android:name=".config.ConfigActivity"
             android:exported="true"
-            android:windowSoftInputMode="stateHidden|adjustPan" />
-        <activity
-            android:name=".config.ConfigFilesActivity"
-            android:exported="false" />
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name="javax.microedition.shell.MicroActivity"
-            android:exported="false"
-            android:label="Tab 1"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab1"
             android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":midlet" />
+            android:process=":midlet"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
         <activity
-            android:name="javax.microedition.shell.MicroActivity1"
-            android:exported="false"
-            android:label="Tab 2"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab2"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot1" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity2"
-            android:exported="false"
-            android:label="Tab 3"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab3"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot2" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity3"
-            android:exported="false"
-            android:label="Tab 4"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab4"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot3" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity4"
-            android:exported="false"
-            android:label="Tab 5"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab5"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot4" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity5"
-            android:exported="false"
-            android:label="Tab 6"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab6"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot5" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity6"
-            android:exported="false"
-            android:label="Tab 7"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab7"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot6" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity7"
-            android:exported="false"
-            android:label="Tab 8"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab8"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot7" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity8"
-            android:exported="false"
-            android:label="Tab 9"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab9"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot8" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity9"
-            android:exported="false"
-            android:label="Tab 10"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab10"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot9" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity10"
-            android:exported="false"
-            android:label="Tab 11"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab11"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot10" />
-        <activity
-            android:name="javax.microedition.shell.MicroActivity11"
-            android:exported="false"
-            android:label="Tab 12"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.che779.emulator.tab12"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
-            android:process=":slot11" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService0"
-            android:exported="false"
-            android:process=":midlet" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService1"
-            android:exported="false"
-            android:process=":slot1" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService2"
-            android:exported="false"
-            android:process=":slot2" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService3"
-            android:exported="false"
-            android:process=":slot3" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService4"
-            android:exported="false"
-            android:process=":slot4" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService5"
-            android:exported="false"
-            android:process=":slot5" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService6"
-            android:exported="false"
-            android:process=":slot6" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService7"
-            android:exported="false"
-            android:process=":slot7" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService8"
-            android:exported="false"
-            android:process=":slot8" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService9"
-            android:exported="false"
-            android:process=":slot9" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService10"
-            android:exported="false"
-            android:process=":slot10" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.SlotService11"
-            android:exported="false"
-            android:process=":slot11" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.BubbleService"
-            android:exported="false" />
-        <service
-            android:name="ru.playsoftware.j2meloader.slots.TreoTileService"
-            android:exported="true"
-            android:icon="@drawable/ic_che779_notif"
-            android:label="Che779 Treo"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-        <activity android:name=".settings.SettingsActivity"
-            android:exported="false">
+            android:name=".settings.SettingsActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
+        </intent-filter>
         </activity>
         <activity
-            android:name=".settings.BackupActivity"
-            android:exported="false" />
-        <activity android:name=".settings.KeyMapperActivity" android:exported="false" />
+            android:name=".donations.DonationsActivity" />
+        <activity
+            android:name=".settings.KeyMapperActivity"
+            android:process=":midlet" />
         <activity
             android:name=".filepicker.FilteredFilePickerActivity"
-            android:exported="false"
             android:theme="@style/FilePickerTheme" />
-        <activity android:name=".config.ProfilesActivity" android:exported="false" />
+        <activity android:name=".config.ProfilesActivity" />
+
         <provider
-            android:name=".storage.DocumentProvider"
-            android:authorities="${applicationId}.documentProvider"
-            android:enabled="@bool/isAtLeastQ"
-            android:exported="true"
-            android:grantUriPermissions="true"
-            android:permission="android.permission.MANAGE_DOCUMENTS">
-            <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
-            </intent-filter>
-        </provider>
-        <receiver
-            android:name="com.nokia.mid.ui.NotificationBroadcastReceiver"
-            android:process=":midlet" />
-        <service
-            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
-            android:enabled="false"
-            android:exported="false">
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
-                android:name="autoStoreLocales"
-                android:value="true" />
-        </service>
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/nnf_provider_paths" />
+        </provider>
     </application>
 
 </manifest>

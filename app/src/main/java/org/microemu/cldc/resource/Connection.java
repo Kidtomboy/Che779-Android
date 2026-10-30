@@ -34,17 +34,10 @@ public class Connection implements InputConnection, ConnectionImplementation {
 	private String path;
 
 	private InputStream stream;
-	private boolean isSiemensProtocol;
 
 	@Override
 	public javax.microedition.io.Connection openConnection(String name, int mode, boolean timeouts) throws IOException {
-		if (name.startsWith(PROTOCOL)) {
-			path = name.substring(PROTOCOL.length());
-			isSiemensProtocol = false;
-		} else {
-			path = name.substring(PROTOCOL2.length());
-			isSiemensProtocol = true;
-		}
+		path = name.replace(PROTOCOL, "").replace(PROTOCOL2, "");
 		return this;
 	}
 
@@ -57,11 +50,7 @@ public class Connection implements InputConnection, ConnectionImplementation {
 		if (stream == null) {
 			throw new IOException("File not found");
 		}
-		if (isSiemensProtocol) {
-			return new ResourceInputStream(stream);
-		} else {
-			return stream;
-		}
+		return new ResourceInputStream(stream);
 	}
 
 	@Override
@@ -71,15 +60,13 @@ public class Connection implements InputConnection, ConnectionImplementation {
 
 	@Override
 	public void close() throws IOException {
-		if (stream != null) {
-			stream.close();
-			stream = null;
-		}
+		stream.close();
+		stream = null;
 	}
 
-	static class ResourceInputStream extends InputStream {
+	class ResourceInputStream extends InputStream {
 
-		private final InputStream inputStream;
+		private InputStream inputStream;
 
 		ResourceInputStream(InputStream inputStream) {
 			this.inputStream = inputStream;
@@ -93,9 +80,7 @@ public class Connection implements InputConnection, ConnectionImplementation {
 		@Override
 		public int read(byte[] b, int off, int len) throws IOException {
 			int result = inputStream.read(b, off, len);
-			if (result == -1) {
-				result = 0;
-			}
+			if (result == -1) result = 0;
 			return result;
 		}
 	}

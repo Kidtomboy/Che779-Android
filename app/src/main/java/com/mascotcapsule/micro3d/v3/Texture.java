@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Yury Kharchenko
+ * Copyright 2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,31 @@
 package com.mascotcapsule.micro3d.v3;
 
 import java.io.IOException;
+import java.io.InputStream;
 
-import ru.woesss.j2me.micro3d.TextureImpl;
+import javax.microedition.util.ContextHolder;
 
-@SuppressWarnings("unused, WeakerAccess")
 public class Texture {
-	public final TextureImpl impl;
-	final boolean isForModel;
+	protected boolean isModel;
 
 	public Texture(byte[] b, boolean isForModel) {
-		this.isForModel = isForModel;
-		impl = new TextureImpl(b);
+		if (b == null) {
+			throw new RuntimeException();
+		}
+		this.isModel = isForModel;
 	}
 
 	public Texture(String name, boolean isForModel) throws IOException {
-		this.isForModel = isForModel;
-		impl = new TextureImpl(name);
+		if (name == null) {
+			throw new NullPointerException();
+		}
+		InputStream is = ContextHolder.getResourceAsStream(null, name);
+		if (is == null) {
+			throw new IOException();
+		}
+		this.isModel = isForModel;
 	}
 
 	public final void dispose() {
-		impl.dispose();
 	}
 }

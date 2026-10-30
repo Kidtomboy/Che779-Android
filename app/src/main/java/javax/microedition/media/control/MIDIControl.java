@@ -17,31 +17,30 @@
 package javax.microedition.media.control;
 
 import javax.microedition.media.Control;
-import javax.microedition.media.MediaException;
 
 public interface MIDIControl extends Control {
-	int CONTROL_CHANGE = 176;
-	int NOTE_ON = 144;
+	public static final int CONTROL_CHANGE = 176;
+	public static final int NOTE_ON = 144;
 
-	int[] getBankList(boolean custom) throws MediaException;
+	public int[] getBankList(boolean custom);
 
-	int getChannelVolume(int channel);
+	public int getChannelVolume(int channel);
 
-	String getKeyName(int bank, int prog, int key) throws MediaException;
+	public String getKeyName(int bank, int prog, int key);
 
-	int[] getProgram(int channel) throws MediaException;
+	public int[] getProgram(int channel);
 
-	int[] getProgramList(int bank) throws MediaException;
+	public int[] getProgramList(int bank);
 
-	String getProgramName(int bank, int prog) throws MediaException;
+	public String getProgramName(int bank, int prog);
 
-	boolean isBankQuerySupported();
+	public boolean isBankQuerySupported();
 
-	int longMidiEvent(byte[] data, int offset, int length);
+	public int longMidiEvent(byte[] data, int offset, int length);
 
-	void setChannelVolume(int channel, int volume);
+	public void setChannelVolume(int channel, int volume);
 
-	void setProgram(int channel, int bank, int program);
+	public void setProgram(int channel, int bank, int program);
 
-	void shortMidiEvent(int type, int data1, int data2);
+	public void shortMidiEvent(int type, int data1, int data2);
 }

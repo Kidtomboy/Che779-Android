@@ -20,10 +20,8 @@ package javax.microedition.lcdui;
 import android.content.Context;
 import android.view.View;
 
-import javax.microedition.util.ContextHolder;
-
 public class TextBox extends Screen {
-	private final TextFieldImpl textField;
+	private TextFieldImpl textField;
 
 	public TextBox(String title, String text, int maxSize, int constraints) {
 		textField = new TextFieldImpl();
@@ -90,7 +88,7 @@ public class TextBox extends Screen {
 
 	@Override
 	public View getScreenView() {
-		Context context = ContextHolder.getActivity();
+		Context context = getParentActivity();
 		return textField.getView(context, null);
 	}
 

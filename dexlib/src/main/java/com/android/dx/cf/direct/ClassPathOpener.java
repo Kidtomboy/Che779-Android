@@ -18,17 +18,16 @@ package com.android.dx.cf.direct;
 
 import com.android.dex.util.FileUtils;
 
-import ru.woesss.util.zip.ZipFile;
-import net.lingala.zip4j.model.FileHeader;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * Opens all the class files found in a class path element. Path elements
@@ -147,11 +146,10 @@ public class ClassPathOpener {
             }
 
             String path = file.getPath();
-            String lowerName = file.getName().toLowerCase();
 
-            if (lowerName.endsWith(".zip") ||
-                    lowerName.endsWith(".jar") ||
-                    lowerName.endsWith(".apk")) {
+            if (path.endsWith(".zip") ||
+                    path.endsWith(".jar") ||
+                    path.endsWith(".apk")) {
                 return processArchive(file);
             }
             if (filter.accept(path)) {
@@ -175,11 +173,6 @@ public class ClassPathOpener {
      * @return {@code compareTo()}-style result
      */
     private static int compareClassNames(String a, String b) {
-        if (a == null) {
-            return b == null ? 0 : -1;
-        } else if (b == null) {
-            return 1;
-        }
         // Ensure inner classes sort second
         a = a.replace('$','0');
         b = b.replace('$','0');
@@ -236,52 +229,52 @@ public class ClassPathOpener {
      * @throws IOException on i/o problem
      */
     private boolean processArchive(File file) throws IOException {
-        boolean any;
-        try (ZipFile zip = new ZipFile(file)) {
+        ZipFile zip = new ZipFile(file);
 
-            List<FileHeader> entriesList = zip.getFileHeaders();
+        ArrayList<? extends java.util.zip.ZipEntry> entriesList
+                = Collections.list(zip.entries());
 
-            if (sort) {
-                Collections.sort(entriesList, new Comparator<FileHeader>() {
-                    @Override
-                    public int compare(FileHeader a, FileHeader b) {
-                        return compareClassNames(a.getFileName(), b.getFileName());
-                    }
-                });
-            }
-
-            consumer.onProcessArchiveStart(file);
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream(40000);
-            byte[] buf = new byte[20000];
-            any = false;
-
-            for (FileHeader one : entriesList) {
-                final boolean isDirectory = one.isDirectory();
-
-                String path = one.getFileName();
-                if (filter.accept(path)) {
-                    final byte[] bytes;
-                    if (!isDirectory) {
-                        InputStream in = zip.getInputStream(one);
-
-                        baos.reset();
-                        int read;
-                        while ((read = in.read(buf)) != -1) {
-                            baos.write(buf, 0, read);
-                        }
-
-                        in.close();
-                        bytes = baos.toByteArray();
-                    } else {
-                        bytes = new byte[0];
-                    }
-
-                    any |= consumer.processFileBytes(path, one.getLastModifiedTimeEpoch(), bytes);
-                }
-            }
-
+        if (sort) {
+            Collections.sort(entriesList, new Comparator<ZipEntry>() {
+               @Override
+			   public int compare (ZipEntry a, ZipEntry b) {
+                   return compareClassNames(a.getName(), b.getName());
+               }
+            });
         }
+
+        consumer.onProcessArchiveStart(file);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(40000);
+        byte[] buf = new byte[20000];
+        boolean any = false;
+
+        for (ZipEntry one : entriesList) {
+            final boolean isDirectory = one.isDirectory();
+
+            String path = one.getName();
+            if (filter.accept(path)) {
+                final byte[] bytes;
+                if (!isDirectory) {
+                    InputStream in = zip.getInputStream(one);
+
+                    baos.reset();
+                    int read;
+                    while ((read = in.read(buf)) != -1) {
+                        baos.write(buf, 0, read);
+                    }
+
+                    in.close();
+                    bytes = baos.toByteArray();
+                } else {
+                    bytes = new byte[0];
+                }
+
+                any |= consumer.processFileBytes(path, one.getTime(), bytes);
+            }
+        }
+
+        zip.close();
         return any;
     }
 }

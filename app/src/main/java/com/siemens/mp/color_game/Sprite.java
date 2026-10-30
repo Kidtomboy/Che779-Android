@@ -207,7 +207,7 @@ public class Sprite extends Layer {
 
 	}
 
-	public void setFrameSequence(int[] sequence) {
+	public void setFrameSequence(int sequence[]) {
 
 		if (sequence == null) {
 			// revert to the default sequence
@@ -481,16 +481,6 @@ public class Sprite extends Layer {
 		}
 		return false;
 
-	}
-
-	public void setCollisionRectangle(int x, int y, int width, int height) {
-		if (width < 0 || height < 0) {
-			throw new IllegalArgumentException();
-		}
-		this.collisionRectX = x;
-		this.collisionRectY = y;
-		this.collisionRectWidth = width;
-		this.collisionRectHeight = height;
 	}
 
 	private void initializeFrames(Image image, int fWidth,

@@ -16,6 +16,8 @@
 
 package com.samsung.util;
 
+import javax.microedition.lcdui.Display;
+
 public class LCDLight {
 	public static void on(int duration) {
 	}

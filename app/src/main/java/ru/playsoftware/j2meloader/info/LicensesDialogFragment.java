@@ -20,11 +20,8 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.webkit.WebView;
 
-import javax.microedition.util.ContextHolder;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.DialogFragment;
 import ru.playsoftware.j2meloader.R;
 
@@ -32,12 +29,12 @@ public class LicensesDialogFragment extends DialogFragment {
 	@NonNull
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		String string = ContextHolder.getAssetAsString("licenses.html");
-		CharSequence message = HtmlCompat.fromHtml(string, HtmlCompat.FROM_HTML_MODE_LEGACY);
-		AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+		WebView view = new WebView(getActivity());
+		view.loadUrl("file:///android_asset/licenses.html");
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle(R.string.licenses)
 				.setIcon(R.mipmap.ic_launcher)
-				.setMessage(message);
+				.setView(view);
 		return builder.create();
 	}
 }

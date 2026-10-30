@@ -24,21 +24,18 @@
 
 package com.nokia.mid.ui;
 
+import javax.microedition.lcdui.Display;
 import javax.microedition.util.ContextHolder;
 
 public class DeviceControl {
-	public static int getUserInactivityTime() {
-		return 0;
-	}
-
-	public static void resetUserInactivityTime() {
-	}
 
 	public static void startVibra(int frequency, long duration) {
 		if (frequency < 0 || frequency > 100) {
 			throw new IllegalArgumentException();
 		}
-		ContextHolder.vibrate(duration < 0 ? 0 : (int) duration);
+		if (!ContextHolder.vibrate((int) duration)) {
+			throw new IllegalStateException();
+		}
 	}
 
 	public static void stopVibra() {

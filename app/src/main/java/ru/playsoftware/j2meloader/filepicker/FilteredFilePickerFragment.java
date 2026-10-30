@@ -16,15 +16,10 @@
 
 package ru.playsoftware.j2meloader.filepicker;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Environment;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
-
-import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.nononsenseapps.filepicker.FilePickerFragment;
 import com.nononsenseapps.filepicker.LogicHandler;
@@ -34,92 +29,83 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import ru.playsoftware.j2meloader.R;
 
 public class FilteredFilePickerFragment extends FilePickerFragment {
-	private static final List<String> extList = Arrays.asList(".jad", ".jar", ".kjx");
+	private static final List<String> extList = Arrays.asList(".jad", ".jar");
 	private static final Stack<File> history = new Stack<>();
-
-	@Override
-	public void onAttach(Context context) {
-		super.onAttach(context);
-		if (history.empty()) {
-			history.push(Environment.getExternalStorageDirectory());
-		}
-		requireActivity().getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-			@Override
-			public void handleOnBackPressed() {
-				if (isBackTop()) {
-					setEnabled(false);
-					requireActivity().onBackPressed();
-				} else {
-					goBack();
-				}
-			}
-		});
-	}
+	private static File currentDir = Environment.getExternalStorageDirectory();
 
 	@NonNull
 	@Override
 	public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-		LayoutInflater li = getLayoutInflater();
+		View v;
 		switch (viewType) {
 			case LogicHandler.VIEWTYPE_HEADER:
-				return new HeaderViewHolder(li.inflate(R.layout.listitem_dir, parent, false));
+				v = LayoutInflater.from(getActivity()).inflate(R.layout.listitem_dir,
+						parent, false);
+				return new HeaderViewHolder(v);
 			case LogicHandler.VIEWTYPE_CHECKABLE:
-				return new CheckableViewHolder(li.inflate(R.layout.listitem_checkable, parent, false));
+				v = LayoutInflater.from(getActivity()).inflate(R.layout.listitem_checkable,
+						parent, false);
+				return new CheckableViewHolder(v);
 			case LogicHandler.VIEWTYPE_DIR:
 			default:
-				return new DirViewHolder(li.inflate(R.layout.listitem_dir, parent, false));
+				v = LayoutInflater.from(getActivity()).inflate(R.layout.listitem_dir,
+						parent, false);
+				return new DirViewHolder(v);
 		}
 	}
 
 	private String getExtension(@NonNull File file) {
-		String name = file.getName();
-		int i = name.lastIndexOf('.');
+		String path = file.getPath();
+		int i = path.lastIndexOf(".");
 		if (i < 0) {
 			return null;
 		} else {
-			return name.substring(i).toLowerCase();
+			return path.substring(i);
 		}
 	}
 
 	@Override
 	protected boolean isItemVisible(final File file) {
-		if (isDir(file)) {
-			return true;
+		if (!isDir(file) && (mode == MODE_FILE || mode == MODE_FILE_AND_DIR)) {
+			String ext = getExtension(file);
+			return ext != null && extList.contains(ext.toLowerCase());
 		}
-		if (mode != MODE_FILE && mode != MODE_FILE_AND_DIR) {
-			return false;
-		}
-		String ext = getExtension(file);
-		return ext != null && extList.contains(ext);
+		return isDir(file);
 	}
 
 	@Override
 	public void goToDir(@NonNull File file) {
-		history.add(mCurrentPath);
+		history.add(currentDir);
+		currentDir = file;
 		super.goToDir(file);
 	}
 
-	private boolean isBackTop() {
+	public static String getLastPath() {
+		return currentDir.getPath();
+	}
+
+	public boolean isBackTop() {
 		return history.empty();
 	}
 
-	private void goBack() {
+	public void goBack() {
 		File last = history.pop();
+		currentDir = last;
 		super.goToDir(last);
 	}
 
 	@Override
 	public void onBindHeaderViewHolder(@NonNull HeaderViewHolder viewHolder) {
-		viewHolder.itemView.setEnabled(!getRoot().equals(mCurrentPath));
-		super.onBindHeaderViewHolder(viewHolder);
-	}
-
-	@NonNull
-	@Override
-	public Uri toUri(@NonNull File file) {
-		return Uri.fromFile(file);
+		if (compareFiles(currentDir, getRoot()) != 0) {
+			viewHolder.itemView.setEnabled(true);
+			super.onBindHeaderViewHolder(viewHolder);
+		} else {
+			viewHolder.itemView.setEnabled(false);
+		}
 	}
 }

@@ -42,7 +42,6 @@ public class ArrayStack<E> {
 			return null;
 		}
 
-		//noinspection unchecked
 		return (E) data[index--];
 	}
 

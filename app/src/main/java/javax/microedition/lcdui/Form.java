@@ -2,7 +2,6 @@
  * Copyright 2012 Kulikov Dmitriy
  * Copyright 2015-2016 Nickolay Savchenko
  * Copyright 2017-2018 Nikita Shakarun
- * Copyright 2020-2023 Yury Kharchenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,16 +27,16 @@ import android.widget.ScrollView;
 
 import java.util.ArrayList;
 
-import javax.microedition.util.ContextHolder;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class Form extends Screen {
 	private static final float BORDER_PADDING = 7;
 
-	private final ArrayList<Item> items = new ArrayList<>();
-	private ItemStateListener listener;
-
 	private ScrollView scrollview;
 	private LinearLayout layout;
+
+	private ArrayList<Item> items = new ArrayList<>();
+	private ItemStateListener listener;
 
 	public Form(String title) {
 		setTitle(title);
@@ -45,22 +44,8 @@ public class Form extends Screen {
 
 	public Form(String title, Item[] elements) {
 		setTitle(title);
-		// null array is correct: create empty Form
-		if (elements == null) {
-			return;
-		}
-		for (int i = 0, elementsLength = elements.length; i < elementsLength; i++) {
-			Item item = elements[i];
-			if (item == null) {
-				throw new NullPointerException("Item at index " + i + " is null");
-			}
-			if (item.hasOwner()) {
-				throw new IllegalStateException("Item at index " + i + " is already owned by another container");
-			}
-		}
 		for (Item item : elements) {
-			items.add(item);
-			item.setOwner(this);
+			append(item);
 		}
 	}
 
@@ -80,78 +65,82 @@ public class Form extends Screen {
 		return append(new ImageItem(null, img, ImageItem.LAYOUT_DEFAULT, null));
 	}
 
-	public int append(Item item) {
-		if (item.hasOwner()) {
+	public int append(final Item item) {
+		if (item.hasOwnerForm()) {
 			throw new IllegalStateException();
 		}
 
 		items.add(item);
-		item.setOwner(this);
-		ViewHandler.postEvent(() -> {
-			LinearLayout layout = this.layout;
-			if (layout != null) {
-				layout.addView(item.getItemView());
+		item.setOwnerForm(this);
+		if (layout != null) {
+			AppCompatActivity a = getParentActivity();
+			if (a != null) {
+				View v = item.getItemView();
+				a.runOnUiThread(() -> layout.addView(v));
 			}
-		});
+		}
 		return items.size() - 1;
 	}
 
-	public void insert(int index, Item item) {
-		if (item.hasOwner()) {
+	public void insert(final int index, final Item item) {
+		if (item.hasOwnerForm()) {
 			throw new IllegalStateException();
 		}
 
 		items.add(index, item);
-		item.setOwner(this);
-		ViewHandler.postEvent(() -> {
-			LinearLayout layout = this.layout;
-			if (layout != null) {
-				layout.addView(item.getItemView(), index);
+		item.setOwnerForm(this);
+		if (layout != null) {
+			AppCompatActivity a = getParentActivity();
+			if (a != null) {
+				View v = item.getItemView();
+				a.runOnUiThread(() -> layout.addView(v, index));
 			}
-		});
+		}
 	}
 
-	public void set(int index, Item item) {
-		if (item.hasOwner()) {
+	public void set(final int index, final Item item) {
+		if (item.hasOwnerForm()) {
 			throw new IllegalStateException();
 		}
 
-		items.set(index, item).setOwner(null);
-		item.setOwner(this);
-		ViewHandler.postEvent(() -> {
-			LinearLayout layout = this.layout;
-			if (layout != null) {
-				View v = item.getItemView();
-				layout.removeViewAt(index);
-				layout.addView(v, index);
+		items.set(index, item).setOwnerForm(null);
+		item.setOwnerForm(this);
+		if (layout != null) {
+			AppCompatActivity a = getParentActivity();
+			if (a != null) {
+				a.runOnUiThread(() -> {
+					View v = item.getItemView();
+					layout.removeViewAt(index);
+					layout.addView(v, index);
+				});
 			}
-		});
+		}
 	}
 
-	public void delete(int index) {
-		items.remove(index).setOwner(null);
+	public void delete(final int index) {
+		items.remove(index).setOwnerForm(null);
 
-		ViewHandler.postEvent(() -> {
-			LinearLayout layout = this.layout;
-			if (layout != null) {
-				layout.removeViewAt(index);
+		if (layout != null) {
+			AppCompatActivity a = getParentActivity();
+			if (a != null) {
+				a.runOnUiThread(() -> layout.removeViewAt(index));
 			}
-		});
+		}
 	}
 
 	public void deleteAll() {
 		for (Item item : items) {
-			item.setOwner(null);
+			item.setOwnerForm(null);
 		}
 
 		items.clear();
 
-		ViewHandler.postEvent(() -> {
-			LinearLayout layout = this.layout;
-			if (layout != null) {
-				layout.removeAllViews();
+		if (layout != null) {
+			AppCompatActivity a = getParentActivity();
+			if (a != null) {
+				a.runOnUiThread(() -> layout.removeAllViews());
 			}
-		});
+		}
 	}
 
 	public void setItemStateListener(ItemStateListener listener) {
@@ -167,7 +156,7 @@ public class Form extends Screen {
 	@Override
 	public View getScreenView() {
 		if (scrollview == null) {
-			Context context = ContextHolder.getActivity();
+			Context context = getParentActivity();
 
 			layout = new LinearLayout(context);
 			layout.setOrientation(LinearLayout.VERTICAL);
@@ -197,11 +186,13 @@ public class Form extends Screen {
 		}
 	}
 
-	public void contextMenuItemSelected(MenuItem menuitem) {
+	public boolean contextMenuItemSelected(MenuItem menuitem) {
 		for (Item item : items) {
 			if (menuitem.getGroupId() == item.hashCode() && item.contextMenuItemSelected(menuitem)) {
-				return;
+				return true;
 			}
 		}
+
+		return false;
 	}
 }

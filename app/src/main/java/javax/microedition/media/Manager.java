@@ -1,7 +1,6 @@
 /*
  * Copyright 2012 Kulikov Dmitriy
- * Copyright 2017-2020 Nikita Shakarun
- * Copyright 2021-2023 Yury Kharchenko
+ * Copyright 2017-2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,44 +22,27 @@ import android.webkit.MimeTypeMap;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.microedition.io.Connector;
 import javax.microedition.media.protocol.DataSource;
 import javax.microedition.media.protocol.SourceStream;
-import javax.microedition.media.tone.ToneManager;
 import javax.microedition.util.ContextHolder;
-
-import ru.woesss.j2me.mmapi.Plugin;
-import ru.woesss.j2me.mmapi.synth.SynthPluginFactory;
 
 public class Manager {
 	public static final String TONE_DEVICE_LOCATOR = "device://tone";
 	public static final String MIDI_DEVICE_LOCATOR = "device://midi";
 
-	private static final String RESOURCE_LOCATOR = "resource://";
 	private static final String FILE_LOCATOR = "file://";
 	private static final String CAPTURE_AUDIO_LOCATOR = "capture://audio";
-	private static final String CAPTURE_VIDEO_LOCATOR = "capture://video";
-	private static final String CAPTURE_IMAGE_LOCATOR = "capture://image";
-	private static final TimeBase DEFAULT_TIMEBASE = () -> System.nanoTime() / 1000L;
-	private static final List<Plugin> PLUGINS = new ArrayList<>();
 
-	public static Player createPlayer(String locator) throws IOException, MediaException {
+	public static Player createPlayer(String locator) throws IOException {
 		if (locator == null) {
 			throw new IllegalArgumentException();
 		}
-		if (MIDI_DEVICE_LOCATOR.equals(locator) || TONE_DEVICE_LOCATOR.equals(locator)) {
-			for (Plugin plugin : PLUGINS) {
-				Player player = plugin.createPlayer(locator);
-				if (player != null) {
-					return player;
-				}
-			}
-			return new MicroPlayer(locator);
-		} else if (locator.startsWith(FILE_LOCATOR) || locator.startsWith(RESOURCE_LOCATOR)) {
+		if (locator.equals(MIDI_DEVICE_LOCATOR)) {
+			return new MidiPlayer();
+		} else if (locator.startsWith(FILE_LOCATOR)) {
 			InputStream stream = Connector.openInputStream(locator);
 			String extension = locator.substring(locator.lastIndexOf('.') + 1);
 			String type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
@@ -68,9 +50,6 @@ public class Manager {
 		} else if (locator.startsWith(CAPTURE_AUDIO_LOCATOR) &&
 				ContextHolder.requestPermission(Manifest.permission.RECORD_AUDIO)) {
 			return new RecordPlayer();
-		} else if ((locator.startsWith(CAPTURE_IMAGE_LOCATOR) || locator.startsWith(CAPTURE_VIDEO_LOCATOR)) &&
-				ContextHolder.requestPermission(Manifest.permission.CAMERA)) {
-			return new CameraPlayer();
 		} else {
 			return new BasePlayer();
 		}
@@ -90,28 +69,19 @@ public class Manager {
 			}
 			SourceStream sourceStream = sourceStreams[0];
 			InputStream stream = new InternalSourceStream(sourceStream);
-			InternalDataSource datasource = new InternalDataSource(stream, type);
-			return new MicroPlayer(datasource);
+			return new MicroPlayer(new InternalDataSource(stream, type));
 		} else {
 			return new BasePlayer();
 		}
 	}
 
-	public static Player createPlayer(final InputStream stream, String type)
-			throws IOException, MediaException {
+	public static Player createPlayer(final InputStream stream, String type) throws IOException {
 		if (stream == null) {
 			throw new IllegalArgumentException();
 		}
-		InternalDataSource datasource = new InternalDataSource(stream, type);
-		for (Plugin plugin : PLUGINS) {
-			Player player = plugin.createPlayer(datasource);
-			if (player != null) {
-				return player;
-			}
-		}
 		String[] supportedTypes = getSupportedContentTypes(null);
 		if (type != null && Arrays.asList(supportedTypes).contains(type.toLowerCase())) {
-			return new MicroPlayer(datasource);
+			return new MicroPlayer(new InternalDataSource(stream, type));
 		} else {
 			return new BasePlayer();
 		}
@@ -120,23 +90,15 @@ public class Manager {
 	public static String[] getSupportedContentTypes(String str) {
 		return new String[]{"audio/wav", "audio/x-wav", "audio/midi", "audio/x-midi",
 				"audio/mpeg", "audio/aac", "audio/amr", "audio/amr-wb", "audio/mp3",
-				"audio/mp4", "audio/mmf", "audio/x-tone-seq"};
+				"audio/mp4", "audio/mmf"};
 	}
 
 	public static String[] getSupportedProtocols(String str) {
-		return new String[]{"device", "file", "http", "resource"};
+		return new String[]{"device", "file", "http"};
 	}
 
-	public static TimeBase getSystemTimeBase() {
-		return DEFAULT_TIMEBASE;
-	}
-
-	public synchronized static void playTone(int note, int duration, int volume)
+	public synchronized static void playTone(int frequency, int time, int volume)
 			throws MediaException {
-		ToneManager.getInstance().playTone(note, duration, volume);
-	}
-
-	static {
-		SynthPluginFactory.loadPlugins(PLUGINS);
+		//TODO method stub
 	}
 }

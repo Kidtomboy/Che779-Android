@@ -26,18 +26,15 @@ public interface Overlay extends Layer {
 	 *
 	 * @param canvas Canvas, which, if necessary, should handle key pressings and pointer movement
 	 */
-	void setTarget(Canvas canvas);
+	public void setTarget(Canvas canvas);
 
 	/**
 	 * Called when resizing real (for example, after rotation) or virtual screens.
 	 *
-	 * @param screen the size of the device real screen
-	 * @param left   left side of the virtual screen that is available to the midlet
-	 * @param top    top side of the virtual screen that is available to the midlet
-	 * @param right  right side of the virtual screen that is available to the midlet
-	 * @param bottom bottom side of the virtual screen that is available to the midlet
+	 * @param screen        the size of the device real screen
+	 * @param virtualScreen the size of the virtual screen that is available to the midlet
 	 */
-	void resize(RectF screen, float left, float top, float right, float bottom);
+	public void resize(RectF screen, RectF virtualScreen);
 
 	/**
 	 * Called when the hardware key is pressed for the first time.
@@ -45,7 +42,7 @@ public interface Overlay extends Layer {
 	 * @param keyCode the code of the pressed key
 	 * @return true, if the pressing is processed here and no further handling is necessary
 	 */
-	boolean keyPressed(int keyCode);
+	public boolean keyPressed(int keyCode);
 
 	/**
 	 * Called when the hardware key is pressed again (2, 3, etc.).
@@ -53,7 +50,7 @@ public interface Overlay extends Layer {
 	 * @param keyCode the code of the pressed key
 	 * @return true, if the pressing is processed here and no further handling is necessary
 	 */
-	boolean keyRepeated(int keyCode);
+	public boolean keyRepeated(int keyCode);
 
 	/**
 	 * Called when the hardware key is released.
@@ -61,7 +58,7 @@ public interface Overlay extends Layer {
 	 * @param keyCode the code of the pressed key
 	 * @return true, if the pressing is processed here and no further handling is necessary
 	 */
-	boolean keyReleased(int keyCode);
+	public boolean keyReleased(int keyCode);
 
 	/**
 	 * Called when the pointer touches the screen.
@@ -72,7 +69,7 @@ public interface Overlay extends Layer {
 	 * @param y       the vertical coordinate of the pointer touch point on the screen
 	 * @return true, if the touch is processed here and no further handling is necessary
 	 */
-	boolean pointerPressed(int pointer, float x, float y);
+	public boolean pointerPressed(int pointer, float x, float y);
 
 	/**
 	 * Called when the pointer moves around the screen.
@@ -83,7 +80,7 @@ public interface Overlay extends Layer {
 	 * @param y       the vertical coordinate of the pointer touch point on the screen
 	 * @return true, if the movement is processed here and no further handling is necessary
 	 */
-	boolean pointerDragged(int pointer, float x, float y);
+	public boolean pointerDragged(int pointer, float x, float y);
 
 	/**
 	 * Called when the pointer is released.
@@ -94,24 +91,17 @@ public interface Overlay extends Layer {
 	 * @param y       the vertical coordinate of the pointer touch point on the screen
 	 * @return true, if the touch is processed here and no further handling is necessary
 	 */
-	boolean pointerReleased(int pointer, float x, float y);
+	public boolean pointerReleased(int pointer, float x, float y);
 
 	/**
 	 * Show overlay.
 	 * Called by the Canvas at the first touch of the screen with a pointer.
 	 */
-	void show();
+	public void show();
 
 	/**
 	 * Hide overlay.
 	 * Called by the Canvas when the last pointer is released from the screen.
 	 */
-	void hide();
-
-
-	/**
-	 * Cancel input events.
-	 * Called when the target has lost focus.
-	 */
-	void cancel();
+	public void hide();
 }

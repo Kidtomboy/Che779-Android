@@ -25,13 +25,10 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.widget.AppCompatTextView;
-
 import java.util.ArrayList;
 
 import javax.microedition.lcdui.event.CommandActionEvent;
 import javax.microedition.lcdui.event.SimpleEvent;
-import javax.microedition.util.ContextHolder;
 
 public abstract class Item implements View.OnCreateContextMenuListener {
 	public static final int PLAIN = 0;
@@ -60,41 +57,33 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 	private static final int LABEL_SHOW = 1;
 	private static final int LABEL_HIDE = 2;
 
-	int width;
-	int height;
 	private LinearLayout layout;
 	private View contentview;
 
 	private String label;
 	private TextView labelview;
 	private int labelmode;
-	int preferredWidth = -1;
-	int preferredHeight = -1;
+	private int preferredWidth, preferredHeight;
 	private int layoutmode;
 
-	private Screen owner;
+	private Form owner;
 
-	final ArrayList<Command> commands = new ArrayList<>();
-	ItemCommandListener listener = null;
+	private ArrayList<Command> commands = new ArrayList<>();
+	private ItemCommandListener listener = null;
 	private Command defaultCommand;
 
-	private final SimpleEvent msgSetContextMenuListener = new SimpleEvent() {
+	private SimpleEvent msgSetContextMenuListener = new SimpleEvent() {
 		@Override
 		public void process() {
-			if (layout == null) {
-				return;
-			}
 			if (listener != null) {
-				labelview.setOnCreateContextMenuListener(Item.this);
 				contentview.setOnCreateContextMenuListener(Item.this);
 			} else {
-				labelview.setLongClickable(false);
 				contentview.setLongClickable(false);
 			}
 		}
 	};
 
-	private final SimpleEvent msgSetLabel = new SimpleEvent() {
+	private SimpleEvent msgSetLabel = new SimpleEvent() {
 		@Override
 		public void process() {
 			labelview.setText(label);
@@ -118,9 +107,6 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 	}
 
 	public void setLabel(String value) {
-		if (owner instanceof Alert) {
-			throw new IllegalStateException("Item is owned by Alert");
-		}
 		if (layout != null) {
 			if (label == null && value != null) {
 				labelmode = LABEL_SHOW;
@@ -140,12 +126,12 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 		return label;
 	}
 
-	public void setOwner(Screen owner) {
-		this.owner = owner;
+	public void setOwnerForm(Form form) {
+		owner = form;
 		clearItemView();
 	}
 
-	public Screen getOwner() {
+	public Form getOwnerForm() {
 		if (owner == null) {
 			throw new IllegalStateException("call setOwnerForm() before calling getOwnerForm()");
 		}
@@ -153,22 +139,17 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 		return owner;
 	}
 
-	public boolean hasOwner() {
+	public boolean hasOwnerForm() {
 		return owner != null;
 	}
 
 	public void notifyStateChanged() {
-		if (owner instanceof Form form) {
-			form.notifyItemStateChanged(this);
-		} else {
-			throw new IllegalStateException("Item is not owned by a Form");
+		if (owner != null) {
+			owner.notifyItemStateChanged(this);
 		}
 	}
 
 	public void setLayout(int value) {
-		if (owner instanceof Alert) {
-			throw new IllegalStateException("Item is owned by Alert");
-		}
 		layoutmode = value;
 	}
 
@@ -183,12 +164,12 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 	 */
 	public View getItemView() {
 		if (layout == null) {
-			Context context = ContextHolder.getActivity();
+			Context context = owner.getParentActivity();
 
 			layout = new LinearLayout(context);
 			layout.setOrientation(LinearLayout.VERTICAL);
 
-			labelview = new AppCompatTextView(context);
+			labelview = new TextView(context);
 			labelview.setTextAppearance(context, android.R.style.TextAppearance_Medium);
 			labelview.setText(label);
 
@@ -199,13 +180,7 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 			contentview = getItemContentView();
 			layout.addView(contentview, getLayoutParams());
 
-			if (listener != null) {
-				labelview.setOnCreateContextMenuListener(Item.this);
-				contentview.setOnCreateContextMenuListener(Item.this);
-			} else {
-				labelview.setLongClickable(false);
-				contentview.setLongClickable(false);
-			}
+			ViewHandler.postEvent(msgSetContextMenuListener);
 		}
 
 		return layout;
@@ -277,8 +252,6 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 	public void addCommand(Command cmd) {
 		if (cmd == null) {
 			throw new NullPointerException();
-		} else if (owner instanceof Alert) {
-			throw new IllegalStateException("Item is owned by Alert");
 		}
 		if (!commands.contains(cmd)) {
 			commands.add(cmd);
@@ -293,9 +266,6 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 	}
 
 	public void setDefaultCommand(Command cmd) {
-		if (owner instanceof Alert) {
-			throw new IllegalStateException("Item is owned by Alert");
-		}
 		defaultCommand = cmd;
 		if (cmd == null) {
 			return;
@@ -305,9 +275,6 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 	}
 
 	public void setItemCommandListener(ItemCommandListener listener) {
-		if (owner instanceof Alert) {
-			throw new IllegalStateException("Item is owned by Alert");
-		}
 		this.listener = listener;
 
 		if (layout != null) {
@@ -316,25 +283,16 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 	}
 
 	public void setPreferredSize(int width, int height) {
-		if (width < -1 || height < -1) {
-			throw new IllegalArgumentException();
-		} else if (owner instanceof Alert) {
-			throw new IllegalStateException("Item is owned by Alert");
-		}
 		preferredWidth = width;
 		preferredHeight = height;
-		// FIXME: 18.11.2023 width and height MUST be computed from content
-		// now we are reproducing the previous logic
-		this.width = width == -1 ? 0 : width;
-		this.height = height == -1 ? 0 : height;
 	}
 
 	public int getPreferredWidth() {
-		return width;
+		return preferredWidth;
 	}
 
 	public int getPreferredHeight() {
-		return height;
+		return preferredHeight;
 	}
 
 	public int getMinimumHeight() {

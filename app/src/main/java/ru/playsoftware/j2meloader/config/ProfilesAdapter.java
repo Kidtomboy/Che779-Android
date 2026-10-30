@@ -33,12 +33,12 @@ public class ProfilesAdapter extends BaseAdapter {
 	private final LayoutInflater layoutInflater;
 	private Profile def;
 
-	ProfilesAdapter(LayoutInflater layoutInflater, ArrayList<Profile> list) {
+	ProfilesAdapter(Context context, ArrayList<Profile> list) {
 		if (list != null) {
 			this.list = list;
 			Collections.sort(list);
 		}
-		this.layoutInflater = layoutInflater;
+		this.layoutInflater = LayoutInflater.from(context);
 	}
 
 	@Override

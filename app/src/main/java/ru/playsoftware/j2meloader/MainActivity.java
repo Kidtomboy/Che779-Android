@@ -20,177 +20,145 @@ package ru.playsoftware.j2meloader;
 import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.ViewConfiguration;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.annotation.Nullable;
-import androidx.activity.result.contract.ActivityResultContracts;
+import java.io.File;
+import java.io.IOException;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
-
-import java.io.File;
-import java.util.Map;
-
-import ru.playsoftware.j2meloader.applist.AppListModel;
 import ru.playsoftware.j2meloader.applist.AppsListFragment;
 import ru.playsoftware.j2meloader.base.BaseActivity;
 import ru.playsoftware.j2meloader.config.Config;
+import ru.playsoftware.j2meloader.settings.SettingsActivity;
 import ru.playsoftware.j2meloader.util.FileUtils;
-import ru.playsoftware.j2meloader.util.PickDirResultContract;
-import ru.woesss.j2me.installer.InstallerDialog;
-
-import static ru.playsoftware.j2meloader.util.Constants.PREF_EMULATOR_DIR;
-import static ru.playsoftware.j2meloader.util.Constants.PREF_STORAGE_WARNING_SHOWN;
-import static ru.playsoftware.j2meloader.util.Constants.PREF_TOOLBAR;
+import ru.playsoftware.j2meloader.util.MigrationUtils;
 
 public class MainActivity extends BaseActivity {
-	private static final String[] STORAGE_PERMISSIONS = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
-	private final ActivityResultLauncher<String[]> permissionsLauncher = registerForActivityResult(
-			new ActivityResultContracts.RequestMultiplePermissions(),
-			this::onPermissionResult);
-	private final ActivityResultLauncher<String> openDirLauncher = registerForActivityResult(
-			new PickDirResultContract(),
-			this::onPickDirResult);
+	public static final String APP_SORT_KEY = "appSort";
+	public static final String APP_PATH_KEY = "appPath";
+	public static final String APP_URI_KEY = "appUri";
 
-	private SharedPreferences preferences;
-	private AppListModel appListModel;
+	private SharedPreferences sp;
+	private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 0;
+	private String emulatorDir;
 
 	@Override
-	public void onCreate(@Nullable Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		if (FileUtils.isExternalStorageLegacy()) {
-			permissionsLauncher.launch(STORAGE_PERMISSIONS);
+		Uri uri = getIntent().getData();
+		if (!isTaskRoot() && uri == null) {
+			finish();
+			return;
 		}
-		appListModel = new ViewModelProvider(this).get(AppListModel.class);
-		if (savedInstanceState == null) {
-			Intent intent = getIntent();
-			Uri uri = null;
-			if ((intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0) {
-				uri = intent.getData();
-			}
-			AppsListFragment fragment = AppsListFragment.newInstance(uri);
-			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.container, fragment).commit();
+		sp = PreferenceManager.getDefaultSharedPreferences(this);
+		if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+				!= PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+					MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
+		} else {
+			setupActivity(savedInstanceState == null && uri != null);
 		}
-		preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		if (!preferences.contains(PREF_TOOLBAR)) {
-			boolean enable = !ViewConfiguration.get(this).hasPermanentMenuKey();
-			preferences.edit().putBoolean(PREF_TOOLBAR, enable).apply();
+	}
+
+	private void setupActivity(boolean intentUri) {
+		if (!initFolders()) {
+			String msg = getString(R.string.create_apps_dir_failed, emulatorDir);
+			new AlertDialog.Builder(this)
+					.setTitle(R.string.error)
+					.setCancelable(false)
+					.setMessage(msg)
+					.setNegativeButton(R.string.close, (d, w) -> finish())
+					.setPositiveButton(R.string.action_settings, (d, w) -> startActivity(
+							new Intent(getApplicationContext(), SettingsActivity.class)))
+					.show();
+			return;
 		}
-		boolean warningShown = preferences.getBoolean(PREF_STORAGE_WARNING_SHOWN, false);
-		if (!FileUtils.isExternalStorageLegacy() && !warningShown) {
-			showScopedStorageDialog();
-			preferences.edit().putBoolean(PREF_STORAGE_WARNING_SHOWN, true).apply();
-		}
+		checkActionBar();
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		MigrationUtils.check(this);
+		String appSort = sp.getString("pref_app_sort", "name");
+		Bundle bundleLoad = new Bundle();
+		bundleLoad.putString(APP_SORT_KEY, appSort);
+		if (intentUri) {
+			bundleLoad.putString(APP_PATH_KEY, getAppPath(getIntent().getData()));
+			bundleLoad.putParcelable(APP_URI_KEY, getIntent().getData());
+		}
+		AppsListFragment appsListFragment = new AppsListFragment();
+		appsListFragment.setArguments(bundleLoad);
+		FragmentManager fragmentManager = getSupportFragmentManager();
+		fragmentManager.beginTransaction()
+				.replace(R.id.container, appsListFragment).commitNowAllowingStateLoss();
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+										   @NonNull int[] grantResults) {
+		if (requestCode == MY_PERMISSIONS_REQUEST_WRITE_STORAGE) {
+			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				setupActivity(getIntent().getData() != null);
+			} else {
+				Toast.makeText(this, R.string.permission_request_failed, Toast.LENGTH_SHORT).show();
+				finish();
+			}
+		}
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		ru.playsoftware.j2meloader.slots.Bubble.ensure(this);
-	}
-
-	private void checkAndCreateDirs() {
-		String emulatorDir = Config.getEmulatorDir();
-		File dir = new File(emulatorDir);
-		if (dir.isDirectory() && dir.canWrite()) {
-			FileUtils.initWorkDir(dir);
-			appListModel.onWorkDirReady();
-			return;
-		}
-		if (dir.exists() || dir.getParentFile() == null || !dir.getParentFile().isDirectory()
-				|| !dir.getParentFile().canWrite()) {
-			alertDirCannotCreate(emulatorDir);
-			return;
-		}
-		alertCreateDir();
-	}
-
-	private void alertDirCannotCreate(String emulatorDir) {
-		new AlertDialog.Builder(this)
-				.setTitle(R.string.error)
-				.setCancelable(false)
-				.setMessage(getString(R.string.create_apps_dir_failed, emulatorDir))
-				.setNegativeButton(R.string.exit, (d, w) -> finish())
-				.setPositiveButton(R.string.choose, (d, w) -> openDirLauncher.launch(null))
-				.show();
-	}
-
-	private void onPermissionResult(Map<String, Boolean> status) {
-		if (!status.containsValue(false)) {
-			checkAndCreateDirs();
-		} else if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-			new AlertDialog.Builder(this)
-					.setTitle(android.R.string.dialog_alert_title)
-					.setCancelable(false)
-					.setMessage(R.string.permission_request_failed)
-					.setNegativeButton(R.string.retry, (d, w) ->
-							permissionsLauncher.launch(STORAGE_PERMISSIONS))
-					.setPositiveButton(R.string.exit, (d, w) -> finish())
-					.show();
-		} else {
-			Toast.makeText(this, R.string.permission_request_failed, Toast.LENGTH_SHORT).show();
-			finish();
+		if (emulatorDir != null && !Config.getEmulatorDir().equals(emulatorDir)) {
+			new Handler().post(this::recreate);
 		}
 	}
 
-	private void showScopedStorageDialog() {
-		String message = getString(R.string.scoped_storage_warning) + Config.getEmulatorDir();
-		new AlertDialog.Builder(this)
-				.setTitle(R.string.warning)
-				.setCancelable(false)
-				.setMessage(message)
-				.setPositiveButton(android.R.string.ok, null)
-				.show();
-	}
-
-	private void onPickDirResult(Uri uri) {
-		if (uri == null) {
-			checkAndCreateDirs();
-			return;
+	private boolean initFolders() {
+		emulatorDir = Config.getEmulatorDir();
+		File appsDir = new File(emulatorDir);
+		File nomedia = new File(appsDir, ".nomedia");
+		if (appsDir.isDirectory() || appsDir.mkdirs()) {
+			//noinspection ResultOfMethodCallIgnored
+			new File(Config.getShadersDir()).mkdir();
+			try {
+				//noinspection ResultOfMethodCallIgnored
+				nomedia.createNewFile();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return true;
 		}
-		File file = new File(uri.getPath());
-		applyWorkDir(file);
+		return false;
 	}
 
-	private void alertCreateDir() {
-		String emulatorDir = Config.getEmulatorDir();
-		String lblChange = getString(R.string.change);
-		String msg = getString(R.string.alert_msg_workdir_not_exists, emulatorDir, lblChange);
-		new AlertDialog.Builder(this)
-				.setTitle(android.R.string.dialog_alert_title)
-				.setCancelable(false)
-				.setMessage(msg)
-				.setPositiveButton(R.string.create, (d, w) -> applyWorkDir(new File(emulatorDir)))
-				.setNeutralButton(lblChange, (d, w) -> openDirLauncher.launch(emulatorDir))
-				.setNegativeButton(R.string.exit, (d, w) -> finish())
-				.show();
-	}
-
-	private void applyWorkDir(File file) {
-		String path = file.getAbsolutePath();
-		if (!FileUtils.initWorkDir(file)) {
-			alertDirCannotCreate(path);
-			return;
+	private void checkActionBar() {
+		boolean firstStart = sp.getBoolean("pref_first_start", true);
+		if (firstStart) {
+			if (!ViewConfiguration.get(this).hasPermanentMenuKey()) {
+				sp.edit().putBoolean("pref_actionbar_switch", true).apply();
+			}
+			sp.edit().putBoolean("pref_first_start", false).apply();
 		}
-		preferences.edit().putString(PREF_EMULATOR_DIR, path).apply();
 	}
 
-	@Override
-	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-		Uri uri = intent.getData();
-		if (uri != null) {
-			InstallerDialog.newInstance(uri).show(getSupportFragmentManager(), "installer");
+	private String getAppPath(Uri uri) {
+		try {
+			return FileUtils.getAppPath(this, uri);
+		} catch (IOException | SecurityException e) {
+			e.printStackTrace();
+			Toast.makeText(this, R.string.error, Toast.LENGTH_SHORT).show();
+			return null;
 		}
 	}
 }

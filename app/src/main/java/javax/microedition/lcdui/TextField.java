@@ -20,8 +20,6 @@ package javax.microedition.lcdui;
 import android.content.Context;
 import android.view.View;
 
-import javax.microedition.util.ContextHolder;
-
 public class TextField extends Item {
 	public static final int ANY = 0;
 	public static final int EMAILADDR = 1;
@@ -38,7 +36,7 @@ public class TextField extends Item {
 	public static final int INITIAL_CAPS_WORD = 1048576;
 	public static final int INITIAL_CAPS_SENTENCE = 2097152;
 
-	private final TextFieldImpl textField;
+	private TextFieldImpl textField;
 
 	public TextField(String label, String text, int maxSize, int constraints) {
 		textField = new TextFieldImpl();
@@ -105,7 +103,7 @@ public class TextField extends Item {
 
 	@Override
 	public View getItemContentView() {
-		Context context = ContextHolder.getActivity();
+		Context context = getOwnerForm().getParentActivity();
 		return textField.getView(context, this);
 	}
 

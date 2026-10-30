@@ -18,24 +18,12 @@ package com.vodafone.v10.graphics.j3d;
 
 import java.io.IOException;
 
-import ru.woesss.j2me.micro3d.ActTableImpl;
-
-public class ActionTable {
-	final ActTableImpl impl;
-
+public class ActionTable extends com.mascotcapsule.micro3d.v3.ActionTable {
 	public ActionTable(byte[] b) {
-		impl = new ActTableImpl(b);
+		super(b);
 	}
 
 	public ActionTable(String name) throws IOException {
-		impl = new ActTableImpl(name);
-	}
-
-	public final int getNumAction() {
-		return impl.getNumActions();
-	}
-
-	public final int getNumFrame(int idx) {
-		return impl.getNumFrames(idx);
+		super(name);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Yury Kharchenko
+ * Copyright 2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,96 +17,96 @@
 package com.mascotcapsule.micro3d.v3;
 
 import java.io.IOException;
+import java.io.InputStream;
 
-import ru.woesss.j2me.micro3d.FigureImpl;
+import javax.microedition.util.ContextHolder;
 
 public class Figure {
-	Texture[] textures;
-	int textureIndex = -1;
-	final FigureImpl impl;
+	private Texture[] myTextureArray;
+	private Texture myTextureNow;
 
-	@SuppressWarnings("unused")
 	public Figure(byte[] b) {
-		impl = new FigureImpl(b);
-	}
-
-	@SuppressWarnings("unused")
-	public Figure(String name) throws IOException {
-		impl = new FigureImpl(name);
-	}
-
-	@SuppressWarnings("unused")
-	public final void dispose() {
-		impl.dispose();
-	}
-
-	@SuppressWarnings("unused")
-	public final int getNumPattern() {
-		return impl.getNumPattern();
-	}
-
-	@SuppressWarnings("unused")
-	public final int getNumTextures() {
-		if (textures == null) {
-			return 0;
+		if (b == null) {
+			throw new NullPointerException();
 		}
-		return textures.length;
+	}
+
+	public Figure(String name) throws IOException {
+		if (name == null) {
+			throw new NullPointerException();
+		}
+		InputStream is = ContextHolder.getResourceAsStream(null, name);
+		if (is == null) {
+			throw new IOException();
+		}
+	}
+
+	public final void dispose() {
+	}
+
+	public final void setPosture(ActionTable act, int action, int frame) {
+		if (act == null) {
+			throw new NullPointerException();
+		} else if (action < 0 || action >= act.getNumAction()) {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	public final Texture getTexture() {
-		if (textureIndex < 0) {
-			return null;
-		}
-		return textures[textureIndex];
+		return this.myTextureNow;
 	}
 
-	@SuppressWarnings("unused")
-	public final void selectTexture(int idx) {
-		if (idx < 0 || idx >= getNumTextures()) {
+	public final void setTexture(Texture t) {
+		if (t == null) {
+			throw new NullPointerException();
+		} else if (t.isModel) {
+			this.myTextureArray = new Texture[1];
+			this.myTextureArray[0] = t;
+			this.myTextureNow = t;
+		} else {
 			throw new IllegalArgumentException();
 		}
-		textureIndex = idx;
-	}
-
-	@SuppressWarnings("unused")
-	public final void setPattern(int idx) {
-		impl.setPattern(idx);
-	}
-
-	@SuppressWarnings("unused")
-	public final void setPosture(ActionTable actionTable, int action, int frame) {
-		if (actionTable == null) {
-			throw new NullPointerException();
-		}
-		impl.setPosture(actionTable.impl, action, frame);
-	}
-
-	public final void setTexture(Texture tex) {
-		if (tex == null)
-			throw new NullPointerException();
-		if (!tex.isForModel)
-			throw new IllegalArgumentException();
-
-		textures = new Texture[]{tex};
-		textureIndex = 0;
 	}
 
 	public final void setTexture(Texture[] t) {
-		if (t == null) {
+		if (t == null || t.length == 0) {
 			throw new NullPointerException();
+		} else {
+			int i = 0;
+			while (i < t.length) {
+				if (t[i] == null) {
+					throw new NullPointerException();
+				} else if (t[i].isModel) {
+					i++;
+				} else {
+					throw new IllegalArgumentException();
+				}
+			}
+			this.myTextureArray = t;
+			this.myTextureNow = null;
 		}
-		if (t.length == 0) {
+	}
+
+	public final int getNumTextures() {
+		if (this.myTextureArray == null) {
+			return 0;
+		} else {
+			return this.myTextureArray.length;
+		}
+	}
+
+	public final void selectTexture(int idx) {
+		if (idx < 0 || idx >= getNumTextures()) {
 			throw new IllegalArgumentException();
+		} else {
+			this.myTextureNow = this.myTextureArray[idx];
 		}
-		for (Texture texture : t) {
-			if (texture == null) {
-				throw new NullPointerException();
-			}
-			if (!texture.isForModel) {
-				throw new IllegalArgumentException();
-			}
-		}
-		textures = t;
-		textureIndex = -1;
+	}
+
+	public final int getNumPattern() {
+		return 0;
+	}
+
+	public final void setPattern(int idx) {
 	}
 }

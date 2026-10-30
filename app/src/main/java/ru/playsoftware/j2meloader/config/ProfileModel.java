@@ -16,26 +16,22 @@
 
 package ru.playsoftware.j2meloader.config;
 
-import android.util.SparseIntArray;
 
-import com.google.gson.annotations.JsonAdapter;
+import android.os.Build;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.io.File;
 
-import javax.microedition.lcdui.keyboard.VirtualKeyboard;
+import javax.microedition.lcdui.pointer.VirtualKeyboard;
 import javax.microedition.util.ContextHolder;
 
-import ru.playsoftware.j2meloader.util.SparseIntArrayAdapter;
-
 public class ProfileModel {
-	public static final int VERSION = 3;
 	/** True if this is a new profile (not yet saved to file) */
 	public final transient boolean isNew;
 
 	public transient File dir;
 
-	@SerializedName("Version")
 	public int version;
 
 	@SerializedName("ScreenWidth")
@@ -59,12 +55,6 @@ public class ProfileModel {
 	@SerializedName("ScreenKeepAspectRatio")
 	public boolean screenKeepAspectRatio;
 
-	@SerializedName("ScreenScaleType")
-	public int screenScaleType;
-
-	@SerializedName("ScreenGravity")
-	public int screenGravity;
-
 	@SerializedName("ScreenFilter")
 	public boolean screenFilter;
 
@@ -75,9 +65,8 @@ public class ProfileModel {
 	public boolean hwAcceleration;
 
 	@SerializedName("GraphicsMode")
-	public int graphicsMode;
+	public int graphicsMode = -1;
 
-	@SerializedName("Shader")
 	public ShaderInfo shader;
 
 	@SerializedName("ParallelRedrawScreen")
@@ -103,9 +92,6 @@ public class ProfileModel {
 
 	@SerializedName("FontApplyDimensions")
 	public boolean fontApplyDimensions;
-
-	@SerializedName("FontAntiAlias")
-	public boolean fontAA;
 
 	@SerializedName("TouchInput")
 	public boolean touchInput;
@@ -149,16 +135,8 @@ public class ProfileModel {
 	@SerializedName("Layout")
 	public int keyCodesLayout;
 
-	@JsonAdapter(SparseIntArrayAdapter.class)
-	@SerializedName("KeyCodeMap")
-	public SparseIntArray keyCodeMap;
-
-	@JsonAdapter(SparseIntArrayAdapter.class)
 	@SerializedName("KeyMappings")
-	public SparseIntArray keyMappings;
-
-	@SerializedName("SoundBank")
-	public String soundBank;
+	public String keyMappings;
 
 	@SerializedName("SystemProperties")
 	public String systemProperties;
@@ -170,22 +148,18 @@ public class ProfileModel {
 
 	public ProfileModel(File dir) {
 		this.dir = dir;
-		isNew = true;
-		version = VERSION;
+		this.isNew = true;
+		version = 1;
 		screenWidth = 240;
 		screenHeight = 320;
 		screenBackgroundColor = 0xD0D0D0;
-		screenScaleType = 1;
-		screenGravity = 1;
 		screenScaleRatio = 100;
 		screenScaleToFit = true;
 		screenKeepAspectRatio = true;
-		graphicsMode = 1;
 
 		fontSizeSmall = 18;
 		fontSizeMedium = 22;
 		fontSizeLarge = 26;
-		fontAA = true;
 
 		showKeyboard = true;
 		touchInput = true;
@@ -199,5 +173,15 @@ public class ProfileModel {
 		vkFgColorSelected = 0xFFFFFF;
 		vkOutlineColor = 0xFFFFFF;
 		systemProperties = ContextHolder.getAssetAsString("defaults/system.props");
+	}
+
+	public int getGraphicsMode() {
+		int mode = this.graphicsMode;
+		if (mode == -1) {
+			if (hwAcceleration) {
+				mode = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ? 2 : 3;
+			} else mode = 0;
+		}
+		return mode;
 	}
 }

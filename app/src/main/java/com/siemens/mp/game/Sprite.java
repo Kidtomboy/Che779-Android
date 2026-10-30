@@ -54,7 +54,7 @@ public class Sprite extends GraphicObject {
 		}
 
 		for (int i = 0; i < numFrames; i++) {
-			Image img = Image.createImage(pixels.getWidth(), pixels.getHeight() / numFrames, 0);
+			Image img = Image.createTransparentImage(pixels.getWidth(), pixels.getHeight() / numFrames);
 
 			img.getGraphics().drawImage(pixels, 0, -i * pixels.getHeight() / numFrames, 0);
 			this.pixels[i] = img;

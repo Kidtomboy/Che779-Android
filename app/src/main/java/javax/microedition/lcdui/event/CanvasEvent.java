@@ -22,21 +22,21 @@ import javax.microedition.lcdui.Canvas;
 import javax.microedition.util.ArrayStack;
 
 public class CanvasEvent extends Event {
-	private static final String TAG = CanvasEvent.class.getName();
 
+	private static final String TAG = CanvasEvent.class.getName();
 	private static final ArrayStack<CanvasEvent> recycled = new ArrayStack<>();
 
-	public static final int KEY_PRESSED = 0;
-	public static final int KEY_REPEATED = 1;
-	public static final int KEY_RELEASED = 2;
-	public static final int POINTER_PRESSED = 3;
-	public static final int POINTER_DRAGGED = 4;
-	public static final int POINTER_RELEASED = 5;
-	public static final int SHOW_NOTIFY = 6;
-	public static final int HIDE_NOTIFY = 7;
-	public static final int SIZE_CHANGED = 8;
+	public static final int KEY_PRESSED = 0,
+			KEY_REPEATED = 1,
+			KEY_RELEASED = 2,
+			POINTER_PRESSED = 3,
+			POINTER_DRAGGED = 4,
+			POINTER_RELEASED = 5,
+			SHOW_NOTIFY = 6,
+			HIDE_NOTIFY = 7,
+			SIZE_CHANGED = 8;
 
-	private static final int[] enqueued = new int[9];
+	private static int[] enqueued = new int[9];
 
 	private Canvas canvas;
 	private int eventType;
@@ -50,37 +50,60 @@ public class CanvasEvent extends Event {
 	private int height;
 
 	public static Event getInstance(Canvas canvas, int eventType) {
-		return obtain(canvas, eventType);
+		CanvasEvent instance = recycled.pop();
+
+		if (instance == null) {
+			instance = new CanvasEvent();
+		}
+
+		instance.canvas = canvas;
+		instance.eventType = eventType;
+
+		return instance;
 	}
 
 	public static Event getInstance(Canvas canvas, int eventType, int keyCode) {
-		CanvasEvent instance = obtain(canvas, eventType);
+		CanvasEvent instance = recycled.pop();
+
+		if (instance == null) {
+			instance = new CanvasEvent();
+		}
+
+		instance.canvas = canvas;
+		instance.eventType = eventType;
 		instance.keyCode = keyCode;
+
 		return instance;
 	}
 
 	public static Event getInstance(Canvas canvas, int eventType, int pointer, float x, float y) {
-		CanvasEvent instance = obtain(canvas, eventType);
+		CanvasEvent instance = recycled.pop();
+
+		if (instance == null) {
+			instance = new CanvasEvent();
+		}
+
+		instance.canvas = canvas;
+		instance.eventType = eventType;
 		instance.pointer = pointer;
 		instance.x = x;
 		instance.y = y;
+
 		return instance;
 	}
 
 	public static Event getInstance(Canvas canvas, int eventType, int width, int height) {
-		CanvasEvent instance = obtain(canvas, eventType);
-		instance.width = width;
-		instance.height = height;
-		return instance;
-	}
-
-	private static CanvasEvent obtain(Canvas canvas, int eventType) {
 		CanvasEvent instance = recycled.pop();
+
 		if (instance == null) {
 			instance = new CanvasEvent();
 		}
+
 		instance.canvas = canvas;
 		instance.eventType = eventType;
+		instance.width = width;
+		instance.height = height;
+
 		return instance;
 	}
 
@@ -89,7 +112,7 @@ public class CanvasEvent extends Event {
 		switch (eventType) {
 			case KEY_PRESSED:
 				try {
-					canvas.doKeyPressed(keyCode);
+					canvas.keyPressed(keyCode);
 				} catch (Exception e) {
 					Log.e(TAG, "keyPressed: ", e);
 				}
@@ -97,7 +120,7 @@ public class CanvasEvent extends Event {
 
 			case KEY_REPEATED:
 				try {
-					canvas.doKeyRepeated(keyCode);
+					canvas.keyRepeated(keyCode);
 				} catch (Exception e) {
 					Log.e(TAG, "keyRepeated: ", e);
 				}
@@ -105,7 +128,7 @@ public class CanvasEvent extends Event {
 
 			case KEY_RELEASED:
 				try {
-					canvas.doKeyReleased(keyCode);
+					canvas.keyReleased(keyCode);
 				} catch (Exception e) {
 					Log.e(TAG, "keyReleased: ", e);
 				}
@@ -137,15 +160,17 @@ public class CanvasEvent extends Event {
 
 			case SHOW_NOTIFY:
 				try {
-					canvas.doShowNotify();
+					canvas.callShowNotify();
 				} catch (Exception e) {
 					Log.e(TAG, "showNotify: ", e);
 				}
+				canvas.setVisible(true);
 				break;
 
 			case HIDE_NOTIFY:
+				canvas.setVisible(false);
 				try {
-					canvas.doHideNotify();
+					canvas.callHideNotify();
 				} catch (Exception e) {
 					Log.e(TAG, "hideNotify: ", e);
 				}
@@ -153,7 +178,7 @@ public class CanvasEvent extends Event {
 
 			case SIZE_CHANGED:
 				try {
-					canvas.doSizeChanged(width, height);
+					canvas.sizeChanged(width, height);
 				} catch (Exception e) {
 					Log.e(TAG, "sizeChanged: ", e);
 				}

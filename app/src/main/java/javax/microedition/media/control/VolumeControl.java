@@ -19,11 +19,11 @@ package javax.microedition.media.control;
 import javax.microedition.media.Control;
 
 public interface VolumeControl extends Control {
-	void setMute(boolean mute);
+	public void setMute(boolean mute);
 
-	boolean isMuted();
+	public boolean isMuted();
 
-	int setLevel(int level);
+	public int setLevel(int level);
 
-	int getLevel();
+	public int getLevel();
 }

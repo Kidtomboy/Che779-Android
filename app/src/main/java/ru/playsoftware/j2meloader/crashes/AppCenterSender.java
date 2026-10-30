@@ -17,10 +17,7 @@
 package ru.playsoftware.j2meloader.crashes;
 
 import android.content.Context;
-import android.util.Log;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
+import android.os.Build;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -31,15 +28,18 @@ import com.android.volley.toolbox.Volley;
 import org.acra.ReportField;
 import org.acra.data.CrashReportData;
 import org.acra.sender.ReportSender;
-import org.json.JSONObject;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-import ru.playsoftware.j2meloader.config.Config;
-import ru.playsoftware.j2meloader.util.Constants;
+import javax.net.ssl.HttpsURLConnection;
+
+import androidx.annotation.NonNull;
 
 public class AppCenterSender implements ReportSender {
 	private static final String TAG = AppCenterSender.class.getName();
@@ -49,43 +49,28 @@ public class AppCenterSender implements ReportSender {
 	@Override
 	public void send(@NonNull Context context, @NonNull final CrashReportData report) {
 		final String log = (String) report.get(AppCenterCollector.APPCENTER_LOG);
-		if (log == null || log.isEmpty()) {
-			return;
-		}
 
-		HurlStack hurlStack = new HurlStack(null, null);
-		RequestQueue queue = Volley.newRequestQueue(context, hurlStack);
-		StringRequest postRequest = new StringRequest(Request.Method.POST, BASE_URL,
-				response -> Log.d(TAG, "send success: " + response),
-				error -> {
-					Log.e(TAG, "Response error", error);
-					String logFile = Config.getEmulatorDir() + "/crash.txt";
-					try (FileOutputStream fos = new FileOutputStream(logFile)) {
-						String logcat = report.getString(ReportField.LOGCAT);
-						if (logcat != null) {
-							fos.write(logcat.getBytes());
-						}
-						String stack = report.getString(ReportField.STACK_TRACE);
-						if (stack != null) {
-							fos.write("\n====================Error==================\n".getBytes());
-							fos.write(stack.getBytes());
-						}
-						JSONObject o = (JSONObject) report.get(ReportField.CUSTOM_DATA.name());
-						if (o != null) {
-							Object od = o.opt(Constants.KEY_APPCENTER_ATTACHMENT);
-							if (od != null) {
-								String customData = (String) od;
-								fos.write("\n==========application=info=============\n".getBytes());
-								fos.write(customData.getBytes());
-							}
-						}
-						fos.close();
-						Toast.makeText(context, "Can't send report! Saved to file:\n" + logFile, Toast.LENGTH_LONG).show();
-					} catch (IOException e) {
-						e.printStackTrace();
-						Toast.makeText(context, "Can't send report!", Toast.LENGTH_LONG).show();
+		HurlStack hurlStack = new HurlStack() {
+			@Override
+			protected HttpURLConnection createConnection(URL url) throws IOException {
+				HttpsURLConnection httpsURLConnection = (HttpsURLConnection) super.createConnection(url);
+				try {
+					// Force TLSv1.2 for Android 4.1-4.4
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
+							&& Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+						httpsURLConnection.setSSLSocketFactory(new TLSSocketFactory());
 					}
+				} catch (KeyManagementException e) {
+					e.printStackTrace();
+				} catch (NoSuchAlgorithmException e) {
+					e.printStackTrace();
 				}
+				return httpsURLConnection;
+			}
+		};
+		RequestQueue queue = Volley.newRequestQueue(context, hurlStack);
+		StringRequest postRequest = new StringRequest(Request.Method.POST, BASE_URL, null,
+				error -> android.util.Log.e(TAG, "Response error")
 		) {
 			@Override
 			public Map<String, String> getHeaders() {

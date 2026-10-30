@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Yury Kharchenko
+ * Copyright 2018 Nikita Shakarun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,40 +17,48 @@
 package com.mascotcapsule.micro3d.v3;
 
 import java.io.IOException;
+import java.io.InputStream;
 
-import ru.woesss.j2me.micro3d.ActTableImpl;
+import javax.microedition.util.ContextHolder;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 public class ActionTable {
-	final ActTableImpl impl;
-
 	public ActionTable(byte[] b) {
-		impl = new ActTableImpl(b);
+		if (b == null) {
+			throw new NullPointerException();
+		}
 	}
 
 	public ActionTable(String name) throws IOException {
-		impl = new ActTableImpl(name);
+		if (name == null) {
+			throw new NullPointerException();
+		}
+		InputStream is = ContextHolder.getResourceAsStream(null, name);
+		if (is == null) {
+			throw new IOException();
+		}
 	}
 
 	public final void dispose() {
-		impl.dispose();
 	}
 
-	@Deprecated
 	public final int getNumAction() {
-		return impl.getNumActions();
+		return getNumActions();
 	}
 
 	public final int getNumActions() {
-		return impl.getNumActions();
+		return 1;
 	}
 
-	@Deprecated
 	public final int getNumFrame(int idx) {
-		return impl.getNumFrames(idx);
+		return getNumFrames(idx);
 	}
 
 	public final int getNumFrames(int idx) {
-		return impl.getNumFrames(idx);
+		if (idx >= 0 && idx < getNumAction()) {
+			return 60;
+		} else {
+			throw new IllegalArgumentException();
+		}
+
 	}
 }
