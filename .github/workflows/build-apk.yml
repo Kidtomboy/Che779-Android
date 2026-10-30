@@ -47,7 +47,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tail -n 400 build.log > build-tail.log || true
+          { sed -n '/What went wrong/,/Try:/p' build.log | head -80; echo ==== ERRORS; grep -nE "error:|\.java:[0-9]+: |Caused by|Execution failed|ndk-build|clang" build.log | grep -v "^.*\bat org.gradle" | head -150; echo ==== TAIL; tail -n 30 build.log | grep -v "^\s*at "; } > build-tail.log || true
           gh release delete buildlog --cleanup-tag --yes || true
           gh release create buildlog build-tail.log --prerelease \
             --title "build log" --notes "Log build gan nhat (400 dong cuoi)" --target "$GITHUB_SHA" || true
