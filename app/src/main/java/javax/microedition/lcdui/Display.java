@@ -24,6 +24,7 @@ import javax.microedition.lcdui.event.Event;
 import javax.microedition.lcdui.event.EventQueue;
 import javax.microedition.lcdui.event.RunnableEvent;
 import javax.microedition.midlet.MIDlet;
+import javax.microedition.shell.Session;
 import javax.microedition.util.ContextHolder;
 
 import ru.woesss.j2me.jar.Descriptor;
@@ -51,57 +52,50 @@ public class Display {
 					0xFF000080
 			};
 
-	private static Display instance;
-	static EventQueue queue = new EventQueue();
-	private static boolean multiTouchSupported;
-	private static String pointerNumber;
-
-	static {
-		queue.startProcessing();
-	}
 
 	private Displayable current;
 
 	public static Display getDisplay(MIDlet midlet) {
-		if (instance == null && midlet != null) {
+		Session session = Session.current();
+		if (session.display == null && midlet != null) {
 			String nokiaUiEnhancement = midlet.getAppProperty(Descriptor.NOKIA_UI_ENHANCEMENT);
 			if (nokiaUiEnhancement != null) {
-				multiTouchSupported = nokiaUiEnhancement.contains("EnableMultiPointTouchEvents");
+				session.multiTouch = nokiaUiEnhancement.contains("EnableMultiPointTouchEvents");
 			}
-			instance = new Display();
+			session.display = new Display();
 		}
-		return instance;
+		return session.display;
 	}
 
 	private Display() {
 	}
 
 	public static void initDisplay() {
-		instance = null;
+		Session.current().display = null;
 	}
 
 	public static void postEvent(Event event) {
-		queue.postEvent(event);
+		Session.current().queue.postEvent(event);
 	}
 
 	static EventQueue getEventQueue() {
-		return queue;
+		return Session.current().queue;
 	}
 
 	public static boolean isMultiTouchSupported() {
-		return multiTouchSupported;
+		return Session.current().multiTouch;
 	}
 
 	static void setPointerNumber(int pointerNumber) {
-		Display.pointerNumber = String.valueOf(pointerNumber);
+		Session.current().pointerNumber = String.valueOf(pointerNumber);
 	}
 
 	static void resetPointerNumber() {
-		pointerNumber = null;
+		Session.current().pointerNumber = null;
 	}
 
 	public static String getPointerNumber() {
-		return pointerNumber;
+		return Session.current().pointerNumber;
 	}
 
 	public void setCurrent(Displayable disp) {

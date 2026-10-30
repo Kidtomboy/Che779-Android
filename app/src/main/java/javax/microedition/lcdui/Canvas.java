@@ -73,6 +73,7 @@ import javax.microedition.lcdui.overlay.Layer;
 import javax.microedition.lcdui.overlay.Overlay;
 import javax.microedition.lcdui.overlay.OverlayView;
 import javax.microedition.shell.MicroActivity;
+import javax.microedition.shell.Session;
 import javax.microedition.util.ContextHolder;
 
 import io.reactivex.Single;
@@ -134,6 +135,7 @@ public abstract class Canvas extends Displayable {
 	private static int scaleType;
 	private static int screenGravity;
 
+	private final Session session = Session.current();
 	private final Object bufferLock = new Object();
 	private final Object surfaceLock = new Object();
 	private final PaintEvent paintEvent = new PaintEvent();
@@ -258,7 +260,7 @@ public abstract class Canvas extends Displayable {
 			skipRightSoft = true;
 			return;
 		}
-		Display.postEvent(CanvasEvent.getInstance(this,
+		session.queue.postEvent(CanvasEvent.getInstance(this,
 				CanvasEvent.KEY_PRESSED,
 				KeyMapper.convertKeyCode(keyCode)));
 	}
@@ -271,7 +273,7 @@ public abstract class Canvas extends Displayable {
 			skipRightSoft = false;
 			return;
 		}
-		Display.postEvent(CanvasEvent.getInstance(this,
+		session.queue.postEvent(CanvasEvent.getInstance(this,
 				CanvasEvent.KEY_RELEASED,
 				KeyMapper.convertKeyCode(keyCode)));
 	}
@@ -282,7 +284,7 @@ public abstract class Canvas extends Displayable {
 		} else if (keyCode == KEY_SOFT_RIGHT && skipRightSoft) {
 			return;
 		}
-		Display.postEvent(CanvasEvent.getInstance(this,
+		session.queue.postEvent(CanvasEvent.getInstance(this,
 				CanvasEvent.KEY_REPEATED,
 				KeyMapper.convertKeyCode(keyCode)));
 	}
@@ -569,7 +571,7 @@ public abstract class Canvas extends Displayable {
 		if (!visible) {
 			return;
 		}
-		Display.postEvent(CanvasEvent.getInstance(this, CanvasEvent.SIZE_CHANGED, width, height));
+		session.queue.postEvent(CanvasEvent.getInstance(this, CanvasEvent.SIZE_CHANGED, width, height));
 		repaintInternal();
 	}
 
@@ -615,7 +617,7 @@ public abstract class Canvas extends Displayable {
 			}
 		}
 		if (post) {
-			Display.postEvent(paintEvent);
+			session.queue.postEvent(paintEvent);
 		}
 	}
 
@@ -623,7 +625,7 @@ public abstract class Canvas extends Displayable {
 		synchronized (paintEvent) {
 			paintEvent.invalidateClip(this, 0, 0, width, height);
 		}
-		Display.postEvent(paintEvent);
+		session.queue.postEvent(paintEvent);
 	}
 
 	// GameCanvas
@@ -696,7 +698,7 @@ public abstract class Canvas extends Displayable {
 	 * and the calling thread is blocked until it is completed.
 	 */
 	public final void serviceRepaints() {
-		Display.getEventQueue().serviceRepaints(paintEvent);
+		session.queue.serviceRepaints(paintEvent);
 	}
 
 	protected void showNotify() {
@@ -1071,7 +1073,7 @@ public abstract class Canvas extends Displayable {
 							lastPointerPos[id][0] = cX;
 							lastPointerPos[id][1] = cY;
 						}
-						Display.postEvent(CanvasEvent.getInstance(Canvas.this,
+						session.queue.postEvent(CanvasEvent.getInstance(Canvas.this,
 								CanvasEvent.POINTER_PRESSED,
 								id,
 								cX,
@@ -1101,7 +1103,7 @@ public abstract class Canvas extends Displayable {
 									lastPointerPos[id][0] = cX;
 									lastPointerPos[id][1] = cY;
 								}
-								Display.postEvent(CanvasEvent.getInstance(Canvas.this,
+								session.queue.postEvent(CanvasEvent.getInstance(Canvas.this,
 										CanvasEvent.POINTER_DRAGGED,
 										id,
 										cX,
@@ -1128,7 +1130,7 @@ public abstract class Canvas extends Displayable {
 								lastPointerPos[id][0] = cX;
 								lastPointerPos[id][1] = cY;
 							}
-							Display.postEvent(CanvasEvent.getInstance(Canvas.this,
+							session.queue.postEvent(CanvasEvent.getInstance(Canvas.this,
 									CanvasEvent.POINTER_DRAGGED,
 									id,
 									cX,
@@ -1153,7 +1155,7 @@ public abstract class Canvas extends Displayable {
 						int cY = Math.round(convertPointerY(y));
 						lastPointerPos[id][0] = cX;
 						lastPointerPos[id][1] = cY;
-						Display.postEvent(CanvasEvent.getInstance(Canvas.this,
+						session.queue.postEvent(CanvasEvent.getInstance(Canvas.this,
 								CanvasEvent.POINTER_RELEASED,
 								id,
 								cX,
@@ -1183,7 +1185,7 @@ public abstract class Canvas extends Displayable {
 			displayWidth = newWidth;
 			displayHeight = newHeight;
 			if (checkSizeChanged() || !sizeChangedCalled) {
-				Display.postEvent(CanvasEvent.getInstance(Canvas.this,
+				session.queue.postEvent(CanvasEvent.getInstance(Canvas.this,
 						CanvasEvent.SIZE_CHANGED,
 						width,
 						height));
@@ -1198,7 +1200,7 @@ public abstract class Canvas extends Displayable {
 				renderer.start();
 			}
 			surface = holder.getSurface();
-			Display.postEvent(CanvasEvent.getInstance(Canvas.this, CanvasEvent.SHOW_NOTIFY));
+			session.queue.postEvent(CanvasEvent.getInstance(Canvas.this, CanvasEvent.SHOW_NOTIFY));
 			repaintInternal();
 			if (showFps) {
 				fpsCounter = new FpsCounter(overlayView);
@@ -1220,7 +1222,7 @@ public abstract class Canvas extends Displayable {
 			synchronized (surfaceLock) {
 				surface = null;
 			}
-			Display.postEvent(CanvasEvent.getInstance(Canvas.this, CanvasEvent.HIDE_NOTIFY));
+			session.queue.postEvent(CanvasEvent.getInstance(Canvas.this, CanvasEvent.HIDE_NOTIFY));
 			if (fpsCounter != null) {
 				fpsCounter.stop();
 				overlayView.removeLayer(fpsCounter);

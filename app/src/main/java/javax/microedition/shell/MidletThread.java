@@ -47,15 +47,17 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 	private static final int PAUSED = 2;
 	private static final int DESTROYED = 3;
 	public static String[] startAfterDestroy;
-	private static MidletThread instance;
 	private final MicroLoader microLoader;
 	private final String mainClass;
 	private MIDlet midlet;
 	private final Handler handler;
 	private int state;
 
-	private MidletThread(MicroLoader microLoader, String mainClass) {
+	private final Session session;
+
+	private MidletThread(Session session, MicroLoader microLoader, String mainClass) {
 		super("MidletMain");
+		this.session = session;
 		this.microLoader = microLoader;
 		this.mainClass = mainClass;
 		start();
@@ -64,11 +66,24 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 	}
 
 	static void create(MicroLoader microLoader, String mainClass) {
-		instance = new MidletThread(microLoader, mainClass);
+		Session session = Session.current();
+		session.thread = new MidletThread(session, microLoader, mainClass);
+	}
+
+	private static MidletThread instance() {
+		Session session = Session.current();
+		return session != null ? session.thread : null;
+	}
+
+	@Override
+	protected void onLooperPrepared() {
+		// every thread the game starts from here on inherits this session
+		session.bindCurrentThread();
 	}
 
 	public static void notifyDestroyed() {
 		Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);
+		MidletThread instance = instance();
 		if (instance != null) {
 			instance.state = DESTROYED;
 		}
@@ -83,16 +98,18 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 	}
 
 	public static void notifyPaused() {
-		instance.state = PAUSED;
+		instance().state = PAUSED;
 	}
 
 	static void pauseApp() {
+		MidletThread instance = instance();
 		if (instance != null)
 			instance.handler.obtainMessage(PAUSE).sendToTarget();
 	}
 
 	public static void resumeApp() {
 		MicroActivity activity = ContextHolder.getActivity();
+		MidletThread instance = instance();
 		if (instance != null && activity != null && activity.isVisible())
 			instance.handler.obtainMessage(START).sendToTarget();
 	}
@@ -116,6 +133,7 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 				canvas.postKeyReleased(Canvas.KEY_END);
 			}
 		}
+		MidletThread instance = instance();
 		if (instance != null) {
 			instance.handler.obtainMessage(DESTROY).sendToTarget();
 		}

@@ -42,6 +42,7 @@ import java.util.Objects;
 import javax.microedition.lcdui.keyboard.VirtualKeyboard;
 import javax.microedition.shell.AppClassLoader;
 import javax.microedition.shell.MicroActivity;
+import javax.microedition.shell.Session;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -51,7 +52,6 @@ import ru.playsoftware.j2meloader.config.Config;
 
 public class ContextHolder {
 	private static Display display;
-	private static VirtualKeyboard vk;
 	private static WeakReference<MicroActivity> currentActivity;
 	private static Vibrator vibrator;
 	private static Context appContext;
@@ -63,11 +63,15 @@ public class ContextHolder {
 	}
 
 	public static VirtualKeyboard getVk() {
-		return vk;
+		Session s = Session.current();
+		return s != null ? s.vk : null;
 	}
 
 	public static void setVk(VirtualKeyboard vk) {
-		ContextHolder.vk = vk;
+		Session s = Session.current();
+		if (s != null) {
+			s.vk = vk;
+		}
 	}
 
 	private static Display getDisplay() {
