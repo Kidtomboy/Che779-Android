@@ -32,8 +32,8 @@ public final class Session {
 	public volatile EventQueue queue;
 	public volatile VirtualKeyboard vk;
 	volatile MidletThread thread;
-	volatile boolean multiTouch;
-	volatile String pointerNumber;
+	public volatile boolean multiTouch;
+	public volatile String pointerNumber;
 
 	private Session(int id, String appPath) {
 		this.id = id;
