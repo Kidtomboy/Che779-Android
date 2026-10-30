@@ -16,6 +16,7 @@
 
 package ru.playsoftware.j2meloader.config;
 
+import android.os.Build;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import javax.microedition.lcdui.pointer.VirtualKeyboard;
+import javax.microedition.lcdui.keyboard.VirtualKeyboard;
 import javax.microedition.util.ContextHolder;
 
 import androidx.annotation.NonNull;
@@ -47,11 +48,6 @@ public class ProfilesManager {
 
 	static ArrayList<Profile> getProfiles() {
 		File root = new File(Config.getProfilesDir());
-		return getList(root);
-	}
-
-	static ArrayList<Profile> getConfigs() {
-		File root = new File(Config.getConfigsDir());
 		return getList(root);
 	}
 
@@ -85,7 +81,6 @@ public class ProfilesManager {
 					ProfileModel params = loadConfig(from.getDir());
 					if (params != null) {
 						params.dir = dstConfig.getParentFile();
-						if (params.version < 1) updateSystemProperties(params);
 						saveConfig(params);
 					}
 				}
@@ -115,43 +110,75 @@ public class ProfilesManager {
 	@Nullable
 	public static ProfileModel loadConfig(File dir) {
 		File file = new File(dir, Config.MIDLET_CONFIG_FILE);
+		ProfileModel params = null;
 		if (file.exists()) {
 			try (FileReader reader = new FileReader(file)) {
-				ProfileModel params = gson.fromJson(reader, ProfileModel.class);
+				params = gson.fromJson(reader, ProfileModel.class);
 				params.dir = dir;
-				return params;
 			} catch (Exception e) {
 				Log.e(TAG, "loadConfig: ", e);
 			}
 		}
-		File oldFile = new File(dir, "config.xml");
-		if (oldFile.exists()) {
-			try (FileInputStream in = new FileInputStream(oldFile)) {
-				HashMap<String, Object> map = XmlUtils.readMapXml(in);
-				JsonElement json = gson.toJsonTree(map);
-				ProfileModel params = gson.fromJson(json, ProfileModel.class);
-				params.dir = dir;
-				// Fix keyboard shape for old configs
-				if (params.vkType == VirtualKeyboard.PHONE_DIGITS_TYPE ||
-						params.vkType == VirtualKeyboard.PHONE_ARROWS_TYPE) {
-					params.vkButtonShape = VirtualKeyboard.RECT_SHAPE;
+		if (params == null) {
+			File oldFile = new File(dir, "config.xml");
+			if (oldFile.exists()) {
+				try (FileInputStream in = new FileInputStream(oldFile)) {
+					HashMap<String, Object> map = XmlUtils.readMapXml(in);
+					JsonElement json = gson.toJsonTree(map);
+					params = gson.fromJson(json, ProfileModel.class);
+					params.dir = dir;
+					// Fix keyboard shape for old configs
+					if (params.vkType == 1 || params.vkType == 2) {
+						params.vkButtonShape = VirtualKeyboard.ROUND_RECT_SHAPE;
+					}
+					if (saveConfig(params) && oldFile.delete()) {
+						Log.d(TAG, "loadConfig: old config file deleted");
+					}
+				} catch (Exception e) {
+					Log.e(TAG, "loadConfig: ", e);
 				}
-				// Import old properties
-				updateSystemProperties(params);
-				return params;
-			} catch (Exception e) {
-				Log.e(TAG, "loadConfig: ", e);
 			}
 		}
-		return null;
+		if (params == null) {
+			return null;
+		}
+		switch (params.version) {
+			case 0:
+				if (params.hwAcceleration) {
+					params.graphicsMode = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ? 2 : 3;
+				}
+				updateSystemProperties(params);
+			case 1:
+				params.fontAA = true;
+
+			case 2:
+				if (params.screenScaleToFit) {
+					if (params.screenKeepAspectRatio) {
+						params.screenScaleType = 1;
+					} else {
+						params.screenScaleType = 2;
+					}
+				} else {
+					params.screenScaleType = 0;
+				}
+				params.screenGravity = 1;
+
+				params.version = ProfileModel.VERSION;
+				ProfilesManager.saveConfig(params);
+				break;
+		}
+		return params;
 	}
 
-	public static void saveConfig(ProfileModel p) {
+	public static boolean saveConfig(ProfileModel p) {
 		try (FileWriter writer = new FileWriter(new File(p.dir, Config.MIDLET_CONFIG_FILE))) {
 			gson.toJson(p, writer);
+			writer.close();
+			return true;
 		} catch (Exception e) {
 			Log.e(TAG, "saveConfig: ", e);
 		}
+		return false;
 	}
 
 	public static void updateSystemProperties(ProfileModel params) {

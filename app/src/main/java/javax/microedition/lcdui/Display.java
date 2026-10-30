@@ -1,6 +1,7 @@
 /*
  * Copyright 2012 Kulikov Dmitriy
  * Copyright 2017-2018 Nikita Shakarun
+ * Copyright 2023-2024 Arman Jussupgaliyev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +18,15 @@
 
 package javax.microedition.lcdui;
 
+import androidx.appcompat.app.AlertDialog;
+
 import javax.microedition.lcdui.event.Event;
 import javax.microedition.lcdui.event.EventQueue;
 import javax.microedition.lcdui.event.RunnableEvent;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.util.ContextHolder;
 
-import androidx.appcompat.app.AlertDialog;
+import ru.woesss.j2me.jar.Descriptor;
 
 @SuppressWarnings("unused")
 public class Display {
@@ -50,6 +53,8 @@ public class Display {
 
 	private static Display instance;
 	static EventQueue queue = new EventQueue();
+	private static boolean multiTouchSupported;
+	private static String pointerNumber;
 
 	static {
 		queue.startProcessing();
@@ -59,6 +64,10 @@ public class Display {
 
 	public static Display getDisplay(MIDlet midlet) {
 		if (instance == null && midlet != null) {
+			String nokiaUiEnhancement = midlet.getAppProperty(Descriptor.NOKIA_UI_ENHANCEMENT);
+			if (nokiaUiEnhancement != null) {
+				multiTouchSupported = nokiaUiEnhancement.contains("EnableMultiPointTouchEvents");
+			}
 			instance = new Display();
 		}
 		return instance;
@@ -79,28 +88,47 @@ public class Display {
 		return queue;
 	}
 
+	public static boolean isMultiTouchSupported() {
+		return multiTouchSupported;
+	}
+
+	static void setPointerNumber(int pointerNumber) {
+		Display.pointerNumber = String.valueOf(pointerNumber);
+	}
+
+	static void resetPointerNumber() {
+		pointerNumber = null;
+	}
+
+	public static String getPointerNumber() {
+		return pointerNumber;
+	}
+
 	public void setCurrent(Displayable disp) {
-		if (disp == null || disp == current) {
+		if (disp == current) {
 			return;
+		}
+		if (current instanceof Canvas) {
+			Canvas c = (Canvas) current;
+			c.setInvisible();
 		}
 		if (disp instanceof Alert) {
 			Alert alert = (Alert) disp;
-			alert.setNextDisplayable(current);
+			alert.setReturnScreen(current);
 			showAlert(alert);
-		} else {
-			changeCurrent(disp);
-			showCurrent();
 		}
+		current = disp;
+		showCurrent();
 	}
 
 	public void setCurrent(final Alert alert, Displayable disp) {
 		if (disp == null) {
 			throw new NullPointerException();
-		} else if (disp instanceof Alert) {
-			throw new IllegalArgumentException();
 		}
-		alert.setNextDisplayable(disp);
+		alert.setReturnScreen(disp);
 		showAlert(alert);
+		current = alert;
+		showCurrent();
 	}
 
 	private void showAlert(Alert alert) {
@@ -108,19 +136,9 @@ public class Display {
 			AlertDialog alertDialog = alert.prepareDialog();
 			alertDialog.show();
 			if (alert.finiteTimeout()) {
-				ViewHandler.postDelayed(alertDialog::dismiss, alert.getTimeout());
+				ViewHandler.postDelayed(alert::dismiss, alert.getTimeout());
 			}
 		});
-	}
-
-	private void changeCurrent(Displayable disp) {
-		if (current instanceof Canvas) {
-			((Canvas) current).setOverlay(null);
-		}
-		if (disp instanceof Canvas) {
-			((Canvas) disp).setOverlay(ContextHolder.getVk());
-		}
-		current = disp;
 	}
 
 	private void showCurrent() {

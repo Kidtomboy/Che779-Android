@@ -21,16 +21,26 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ShaderInfo implements Comparable<ShaderInfo>, Parcelable {
-	String name;
-	String author;
+	public transient String dir;
+	@SerializedName("fragment")
 	public String fragment;
+	@SerializedName("vertex")
 	public String vertex;
+	@SerializedName("name")
+	String name;
+	@SerializedName("author")
+	String author;
 	transient boolean outputResolution;
 	transient boolean upscaling;
 	transient Setting[] settings = new Setting[4];
+	@SerializedName("Settings")
 	public float[] values;
 
+
+	@SuppressWarnings("unused")    // used by Gson deserialization
 	public ShaderInfo() {
 	}
 
@@ -39,7 +49,7 @@ public class ShaderInfo implements Comparable<ShaderInfo>, Parcelable {
 		this.author = author;
 	}
 
-	protected ShaderInfo(Parcel in) {
+	public ShaderInfo(Parcel in) {
 		name = in.readString();
 		author = in.readString();
 		fragment = in.readString();
@@ -60,8 +70,7 @@ public class ShaderInfo implements Comparable<ShaderInfo>, Parcelable {
 				equalsNullable(vertex, that.vertex);
 	}
 
-	@SuppressWarnings("EqualsReplaceableByObjectsCall")
-		// ObjectsCall require API19
+	@SuppressWarnings("EqualsReplaceableByObjectsCall")// ObjectsCall require API19
 	boolean equalsNullable(String a, String b) {
 		//noinspection StringEquality
 		return (a == b) || (a != null && a.equals(b));
@@ -200,12 +209,16 @@ public class ShaderInfo implements Comparable<ShaderInfo>, Parcelable {
 	@NonNull
 	@Override
 	public String toString() {
-		return name;
+		return name == null ? "unnamed" : name;
 	}
 
 	@Override
 	public int compareTo(ShaderInfo o) {
-		return name.toLowerCase().compareTo(o.name.toLowerCase());
+		String oName = o.name;
+		if (this.name == null) {
+			return oName == null ? 0 : 1;
+		} else if (oName == null) return -1;
+		return name.toLowerCase().compareTo(oName.toLowerCase());
 	}
 
 	@Override
@@ -215,7 +228,6 @@ public class ShaderInfo implements Comparable<ShaderInfo>, Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-
 		dest.writeString(name);
 		dest.writeString(author);
 		dest.writeString(fragment);

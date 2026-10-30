@@ -1,7 +1,9 @@
 /*
  * Copyright 2012 Kulikov Dmitriy
  * Copyright 2015-2016 Nickolay Savchenko
- * Copyright 2017-2018 Nikita Shakarun
+ * Copyright 2017-2020 Nikita Shakarun
+ * Copyright 2020-2022 Yriy Kharchenko
+ * Copyright 2021 Arman Jussupgaliyev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,36 +30,38 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import javax.microedition.lcdui.commands.AbstractSoftKeysBar;
 import javax.microedition.lcdui.event.CommandActionEvent;
 import javax.microedition.lcdui.event.SimpleEvent;
 import javax.microedition.shell.MicroActivity;
 import javax.microedition.util.ContextHolder;
 
 public abstract class Displayable {
-	private String title;
-
-	private ArrayList<Command> commands;
-	protected CommandListener listener;
-
-	private int tickermode;
-	private Ticker ticker;
-	private LinearLayout layout;
-	private TextView marquee;
-
-	protected static int virtualWidth;
-	protected static int virtualHeight;
-
 	private static final int TICKER_NO_ACTION = 0;
 	private static final int TICKER_SHOW = 1;
 	private static final int TICKER_HIDE = 2;
 
-	private SimpleEvent msgSetTicker = new SimpleEvent() {
+	protected static int virtualWidth;
+	protected static int virtualHeight;
+
+	CommandListener listener;
+	AbstractSoftKeysBar softBar;
+
+	private final ArrayList<Command> commands = new ArrayList<>();
+
+	private String title;
+	private int tickerMode;
+	private Ticker ticker;
+	private LinearLayout layout;
+	private TextView marquee;
+
+	private final SimpleEvent msgSetTicker = new SimpleEvent() {
 		@Override
 		public void process() {
 			if (ticker != null) {
 				marquee.setText(ticker.getString());
 			}
-			switch (tickermode) {
+			switch (tickerMode) {
 				case TICKER_SHOW:
 					layout.addView(marquee, 0);
 					break;
@@ -65,14 +69,9 @@ public abstract class Displayable {
 					layout.removeView(marquee);
 					break;
 			}
-			tickermode = TICKER_NO_ACTION;
+			tickerMode = TICKER_NO_ACTION;
 		}
 	};
-
-	public Displayable() {
-		commands = new ArrayList<>();
-		listener = null;
-	}
 
 	public static void setVirtualSize(int virtualWidth, int virtualHeight) {
 		Displayable.virtualWidth = virtualWidth;
@@ -87,16 +86,12 @@ public abstract class Displayable {
 		return virtualHeight;
 	}
 
-	public MicroActivity getParentActivity() {
-		return ContextHolder.getActivity();
-	}
-
 	public void setTitle(String title) {
 		this.title = title;
 
 		MicroActivity activity = ContextHolder.getActivity();
 		if (isShown()) {
-			activity.runOnUiThread(() -> activity.setTitle(title));
+			ViewHandler.postEvent(() -> activity.setTitle(title));
 		}
 	}
 
@@ -114,7 +109,7 @@ public abstract class Displayable {
 
 	public View getDisplayableView() {
 		if (layout == null) {
-			Context context = getParentActivity();
+			Context context = ContextHolder.getActivity();
 
 			layout = new LinearLayout(context);
 			layout.setOrientation(LinearLayout.VERTICAL);
@@ -145,13 +140,20 @@ public abstract class Displayable {
 		if (cmd == null) {
 			throw new NullPointerException();
 		}
-		if (!commands.contains(cmd)) {
-			commands.add(cmd);
+		if (commands.contains(cmd)) {
+			return;
+		}
+		commands.add(cmd);
+		if (softBar != null) {
+			softBar.notifyChanged();
 		}
 	}
 
 	public void removeCommand(Command cmd) {
 		commands.remove(cmd);
+		if (softBar != null) {
+			softBar.notifyChanged();
+		}
 	}
 
 	public int countCommands() {
@@ -166,9 +168,9 @@ public abstract class Displayable {
 		this.listener = listener;
 	}
 
-	public void fireCommandAction(Command c, Displayable d) {
+	public void fireCommandAction(Command c) {
 		if (listener != null) {
-			Display.postEvent(CommandActionEvent.getInstance(listener, c, d));
+			Display.postEvent(CommandActionEvent.getInstance(listener, c, this));
 		}
 	}
 
@@ -183,9 +185,9 @@ public abstract class Displayable {
 	public void setTicker(Ticker newticker) {
 		if (layout != null) {
 			if (ticker == null && newticker != null) {
-				tickermode = TICKER_SHOW;
+				tickerMode = TICKER_SHOW;
 			} else if (ticker != null && newticker == null) {
-				tickermode = TICKER_HIDE;
+				tickerMode = TICKER_HIDE;
 			}
 
 			ticker = newticker;
@@ -200,7 +202,7 @@ public abstract class Displayable {
 		return ticker;
 	}
 
-	public void sizeChanged(int w, int h) {
+	protected void sizeChanged(int w, int h) {
 	}
 
 	public boolean menuItemSelected(int id) {
@@ -215,5 +217,9 @@ public abstract class Displayable {
 			}
 		}
 		return true;
+	}
+
+	public void doSizeChanged(int width, int height) {
+		sizeChanged(width, height);
 	}
 }

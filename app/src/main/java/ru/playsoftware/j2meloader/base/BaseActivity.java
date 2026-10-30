@@ -16,6 +16,8 @@
 
 package ru.playsoftware.j2meloader.base;
 
+import static ru.playsoftware.j2meloader.util.Constants.PREF_BLACK_BACKGROUND;
+
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -23,6 +25,7 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
+
 import ru.playsoftware.j2meloader.R;
 
 @SuppressLint("Registered")
@@ -30,12 +33,9 @@ public class BaseActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		String theme = preferences.getString("pref_theme", "light");
-		if (theme.equals("dark")) {
-			setTheme(R.style.AppTheme);
-		} else {
-			setTheme(R.style.AppTheme_Light);
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		if (sp.getBoolean(PREF_BLACK_BACKGROUND, false)) {
+			setTheme(R.style.ThemeOverlay_App_Dark);
 		}
 		if (getSupportActionBar() != null) {
 			getSupportActionBar().setElevation(getResources().getDisplayMetrics().density * 2);

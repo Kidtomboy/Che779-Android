@@ -19,9 +19,14 @@ package ru.playsoftware.j2meloader.util;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 
-import java.io.BufferedReader;
+import androidx.activity.result.contract.ActivityResultContract;
+
+import com.nononsenseapps.filepicker.Utils;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,17 +34,19 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+
+import ru.playsoftware.j2meloader.config.Config;
 
 public class FileUtils {
 
-	private static String TAG = FileUtils.class.getName();
+	private static final String TAG = FileUtils.class.getName();
+	private static final String TEMP_JAR_NAME = "tmp.jar";
+	private static final String TEMP_JAD_NAME = "tmp.jad";
+	private static final String TEMP_KJX_NAME = "tmp.kjx";
+	private static final int BUFFER_SIZE = 1024;
+	public static final String ILLEGAL_FILENAME_CHARS = "[/\\\\:*?\"<>|]";
 
 	public static void copyFiles(File src, File dst, FilenameFilter filter) {
 		if (!dst.exists() && !dst.mkdirs()) {
@@ -71,85 +78,85 @@ public class FileUtils {
 		}
 	}
 
-	public static void deleteDirectory(File dir) {
+	public static boolean deleteDirectory(File dir) {
 		if (dir.isDirectory()) {
 			File[] listFiles = dir.listFiles();
-			if (listFiles.length != 0) {
+			if (listFiles != null && listFiles.length != 0) {
 				for (File file : listFiles) {
 					deleteDirectory(file);
 				}
 			}
 		}
-		dir.delete();
-	}
-
-	public static LinkedHashMap<String, String> loadManifest(File mf) {
-		LinkedHashMap<String, String> params = new LinkedHashMap<>();
-		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(mf)));
-			String line;
-			int index;
-			while ((line = br.readLine()) != null) {
-				index = line.indexOf(':');
-				if (index > 0) {
-					params.put(line.substring(0, index).trim(), line.substring(index + 1).trim());
-				}
-				if (line.length() > 0 && Character.isWhitespace(line.charAt(0))) {
-					Iterator<Map.Entry<String, String>> iter = params.entrySet().iterator();
-					Map.Entry<String, String> entry = null;
-					while (iter.hasNext()) {
-						entry = iter.next();
-					}
-					params.put(entry.getKey(), entry.getValue() + line.substring(1));
-				}
-			}
-			br.close();
-		} catch (Throwable t) {
-			Log.e(TAG, "getAppProperty() will not be available due to " + t.toString());
+		if (!dir.delete() && dir.exists()) {
+			Log.w(TAG, "Can't delete file: " + dir);
+			return false;
 		}
-		return params;
+		return true;
 	}
 
-	public static String getAppPath(Context context, Uri uri) throws IOException {
+	public static File getFileForUri(Context context, Uri uri) throws IOException {
 		if ("file".equals(uri.getScheme())) {
 			String path = uri.getPath();
-			if (path != null && new File(path).exists()) {
-				return path;
+			if (path != null) {
+				File file = new File(path);
+				if (file.exists()) {
+					return file;
+				}
 			}
 		}
-		InputStream in = context.getContentResolver().openInputStream(uri);
-		OutputStream out = null;
-		File folder = new File(context.getApplicationInfo().dataDir, JarConverter.TEMP_URI_FOLDER_NAME);
-		folder.mkdir();
-		byte[] signature = new byte[2];
-		byte[] jarSignature = new byte[]{0x50, 0x4B};
-		in.read(signature);
+		if ((context.getPackageName() + ".provider").equals(uri.getAuthority())) {
+			try {
+				File file = Utils.getFileForUri(uri);
+				if (file.isFile()) {
+					return file;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		File tmpDir = new File(context.getCacheDir(), "installer");
+		if (!tmpDir.exists() && !tmpDir.mkdirs()) {
+			throw new IOException("Can't create directory: " + tmpDir);
+		}
 		File file;
-		if (Arrays.equals(signature, jarSignature)) {
-			file = new File(folder, JarConverter.TEMP_JAR_NAME);
-		} else {
-			file = new File(folder, JarConverter.TEMP_JAD_NAME);
-		}
-		try {
-			out = new FileOutputStream(file);
-			out.write(signature);
-			IOUtils.copy(in, out);
-		} finally {
-			if (out != null) {
-				out.close();
+		try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+			byte[] buf = new byte[BUFFER_SIZE];
+			int len;
+			if (in == null || (len = in.read(buf)) == -1)
+				throw new IOException("Can't read data from uri: " + uri);
+			if (buf[0] == 0x50 && buf[1] == 0x4B) {
+				file = new File(tmpDir, TEMP_JAR_NAME);
+			} else if (buf[0] == 'K' && buf[1] == 'J' && buf[2] == 'X') {
+				file = new File(tmpDir, TEMP_KJX_NAME);
+			} else {
+				file = new File(tmpDir, TEMP_JAD_NAME);
 			}
-			in.close();
+			try (OutputStream out = new FileOutputStream(file)) {
+				out.write(buf, 0, len);
+				while ((len = in.read(buf)) > 0) {
+					out.write(buf, 0, len);
+				}
+			}
 		}
-		return file.getPath();
+		return file;
+	}
+
+	public static byte[] getBytes(File file) throws IOException {
+		try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
+			byte[] b = new byte[(int) file.length()];
+			dis.readFully(b);
+			return b;
+		}
 	}
 
 	public static void clearDirectory(File dir) {
-		if (!dir.isDirectory()) return;
 		final File[] files = dir.listFiles();
-		if (files == null) return;
+		if (files == null) {
+			return;
+		}
 		for (File file : files) {
 			if (file.isDirectory()) {
-				deleteDirectory(dir);
+				deleteDirectory(file);
 			} else {
 				//noinspection ResultOfMethodCallIgnored
 				file.delete();
@@ -195,5 +202,33 @@ public class FileUtils {
 			Log.e(TAG, "getText: " + path, e);
 		}
 		return "";
+	}
+
+	public static boolean initWorkDir(File dir) {
+		if ((dir.isDirectory() || dir.mkdirs()) && dir.canWrite()) {
+			//noinspection ResultOfMethodCallIgnored
+			new File(dir, Config.SHADERS_DIR).mkdir();
+			try {
+				File nomedia = new File(dir, ".nomedia");
+				//noinspection ResultOfMethodCallIgnored
+				nomedia.createNewFile();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean isExternalStorageLegacy() {
+		return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || Environment.isExternalStorageLegacy();
+	}
+
+	public static ActivityResultContract<String,Uri> getFilePicker() {
+		if (isExternalStorageLegacy()) {
+			return new PickFileResultContract();
+		} else {
+			return new SAFFileResultContract();
+		}
 	}
 }

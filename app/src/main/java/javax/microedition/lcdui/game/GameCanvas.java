@@ -32,9 +32,9 @@ public class GameCanvas extends Canvas {
 	public static final int GAME_C_PRESSED = 1 << Canvas.GAME_C;
 	public static final int GAME_D_PRESSED = 1 << Canvas.GAME_D;
 
-	private Image image;
-	private int key;
-	private boolean suppressCommands;
+	private final Image image;
+	private int keyState;
+	private final boolean suppressCommands;
 
 	public GameCanvas(boolean suppressCommands) {
 		super();
@@ -80,43 +80,57 @@ public class GameCanvas extends Canvas {
 	@Override
 	public void postKeyPressed(int keyCode) {
 		int code = convertGameKeyCode(keyCode);
-		key |= code;
-		if (!(suppressCommands && code != 0)) {
-			super.postKeyPressed(keyCode);
+		if (code != 0) {
+			this.keyState |= code;
+			if (suppressCommands) {
+				return;
+			}
 		}
+		super.postKeyPressed(keyCode);
 	}
 
 	@Override
 	public void postKeyReleased(int keyCode) {
 		int code = convertGameKeyCode(keyCode);
-		key &= ~code;
-		if (!(suppressCommands && code != 0)) {
-			super.postKeyReleased(keyCode);
+		if (code != 0) {
+			keyState &= ~code;
+			if (suppressCommands) {
+				return;
+			}
 		}
+		super.postKeyReleased(keyCode);
 	}
 
 	@Override
 	public void postKeyRepeated(int keyCode) {
-		int code = convertGameKeyCode(keyCode);
-		key |= code;
-		if (!(suppressCommands && code != 0)) {
-			super.postKeyRepeated(keyCode);
+		if (suppressCommands && convertGameKeyCode(keyCode) != 0) {
+			return;
 		}
+		super.postKeyRepeated(keyCode);
 	}
 
+	@SuppressWarnings("unused")
 	public int getKeyStates() {
-		return key;
+		return keyState;
 	}
 
 	public Graphics getGraphics() {
 		return image.getGraphics();
 	}
 
+	@SuppressWarnings("unused")
 	public void flushGraphics() {
 		flushGraphics(0, 0, width, height);
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public void flushGraphics(int x, int y, int width, int height) {
 		flushBuffer(image, x, y, width, height);
+	}
+
+	@Override
+	public void doShowNotify() {
+		keyState = 0;
+		super.doShowNotify();
 	}
 }

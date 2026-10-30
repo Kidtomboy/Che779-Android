@@ -18,26 +18,16 @@ package org.microemu.cldc.sms;
 
 import java.util.Date;
 
-import javax.wireless.messaging.BinaryMessage;
-import javax.wireless.messaging.TextMessage;
+import javax.wireless.messaging.Message;
 
-public class MessageImpl implements BinaryMessage, TextMessage {
+public class MessageImpl implements Message {
 
-	private byte[] data;
 	private String address;
+	private final long timestamp;
 
-	public MessageImpl(String type, String address) {
+	public MessageImpl(String address, long timestamp) {
 		this.address = address;
-	}
-
-	@Override
-	public byte[] getPayloadData() {
-		return data;
-	}
-
-	@Override
-	public void setPayloadData(byte[] data) {
-		this.data = data;
+		this.timestamp = timestamp;
 	}
 
 	@Override
@@ -47,21 +37,14 @@ public class MessageImpl implements BinaryMessage, TextMessage {
 
 	@Override
 	public Date getTimestamp() {
-		return new Date();
+		if (timestamp == 0) {
+			return null;
+		}
+		return new Date(timestamp);
 	}
 
 	@Override
 	public void setAddress(String address) {
 		this.address = address;
-	}
-
-	@Override
-	public String getPayloadText() {
-		return new String(data);
-	}
-
-	@Override
-	public void setPayloadText(String text) {
-		this.data = text.getBytes();
 	}
 }

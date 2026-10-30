@@ -19,33 +19,14 @@ package javax.microedition.media;
 import org.billthefarmer.mididriver.MidiConstants;
 import org.billthefarmer.mididriver.MidiDriver;
 
-import java.util.HashMap;
-
 import javax.microedition.media.control.MIDIControl;
 
 public class MidiPlayer extends BasePlayer implements MIDIControl {
 
-	private HashMap<String, Control> controls;
-	private MidiDriver midiDriver;
+	private final MidiDriver midiDriver = MidiInterface.getDriver();
 
 	public MidiPlayer() {
-		midiDriver = new MidiDriver();
-		midiDriver.start();
-		controls = new HashMap<>();
-		controls.put(MIDIControl.class.getName(), this);
-	}
-
-	@Override
-	public Control getControl(String controlType) {
-		if (!controlType.contains(".")) {
-			controlType = "javax.microedition.media.control." + controlType;
-		}
-		return controls.get(controlType);
-	}
-
-	@Override
-	public Control[] getControls() {
-		return controls.values().toArray(new Control[0]);
+		addControl(MIDIControl.class.getName(), this);
 	}
 
 	@Override

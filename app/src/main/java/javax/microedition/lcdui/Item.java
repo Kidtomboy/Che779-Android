@@ -25,10 +25,13 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.AppCompatTextView;
+
 import java.util.ArrayList;
 
 import javax.microedition.lcdui.event.CommandActionEvent;
 import javax.microedition.lcdui.event.SimpleEvent;
+import javax.microedition.util.ContextHolder;
 
 public abstract class Item implements View.OnCreateContextMenuListener {
 	public static final int PLAIN = 0;
@@ -68,22 +71,24 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 
 	private Form owner;
 
-	private ArrayList<Command> commands = new ArrayList<>();
+	private final ArrayList<Command> commands = new ArrayList<>();
 	private ItemCommandListener listener = null;
 	private Command defaultCommand;
 
-	private SimpleEvent msgSetContextMenuListener = new SimpleEvent() {
+	private final SimpleEvent msgSetContextMenuListener = new SimpleEvent() {
 		@Override
 		public void process() {
 			if (listener != null) {
+				labelview.setOnCreateContextMenuListener(Item.this);
 				contentview.setOnCreateContextMenuListener(Item.this);
 			} else {
+				labelview.setLongClickable(false);
 				contentview.setLongClickable(false);
 			}
 		}
 	};
 
-	private SimpleEvent msgSetLabel = new SimpleEvent() {
+	private final SimpleEvent msgSetLabel = new SimpleEvent() {
 		@Override
 		public void process() {
 			labelview.setText(label);
@@ -164,12 +169,12 @@ public abstract class Item implements View.OnCreateContextMenuListener {
 	 */
 	public View getItemView() {
 		if (layout == null) {
-			Context context = owner.getParentActivity();
+			Context context = ContextHolder.getActivity();
 
 			layout = new LinearLayout(context);
 			layout.setOrientation(LinearLayout.VERTICAL);
 
-			labelview = new TextView(context);
+			labelview = new AppCompatTextView(context);
 			labelview.setTextAppearance(context, android.R.style.TextAppearance_Medium);
 			labelview.setText(label);
 

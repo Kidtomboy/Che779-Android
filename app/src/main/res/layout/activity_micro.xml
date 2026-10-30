@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/midletFrame"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context="javax.microedition.shell.MicroActivity">
 
     <LinearLayout
         android:id="@+id/virtual_display"
@@ -26,12 +27,12 @@
             android:id="@+id/displayable_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
     </LinearLayout>
 
     <!-- MUST be transparent and math root container -->
     <javax.microedition.lcdui.overlay.OverlayView
-        android:id="@+id/vOverlay"
+        android:id="@+id/overlay_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

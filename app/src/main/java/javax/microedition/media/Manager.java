@@ -18,6 +18,7 @@
 package javax.microedition.media;
 
 import android.Manifest;
+import android.os.Build;
 import android.webkit.MimeTypeMap;
 
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.util.Arrays;
 import javax.microedition.io.Connector;
 import javax.microedition.media.protocol.DataSource;
 import javax.microedition.media.protocol.SourceStream;
+import javax.microedition.media.tone.ToneManager;
 import javax.microedition.util.ContextHolder;
 
 public class Manager {
@@ -35,6 +37,9 @@ public class Manager {
 
 	private static final String FILE_LOCATOR = "file://";
 	private static final String CAPTURE_AUDIO_LOCATOR = "capture://audio";
+	private static final String CAPTURE_VIDEO_LOCATOR = "capture://video";
+	private static final String CAPTURE_IMAGE_LOCATOR = "capture://image";
+	private static final TimeBase DEFAULT_TIMEBASE = () -> System.nanoTime() / 1000L;
 
 	public static Player createPlayer(String locator) throws IOException {
 		if (locator == null) {
@@ -42,6 +47,8 @@ public class Manager {
 		}
 		if (locator.equals(MIDI_DEVICE_LOCATOR)) {
 			return new MidiPlayer();
+		} else if (locator.equals(TONE_DEVICE_LOCATOR)) {
+			return new TonePlayer();
 		} else if (locator.startsWith(FILE_LOCATOR)) {
 			InputStream stream = Connector.openInputStream(locator);
 			String extension = locator.substring(locator.lastIndexOf('.') + 1);
@@ -50,6 +57,10 @@ public class Manager {
 		} else if (locator.startsWith(CAPTURE_AUDIO_LOCATOR) &&
 				ContextHolder.requestPermission(Manifest.permission.RECORD_AUDIO)) {
 			return new RecordPlayer();
+		} else if ((locator.startsWith(CAPTURE_IMAGE_LOCATOR) || locator.startsWith(CAPTURE_VIDEO_LOCATOR)) &&
+				ContextHolder.requestPermission(Manifest.permission.CAMERA) &&
+				Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			return new CameraPlayer();
 		} else {
 			return new BasePlayer();
 		}
@@ -90,15 +101,19 @@ public class Manager {
 	public static String[] getSupportedContentTypes(String str) {
 		return new String[]{"audio/wav", "audio/x-wav", "audio/midi", "audio/x-midi",
 				"audio/mpeg", "audio/aac", "audio/amr", "audio/amr-wb", "audio/mp3",
-				"audio/mp4", "audio/mmf"};
+				"audio/mp4", "audio/mmf", "audio/x-tone-seq"};
 	}
 
 	public static String[] getSupportedProtocols(String str) {
 		return new String[]{"device", "file", "http"};
 	}
 
-	public synchronized static void playTone(int frequency, int time, int volume)
+	public static TimeBase getSystemTimeBase() {
+		return DEFAULT_TIMEBASE;
+	}
+
+	public synchronized static void playTone(int note, int duration, int volume)
 			throws MediaException {
-		//TODO method stub
+		ToneManager.play(note, duration, volume);
 	}
 }

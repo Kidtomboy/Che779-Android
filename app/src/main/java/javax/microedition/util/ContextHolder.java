@@ -39,22 +39,24 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import javax.microedition.lcdui.pointer.VirtualKeyboard;
+import javax.microedition.lcdui.keyboard.VirtualKeyboard;
 import javax.microedition.shell.AppClassLoader;
 import javax.microedition.shell.MicroActivity;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import ru.playsoftware.j2meloader.BuildConfig;
 import ru.playsoftware.j2meloader.config.Config;
 
 public class ContextHolder {
-
 	private static Display display;
 	private static VirtualKeyboard vk;
 	private static WeakReference<MicroActivity> currentActivity;
 	private static Vibrator vibrator;
 	private static Context appContext;
-	private static ArrayList<ActivityResultListener> resultListeners = new ArrayList<>();
+	private static final ArrayList<ActivityResultListener> resultListeners = new ArrayList<>();
+	private static boolean vibrationEnabled;
 
 	public static Context getAppContext() {
 		return appContext;
@@ -103,12 +105,17 @@ public class ContextHolder {
 		}
 	}
 
-	public static InputStream getResourceAsStream(Class resClass, String resName) {
+	public static InputStream getResourceAsStream(Class<?> resClass, String resName) {
 		return AppClassLoader.getResourceAsStream(resClass, resName);
 	}
 
 	public static FileOutputStream openFileOutput(String name) throws FileNotFoundException {
-		return new FileOutputStream(getFileByName(name));
+		File dir = new File(AppClassLoader.getDataDir());
+		File file = new File(dir, name);
+		if (!dir.isDirectory() && !dir.mkdirs()) {
+			throw new FileNotFoundException("Can't create directory: " + dir);
+		}
+		return new FileOutputStream(file);
 	}
 
 	public static FileInputStream openFileInput(String name) throws FileNotFoundException {
@@ -120,25 +127,59 @@ public class ContextHolder {
 	}
 
 	public static File getFileByName(String name) {
-		return new File(Config.getDataDir() + AppClassLoader.getName(), name);
+		return new File(AppClassLoader.getDataDir(), name);
 	}
 
 	public static File getCacheDir() {
-		return getAppContext().getExternalCacheDir();
+		if (BuildConfig.FULL_EMULATOR) {
+			File dir = new File(Config.getEmulatorDir() + "/cache");
+			if (dir.isDirectory() || dir.mkdirs())
+				return dir;
+		}
+		return getAppContext().getCacheDir();
 	}
 
 	public static boolean requestPermission(String permission) {
-		if (ContextCompat.checkSelfPermission(currentActivity.get(), permission) != PackageManager.PERMISSION_GRANTED) {
-			ActivityCompat.requestPermissions(currentActivity.get(), new String[]{permission}, 0);
+		MicroActivity context = currentActivity.get();
+		if (context == null) {
+			return false;
+		}
+		if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(context, new String[]{permission}, 0);
 			return false;
 		} else {
 			return true;
 		}
 	}
 
+	public static boolean requestPermissions(String[] permissions) {
+		MicroActivity context = currentActivity.get();
+		if (context == null) {
+			return false;
+		}
+		if (!hasPermissions(context, permissions)) {
+			ActivityCompat.requestPermissions(context, permissions, 0);
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	private static boolean hasPermissions(Context context, String... permissions) {
+		if (context != null && permissions != null) {
+			for (String permission : permissions) {
+				if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	public static String getAssetAsString(String fileName) {
 		StringBuilder sb = new StringBuilder();
 
+		//noinspection CharsetObjectCanBeUsed
 		try (InputStream is = getAppContext().getAssets().open(fileName);
 			 BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")))) {
 			String str;
@@ -151,22 +192,14 @@ public class ContextHolder {
 		return sb.toString();
 	}
 
-	/**
-	 * Kill midlet process.
-	 */
-	public static void notifyDestroyed() {
-		MicroActivity activity = currentActivity.get();
-		if (activity != null) {
-			activity.finish();
-		}
-		Process.killProcess(Process.myPid());
-	}
-
 	public static MicroActivity getActivity() {
 		return currentActivity.get();
 	}
 
 	public static boolean vibrate(int duration) {
+		if (!vibrationEnabled) {
+			return false;
+		}
 		if (vibrator == null) {
 			vibrator = (Vibrator) getAppContext().getSystemService(Context.VIBRATOR_SERVICE);
 		}
@@ -183,7 +216,21 @@ public class ContextHolder {
 		return true;
 	}
 
+	public static void vibrateKey(int duration) {
+		if (vibrator == null) {
+			vibrator = (Vibrator) getAppContext().getSystemService(Context.VIBRATOR_SERVICE);
+		}
+		if (vibrator == null || !vibrator.hasVibrator()) {
+			return;
+		}
+		vibrator.vibrate(duration);
+	}
+
 	public static void setApplication(Application application) {
 		appContext = application;
+	}
+
+	public static void setVibration(boolean vibrationEnabled) {
+		ContextHolder.vibrationEnabled = vibrationEnabled;
 	}
 }

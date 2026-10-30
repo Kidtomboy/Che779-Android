@@ -1,5 +1,6 @@
 /*
- * Copyright 2018 Nikita Shakarun
+ * Copyright 2018-2021 Nikita Shakarun
+ * Copyright 2019-2023 Yury Kharchenko
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +17,31 @@
 
 package javax.microedition.shell;
 
-import android.annotation.SuppressLint;
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Environment;
 import android.os.StrictMode;
 import android.util.Log;
+import android.util.SparseIntArray;
+import android.view.KeyEvent;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import androidx.core.content.ContextCompat;
+
+import org.acra.ACRA;
+import org.acra.ErrorReporter;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -44,39 +54,49 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.event.EventQueue;
-import javax.microedition.lcdui.pointer.FixedKeyboard;
-import javax.microedition.lcdui.pointer.VirtualKeyboard;
+import javax.microedition.lcdui.keyboard.KeyMapper;
+import javax.microedition.lcdui.keyboard.VirtualKeyboard;
 import javax.microedition.m3g.Graphics3D;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.util.ContextHolder;
 
-import io.reactivex.Single;
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+import kotlin.io.ConstantsKt;
+import kotlin.io.FilesKt;
+import ru.playsoftware.j2meloader.BuildConfig;
 import ru.playsoftware.j2meloader.config.Config;
 import ru.playsoftware.j2meloader.config.ProfileModel;
 import ru.playsoftware.j2meloader.config.ProfilesManager;
 import ru.playsoftware.j2meloader.config.ShaderInfo;
-import ru.playsoftware.j2meloader.settings.KeyMapper;
+import ru.playsoftware.j2meloader.util.Constants;
 import ru.playsoftware.j2meloader.util.FileUtils;
-
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
+import ru.playsoftware.j2meloader.util.IOUtils;
+import ru.woesss.j2me.jar.Descriptor;
 
 public class MicroLoader {
 	private static final String TAG = MicroLoader.class.getName();
 
-	private String path;
-	private Context context;
+	private final File appDir;
+	private final Context context;
+	private final String workDir;
+	private final String appDirName;
 	private ProfileModel params;
-	private String appPath;
 
 	MicroLoader(Context context, String appPath) {
 		this.context = context;
-		this.appPath = appPath;
-		this.path = Config.getAppDir() + appPath;
+		this.appDir = new File(appPath);
+		File converted = appDir.getParentFile();
+		if (converted == null)
+			throw new NullPointerException("Can't access to parent of " + appPath);
+		workDir = converted.getParent();
+		appDirName = appDir.getName();
 	}
 
 	public boolean init() {
-		this.params = ProfilesManager.loadConfig(new File(Config.getConfigsDir(), appPath));
+		File config = new File(workDir + Config.MIDLET_CONFIGS_DIR + appDirName);
+		this.params = ProfilesManager.loadConfig(config);
 		if (params == null) {
 			return false;
 		}
@@ -85,9 +105,15 @@ public class MicroLoader {
 		File cacheDir = ContextHolder.getCacheDir();
 		// Some phones return null here
 		if (cacheDir != null && cacheDir.exists()) {
-			for (File temp : cacheDir.listFiles()) {
-				temp.delete();
-			}
+			FileUtils.clearDirectory(cacheDir);
+		}
+		File internalDriveDir = new File(Config.getFsInternalDir());
+		if (!internalDriveDir.exists()) {
+			internalDriveDir.mkdirs();
+		}
+		File externalDriveDir = new File(Config.getFsExternalDir());
+		if (!externalDriveDir.exists()) {
+			externalDriveDir.mkdirs();
 		}
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 				.permitNetwork()
@@ -99,40 +125,88 @@ public class MicroLoader {
 
 	LinkedHashMap<String, String> loadMIDletList() throws IOException {
 		LinkedHashMap<String, String> midlets = new LinkedHashMap<>();
-		LinkedHashMap<String, String> params =
-				FileUtils.loadManifest(new File(path, Config.MIDLET_MANIFEST_FILE));
-		MIDlet.initProps(params);
-		for (Map.Entry<String, String> entry : params.entrySet()) {
-			if (entry.getKey().matches("MIDlet-[0-9]+")) {
-				String tmp = entry.getValue();
-				String clazz = tmp.substring(tmp.lastIndexOf(',') + 1).trim();
-				String title = tmp.substring(0, tmp.indexOf(',')).trim();
-				midlets.put(clazz, title);
+		String jarHash = null;
+		Descriptor descriptor;
+		if (BuildConfig.FULL_EMULATOR) {
+			descriptor = new Descriptor(new File(appDir, Config.MIDLET_MANIFEST_FILE), false);
+			try {
+				byte[] bytes = FileUtils.getBytes(new File(appDir, Config.MIDLET_RES_FILE));
+				byte[] sum = MessageDigest.getInstance("md5").digest(bytes);
+				jarHash = String.format("%032x", new BigInteger(1, sum));
+			} catch (Throwable ignored) {
 			}
+		} else {
+			try (InputStream stream = getClass().getResourceAsStream("/MIDLET-META-INF/MANIFEST.MF")) {
+				if (stream == null) {
+					throw new RuntimeException("App manifest not found! It MUST be on project path:" +
+							" 'app/midlet/resources/MIDLET-META-INF/MANIFEST.MF'");
+				}
+				String text = new String(IOUtils.toByteArray(stream));
+				descriptor = new Descriptor(text, false);
+			}
+		}
+		Map<String, String> attr = descriptor.getAttrs();
+		ErrorReporter errorReporter = ACRA.getErrorReporter();
+		String report = errorReporter.getCustomData(Constants.KEY_APPCENTER_ATTACHMENT);
+		StringBuilder sb = new StringBuilder();
+		if (report != null) {
+			sb.append(report).append("\n");
+		}
+		sb.append(Descriptor.MIDLET_NAME).append(": ").append(descriptor.getName()).append("\n");
+		sb.append(Descriptor.MIDLET_VENDOR).append(": ").append(descriptor.getVendor()).append("\n");
+		sb.append(Descriptor.MIDLET_VERSION).append(": ").append(descriptor.getVersion()).append("\n");
+		if (jarHash != null) {
+			sb.append("JAR_HASH_MD5").append(": ").append(jarHash);
+		}
+		errorReporter.putCustomData(Constants.KEY_APPCENTER_ATTACHMENT, sb.toString());
+		MIDlet.initProps(attr);
+		for (int i = 1; ; i++) {
+			String v = attr.get("MIDlet-" + i);
+			if (v == null) {
+				break;
+			}
+			String clazz = v.substring(v.lastIndexOf(',') + 1).trim();
+			String title = v.substring(0, v.indexOf(',')).trim();
+			midlets.put(clazz, title);
 		}
 		return midlets;
 	}
 
 	MIDlet loadMIDlet(String mainClass) throws ClassNotFoundException, InstantiationException,
 			IllegalAccessException, NoSuchMethodException, InvocationTargetException, IOException {
-		File dexSource = new File(path, Config.MIDLET_DEX_FILE);
-		File codeCacheDir = SDK_INT >= LOLLIPOP ? context.getCodeCacheDir() : context.getCacheDir();
-		File dexOptDir = new File(codeCacheDir, Config.DEX_OPT_CACHE_DIR);
-		if (dexOptDir.exists()) {
-			FileUtils.clearDirectory(dexOptDir);
-		} else if (!dexOptDir.mkdir()) {
-			throw new IOException("Cant't create directory: [" + dexOptDir + ']');
+		if (BuildConfig.FULL_EMULATOR) {
+			File dexSource = new File(appDir, Config.MIDLET_DEX_FILE);
+			File codeCacheDir = ContextCompat.getCodeCacheDir(context);
+			File dexOptDir = new File(codeCacheDir, Config.DEX_OPT_CACHE_DIR);
+			if (dexOptDir.exists()) {
+				FileUtils.clearDirectory(dexOptDir);
+			} else if (!dexOptDir.mkdir()) {
+				throw new IOException("Can't create directory: [" + dexOptDir + ']');
+			}
+			if (SDK_INT >= UPSIDE_DOWN_CAKE) {
+				File dexCache = new File(dexOptDir, appDirName);
+				FilesKt.copyTo(dexSource, dexCache, true, ConstantsKt.DEFAULT_BUFFER_SIZE);
+				if (!dexCache.setReadOnly()) {
+					throw new IOException("Can't set readOnly flag for dex cache file");
+				}
+				dexSource = dexCache;
+			}
+			ClassLoader loader = new AppClassLoader(dexSource.getAbsolutePath(),
+					dexOptDir.getAbsolutePath(), context.getClassLoader(), appDir);
+			Log.i(TAG, "loadMIDletList main: " + mainClass + " from dex:" + dexSource.getPath());
+			//noinspection unchecked
+			Class<MIDlet> clazz = (Class<MIDlet>) loader.loadClass(mainClass);
+			Constructor<MIDlet> init = clazz.getDeclaredConstructor();
+			init.setAccessible(true);
+			return init.newInstance();
+		} else {
+			AppClassLoader.setDataDir(appDir);
+			//noinspection unchecked
+			Class<MIDlet> clazz = (Class<MIDlet>) Class.forName(mainClass);
+			Constructor<MIDlet> init = clazz.getDeclaredConstructor();
+			init.setAccessible(true);
+			return init.newInstance();
 		}
-		File resDir = new File(path, Config.MIDLET_RES_DIR);
-		ClassLoader loader = new AppClassLoader(dexSource.getAbsolutePath(),
-				dexOptDir.getAbsolutePath(), context.getClassLoader(), resDir);
-		Log.i(TAG, "loadMIDletList main: " + mainClass + " from dex:" + dexSource.getPath());
-		Log.i(TAG, "MIDlet-Name: " + AppClassLoader.getName());
-		//noinspection unchecked
-		Class<MIDlet> clazz = (Class<MIDlet>) loader.loadClass(mainClass);
-		Constructor<MIDlet> init = clazz.getDeclaredConstructor();
-		init.setAccessible(true);
-		return init.newInstance();
 	}
 
 	private void setProperties() {
@@ -140,128 +214,109 @@ public class MicroLoader {
 		final String country = defaultLocale.getCountry();
 		System.setProperty("microedition.locale", defaultLocale.getLanguage()
 				+ (country.length() == 2 ? "-" + country : ""));
+		// FIXME: 21.10.2020 Config.getDataDir() may be in different storage
 		final String primaryStoragePath = Environment.getExternalStorageDirectory().getPath();
-		String uri = "file:///c:" + Config.getDataDir().substring(primaryStoragePath.length()) + appPath;
-		System.setProperty("fileconn.dir.cache", uri + "/cache");
-		System.setProperty("fileconn.dir.private", uri + "/private");
-		System.setProperty("user.home", primaryStoragePath);
+		String dataUri = "file:///c:" + Config.getDataDir().substring(primaryStoragePath.length()) + appDirName;
+		String musicUri = "file:///c:" + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+				.getPath().substring(primaryStoragePath.length());
+		System.setProperty("fileconn.dir.cache", dataUri + "/cache");
+		System.setProperty("fileconn.dir.private", dataUri + "/private");
+		System.setProperty("fileconn.dir.music", musicUri);
+		System.setProperty("user.home", Config.getFsInternalDir());
 	}
 
 	public int getOrientation() {
 		return params.orientation;
 	}
 
+	void setLimitFps(int fps) {
+		if (fps == -1) Canvas.setLimitFps(params.fpsLimit);
+		else Canvas.setLimitFps(fps);
+	}
+
 	void applyConfiguration() {
 		try {
 			// Apply configuration to the launching MIDlet
 			if (params.showKeyboard) {
-				setVirtualKeyboard();
+				ContextHolder.setVk(new VirtualKeyboard(params));
 			} else {
 				ContextHolder.setVk(null);
 			}
 			setProperties();
-
-			Font.setSize(Font.SIZE_SMALL, params.fontSizeSmall);
-			Font.setSize(Font.SIZE_MEDIUM, params.fontSizeSmall);
-			Font.setSize(Font.SIZE_LARGE, params.fontSizeLarge);
-			Font.setApplyDimensions(params.fontApplyDimensions);
 
 			final String[] propLines = params.systemProperties.split("\n");
 			for (String line : propLines) {
 				String[] prop = line.split(":[ ]*", 2);
 				if (prop.length == 2) {
 					System.setProperty(prop[0], prop[1]);
+					MidletSystem.setProperty(prop[0], prop[1]);
 				}
 			}
 			try {
 				Charset.forName(System.getProperty("microedition.encoding"));
 			} catch (Exception e) {
 				System.setProperty("microedition.encoding", "ISO-8859-1");
+				MidletSystem.setProperty("microedition.encoding", "ISO-8859-1");
 			}
 
-			Displayable.setVirtualSize(params.screenWidth, params.screenHeight);
-			Canvas.setScale(params.screenScaleToFit, params.screenKeepAspectRatio, params.screenScaleRatio);
+			int screenWidth = params.screenWidth;
+			int screenHeight = params.screenHeight;
+			Displayable.setVirtualSize(screenWidth, screenHeight);
+			Canvas.setBackgroundColor(params.screenBackgroundColor);
+			Canvas.setScale(params.screenGravity, params.screenScaleType, params.screenScaleRatio);
 			Canvas.setFilterBitmap(params.screenFilter);
 			EventQueue.setImmediate(params.immediateMode);
-			Canvas.setGraphicsMode(params.getGraphicsMode(), params.parallelRedrawScreen);
-			Canvas.setBackgroundColor(params.screenBackgroundColor);
-			Canvas.setKeyMapping(params.keyCodesLayout, KeyMapper.getArrayPref(params));
-			Canvas.setHasTouchInput(params.touchInput);
+			Canvas.setGraphicsMode(params.graphicsMode, params.parallelRedrawScreen);
+			ShaderInfo shader = params.shader;
+			if (shader != null) {
+				shader.dir = workDir + Config.SHADERS_DIR;
+			}
+			Canvas.setShaderFilter(shader);
 			Canvas.setForceFullscreen(params.forceFullscreen);
 			Canvas.setShowFps(params.showFps);
 			Canvas.setLimitFps(params.fpsLimit);
-			ShaderInfo shader = params.shader;
-			if (shader == null) shader = new ShaderInfo();
-			Canvas.setShaderFilter(shader);
+
+			Font.applySettings(params);
+
+			KeyMapper.setKeyMapping(params);
+			Canvas.setHasTouchInput(params.touchInput);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void setVirtualKeyboard() {
-		int vkType = params.vkType;
-		VirtualKeyboard vk;
-		if (vkType == VirtualKeyboard.CUSTOMIZABLE_TYPE) {
-			vk = new VirtualKeyboard();
-		} else if (vkType == VirtualKeyboard.PHONE_DIGITS_TYPE) {
-			vk = new FixedKeyboard(0);
-		} else {
-			vk = new FixedKeyboard(1);
-		}
-		vk.setHideDelay(params.vkHideDelay);
-		vk.setHasHapticFeedback(params.vkFeedback);
-		vk.setButtonShape(params.vkButtonShape);
-		vk.setForceOpacity(params.vkForceOpacity);
-
-		File keylayoutFile = new File(Config.getConfigsDir(), appPath + Config.MIDLET_KEY_LAYOUT_FILE);
-		if (keylayoutFile.exists()) {
-			try {
-				FileInputStream fis = new FileInputStream(keylayoutFile);
-				DataInputStream dis = new DataInputStream(fis);
-				vk.readLayout(dis);
-				fis.close();
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-			}
-		}
-
-		int vkAlpha = params.vkAlpha << 24;
-		vk.setColor(VirtualKeyboard.BACKGROUND, vkAlpha | params.vkBgColor);
-		vk.setColor(VirtualKeyboard.FOREGROUND, vkAlpha | params.vkFgColor);
-		vk.setColor(VirtualKeyboard.BACKGROUND_SELECTED, vkAlpha | params.vkBgColorSelected);
-		vk.setColor(VirtualKeyboard.FOREGROUND_SELECTED, vkAlpha | params.vkFgColorSelected);
-		vk.setColor(VirtualKeyboard.OUTLINE, vkAlpha | params.vkOutlineColor);
-
-		VirtualKeyboard.LayoutListener listener = vk1 -> {
-			try {
-				FileOutputStream fos = new FileOutputStream(keylayoutFile);
-				DataOutputStream dos = new DataOutputStream(fos);
-				vk1.writeLayout(dos);
-				fos.close();
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-			}
-		};
-		vk.setLayoutListener(listener);
-		ContextHolder.setVk(vk);
+	void takeScreenshot(Canvas canvas, SingleObserver<String> observer) {
+		canvas.getScreenShot()
+				.subscribeOn(Schedulers.computation())
+				.observeOn(Schedulers.io())
+				.map(bitmap -> {
+					Calendar calendar = Calendar.getInstance();
+					Date now = calendar.getTime();
+					//noinspection SpellCheckingInspection
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US);
+					String fileName = "Screenshot_" + simpleDateFormat.format(now) + ".png";
+					File screenshotDir = new File(Config.SCREENSHOTS_DIR);
+					File screenshotFile = new File(screenshotDir, fileName);
+					if (!screenshotDir.exists() && !screenshotDir.mkdirs()) {
+						throw new IOException("Can't create directory: " + screenshotDir);
+					}
+					FileOutputStream out = new FileOutputStream(screenshotFile);
+					bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+					return screenshotFile.getAbsolutePath();
+				})
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(observer);
 	}
 
-	@SuppressLint("SimpleDateFormat")
-	Single<String> takeScreenshot(Canvas canvas) {
-		return Single.create(emitter -> {
-			Bitmap bitmap = canvas.getScreenShot();
-			Calendar calendar = Calendar.getInstance();
-			Date now = calendar.getTime();
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
-			String fileName = "Screenshot_" + simpleDateFormat.format(now) + ".png";
-			File screenshotDir = new File(Config.SCREENSHOTS_DIR);
-			File screenshotFile = new File(screenshotDir, fileName);
-			if (!screenshotDir.exists()) {
-				screenshotDir.mkdirs();
-			}
-			FileOutputStream out = new FileOutputStream(screenshotFile);
-			bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-			emitter.onSuccess(screenshotFile.getAbsolutePath());
-		});
+	public int getMenuKeyCode() {
+		SparseIntArray mappings = params.keyMappings;
+		if (mappings == null) {
+			return KeyEvent.KEYCODE_BACK;
+		}
+		int i = mappings.indexOfValue(KeyMapper.KEY_OPTIONS_MENU);
+		if (i < 0) {
+			return KeyEvent.KEYCODE_BACK;
+		}
+		return mappings.keyAt(i);
 	}
 }

@@ -16,25 +16,50 @@
 
 package ru.playsoftware.j2meloader.crashes;
 
+import android.content.Context;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 public class TLSSocketFactory extends SSLSocketFactory {
 
-	private SSLSocketFactory internalSSLSocketFactory;
+	private final SSLSocketFactory internalSSLSocketFactory;
 
-	public TLSSocketFactory() throws KeyManagementException, NoSuchAlgorithmException {
-		SSLContext context = SSLContext.getInstance("TLS");
-		context.init(null, null, null);
-		internalSSLSocketFactory = context.getSocketFactory();
+	public TLSSocketFactory(Context context) {
+		SSLSocketFactory factory;
+		try {
+			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+			try (InputStream in = context.getAssets().open("appcenter.cer")) {
+				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509","BC");
+				X509Certificate cert = (X509Certificate) certificateFactory.generateCertificate(in);
+
+				trustStore.load(null);
+				trustStore.setCertificateEntry("alias", cert);
+			}
+
+			String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+			tmf.init(trustStore);
+
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(null, tmf.getTrustManagers(), null);
+			factory = sslContext.getSocketFactory();
+		} catch (GeneralSecurityException | IOException e) {
+			factory = HttpsURLConnection.getDefaultSSLSocketFactory();
+		}
+		internalSSLSocketFactory = factory;
 	}
 
 	@Override
@@ -58,12 +83,12 @@ public class TLSSocketFactory extends SSLSocketFactory {
 	}
 
 	@Override
-	public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+	public Socket createSocket(String host, int port) throws IOException {
 		return enableTLSOnSocket(internalSSLSocketFactory.createSocket(host, port));
 	}
 
 	@Override
-	public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
+	public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
 		return enableTLSOnSocket(internalSSLSocketFactory.createSocket(host, port, localHost, localPort));
 	}
 

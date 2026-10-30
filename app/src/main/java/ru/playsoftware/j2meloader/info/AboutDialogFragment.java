@@ -19,7 +19,8 @@ package ru.playsoftware.j2meloader.info;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.text.Html;
-import android.text.method.LinkMovementMethod;
+import android.text.method.ScrollingMovementMethod;
+import android.text.util.Linkify;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -38,27 +39,29 @@ public class AboutDialogFragment extends DialogFragment {
 				.append(getText(R.string.about_github))
 				.append(getText(R.string.about_4pda))
 				.append(getText(R.string.about_xda))
+				.append(getText(R.string.about_emugen_wiki))
 				.append(getText(R.string.about_crowdin))
 				.append(getText(R.string.about_copyright));
 		TextView tv = new TextView(getActivity());
-		tv.setMovementMethod(LinkMovementMethod.getInstance());
 		tv.setText(Html.fromHtml(message.toString()));
 		tv.setTextSize(16);
+		tv.setMovementMethod(new ScrollingMovementMethod());
+		Linkify.addLinks(tv, Linkify.ALL);
 		float density = getResources().getDisplayMetrics().density;
 		int paddingHorizontal = (int) (density * 20);
 		int paddingVertical = (int) (density * 14);
 		tv.setPadding(paddingHorizontal, paddingVertical, paddingHorizontal, 0);
-		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
 		builder.setTitle(R.string.app_name)
 				.setIcon(R.mipmap.ic_launcher)
 				.setView(tv)
 				.setPositiveButton(R.string.licenses, (dialog, which) -> {
 					LicensesDialogFragment licensesDialogFragment = new LicensesDialogFragment();
-					licensesDialogFragment.show(getFragmentManager(), "licenses");
+					licensesDialogFragment.show(getParentFragmentManager(), "licenses");
 				})
 				.setNeutralButton(R.string.more, (dialog, which) -> {
 					InfoDialogFragment infoDialogFragment = new InfoDialogFragment();
-					infoDialogFragment.show(getFragmentManager(), "more");
+					infoDialogFragment.show(getParentFragmentManager(), "more");
 				});
 		return builder.create();
 	}
