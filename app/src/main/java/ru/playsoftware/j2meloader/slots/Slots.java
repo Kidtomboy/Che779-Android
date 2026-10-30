@@ -121,14 +121,14 @@ public final class Slots {
 
 	/** Chon tab de mo game: tab hien tai (neu dang o trong tab), tab duoc chi dinh, hoac tab trong dau tien. -1 = het cho. */
 	public static int pickSlot(Context c) {
-		int cur = current();
-		if (cur >= 0) {
-			return cur;
-		}
 		int t = target;
 		target = -1;
 		if (t >= 0 && t < COUNT && !info(c, t).running) {
 			return t;
+		}
+		int cur = current();
+		if (cur >= 0) {
+			return cur;
 		}
 		for (int i = 0; i < COUNT; i++) {
 			if (!info(c, i).running) {
@@ -205,6 +205,73 @@ public final class Slots {
 			android.os.Process.killProcess(i.pid);
 		}
 		new File(dir(c), "slot" + slot).delete();
+	}
+
+	/** Tab trong (khong chay) dau tien, khong tinh tab hien tai. -1 = het cho. */
+	public static int freeSlot(Context c) {
+		int cur = current();
+		for (int i = 0; i < COUNT; i++) {
+			if (i != cur && !info(c, i).running) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/** Dua tab dang chay len truoc. */
+	public static boolean switchTo(Context c, int slot) {
+		Info i = info(c, slot);
+		if (!i.running) {
+			return false;
+		}
+		try {
+			android.app.ActivityManager am = (android.app.ActivityManager) c.getSystemService(Context.ACTIVITY_SERVICE);
+			am.moveTaskToFront(i.taskId, android.app.ActivityManager.MOVE_TASK_WITH_HOME);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			android.content.Intent in = new android.content.Intent(c, activityClass(slot));
+			in.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+			c.startActivity(in);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	/** Tab dang chay gan tab "from" nhat (khac from), uu tien tab ben trai. -1 = khong co. */
+	public static int neighbour(Context c, int from) {
+		for (int d = 1; d < COUNT; d++) {
+			int a = from - d;
+			if (a >= 0 && info(c, a).running) {
+				return a;
+			}
+			int b = from + d;
+			if (b < COUNT && info(c, b).running) {
+				return b;
+			}
+		}
+		return -1;
+	}
+
+	/** Mo mot game (path) o tab trong ke tiep. Tra ve false neu da het cho. */
+	public static boolean openNew(Context c, String name, String path, String args) {
+		int free = freeSlot(c);
+		if (free < 0) {
+			android.widget.Toast.makeText(c, "Đã mở đủ " + COUNT + " tab. Hãy đóng bớt một tab.",
+					android.widget.Toast.LENGTH_LONG).show();
+			return false;
+		}
+		setTarget(free);
+		try {
+			ru.playsoftware.j2meloader.config.Config.startApp(c, name, path, false, args);
+		} finally {
+			target = -1;
+		}
+		return true;
 	}
 
 	static File stateDir(Context c) {

@@ -116,6 +116,10 @@ public class MicroActivity extends AppCompatActivity {
 	private int toolbarHeight;
 	private int menuKey;
 	private String appPath;
+	private String startArgs;
+	private int tabBarHeight;
+	private ru.playsoftware.j2meloader.slots.TabBar tabBar;
+	private static final String PREF_TABBAR_COLLAPSED = "che779_tabbar_collapsed";
 
 	public ActivityMicroBinding binding;
 
@@ -165,6 +169,8 @@ public class MicroActivity extends AppCompatActivity {
 		ru.playsoftware.j2meloader.slots.Slots.markRunning(this, appName, getTaskId());
 		ru.playsoftware.j2meloader.slots.SlotService.start(this);
 		String arguments = intent.getStringExtra(KEY_START_ARGUMENTS);
+		startArgs = arguments;
+		setupTabBar(sp);
 		if (arguments != null) {
 			MidletSystem.setProperty("com.nokia.mid.cmdline", arguments);
 			String[] arr = arguments.split(";");
@@ -202,6 +208,10 @@ public class MicroActivity extends AppCompatActivity {
 		setOrientation(orientation);
 		menuKey = microLoader.getMenuKeyCode();
 		inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+		if (tabBar != null) {
+			tabBar.setPadVisible(ContextHolder.getVk() != null);
+			tabBar.setKeyboardVisible(inputMethodManager != null);
+		}
 
 		try {
 			loadMIDlet();
@@ -224,6 +234,9 @@ public class MicroActivity extends AppCompatActivity {
 	public void onResume() {
 		super.onResume();
 		visible = true;
+		if (tabBar != null) {
+			tabBar.refreshNow();
+		}
 		MidletThread.resumeApp();
 	}
 
@@ -370,7 +383,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void updateOverlayLocation() {
-		binding.overlayView.setLocation(0, statusBarInset + toolbarHeight);
+		binding.overlayView.setLocation(0, statusBarInset + toolbarHeight + tabBarHeight);
 	}
 
 	private WindowInsetsControllerCompat getWindowInsetsController() {
@@ -771,12 +784,194 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
+	// ---------------- Che779: thanh tab ----------------
+
+	private static final int ID_TABBAR_COLLAPSE = 1001;
+
+	private void setupTabBar(SharedPreferences sp) {
+		tabBar = new ru.playsoftware.j2meloader.slots.TabBar(this,
+				sp.getBoolean(PREF_TABBAR_COLLAPSED, false), new ru.playsoftware.j2meloader.slots.TabBar.Host() {
+			@Override
+			public void onTab(int slot) {
+				if (!ru.playsoftware.j2meloader.slots.Slots.switchTo(MicroActivity.this, slot)) {
+					Toast.makeText(MicroActivity.this, "Tab này đã đóng", Toast.LENGTH_SHORT).show();
+					tabBar.refreshNow();
+				}
+			}
+
+			@Override
+			public void onTabLong(int slot) {
+				che779TabDialog(slot);
+			}
+
+			@Override
+			public void onClose() {
+				che779CloseCurrentTab();
+			}
+
+			@Override
+			public void onAdd() {
+				ru.playsoftware.j2meloader.slots.Slots.openNew(MicroActivity.this, appName, appPath, startArgs);
+			}
+
+			@Override
+			public void onAddLong() {
+				che779PickGame();
+			}
+
+			@Override
+			public void onKeyboard() {
+				if (inputMethodManager != null && binding != null) {
+					inputMethodManager.toggleSoftInputFromWindow(binding.displayableContainer.getWindowToken(),
+							InputMethodManager.SHOW_FORCED, 0);
+				}
+			}
+
+			@Override
+			public void onShot() {
+				if (current instanceof Canvas && microLoader != null) {
+					takeScreenshot();
+				}
+			}
+
+			@Override
+			public void onPad(View anchor) {
+				che779PadMenu(anchor);
+			}
+
+			@Override
+			public void onMenu(View anchor) {
+				che779MainMenu(anchor);
+			}
+
+			@Override
+			public void onHeight(int px) {
+				tabBarHeight = px;
+				sp.edit().putBoolean(PREF_TABBAR_COLLAPSED, tabBar.isCollapsed()).apply();
+				updateOverlayLocation();
+			}
+		});
+		tabBarHeight = tabBar.heightPx();
+		binding.tabBarHost.addView(tabBar);
+		updateOverlayLocation();
+	}
+
+	private void che779TabDialog(int slot) {
+		ru.playsoftware.j2meloader.slots.Slots.Info info = ru.playsoftware.j2meloader.slots.Slots.info(this, slot);
+		String title = info.title != null && !info.title.isEmpty() ? info.title : appName;
+		boolean self = slot == ru.playsoftware.j2meloader.slots.Slots.current();
+		AlertDialog.Builder b = new AlertDialog.Builder(this).setTitle("Tab " + (slot + 1) + ": " + title);
+		if (self) {
+			b.setPositiveButton("Đóng tab này", (d, w) -> che779CloseCurrentTab());
+		} else {
+			b.setPositiveButton("Chuyển tới", (d, w) -> ru.playsoftware.j2meloader.slots.Slots.switchTo(this, slot));
+			b.setNeutralButton("Đóng tab", (d, w) -> {
+				ru.playsoftware.j2meloader.slots.Slots.killSlot(this, slot);
+				ru.playsoftware.j2meloader.slots.Treo.setSlot(this, slot, -1);
+				if (tabBar != null) {
+					tabBar.refreshNow();
+				}
+			});
+		}
+		b.setNegativeButton(android.R.string.cancel, null).show();
+	}
+
+	private void che779CloseCurrentTab() {
+		int cur = ru.playsoftware.j2meloader.slots.Slots.current();
+		new AlertDialog.Builder(this)
+				.setTitle("Đóng tab " + (cur + 1) + "?")
+				.setMessage(appName)
+				.setPositiveButton("Đóng", (d, w) -> {
+					int other = ru.playsoftware.j2meloader.slots.Slots.neighbour(this, cur);
+					if (other >= 0) {
+						ru.playsoftware.j2meloader.slots.Slots.switchTo(this, other);
+					}
+					hideSoftInput();
+					MidletThread.destroyApp();
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void che779PickGame() {
+		final java.util.ArrayList<String> names = new java.util.ArrayList<>();
+		final java.util.ArrayList<String> paths = new java.util.ArrayList<>();
+		String dbPath = Config.getEmulatorDir() + Config.APPS_DB_NAME;
+		try (android.database.sqlite.SQLiteDatabase db = android.database.sqlite.SQLiteDatabase.openDatabase(
+				dbPath, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY);
+			 android.database.Cursor c = db.rawQuery("SELECT title, path FROM apps ORDER BY title COLLATE NOCASE", null)) {
+			while (c.moveToNext()) {
+				names.add(c.getString(0));
+				paths.add(Config.getAppDir() + c.getString(1));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			Toast.makeText(this, "Không đọc được danh sách game", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (names.isEmpty()) {
+			Toast.makeText(this, "Chưa có game nào", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		new AlertDialog.Builder(this)
+				.setTitle("Chọn game mở ở tab mới")
+				.setItems(names.toArray(new String[0]), (d, i) ->
+						ru.playsoftware.j2meloader.slots.Slots.openNew(this, names.get(i), paths.get(i), null))
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void che779PadMenu(View anchor) {
+		VirtualKeyboard vk = ContextHolder.getVk();
+		if (vk == null) {
+			return;
+		}
+		android.widget.PopupMenu pm = new android.widget.PopupMenu(this, anchor);
+		Menu m = pm.getMenu();
+		m.add(0, R.id.action_layout_edit_mode, 0, R.string.layout_edit_mode);
+		m.add(0, R.id.action_layout_scale_mode, 1, R.string.layout_scale_mode);
+		if (vk.getLayoutEditMode() != VirtualKeyboard.LAYOUT_EOF) {
+			m.add(0, R.id.action_layout_edit_finish, 2, R.string.layout_edit_finish);
+		}
+		m.add(0, R.id.action_layout_switch, 3, R.string.layout_switch);
+		m.add(0, R.id.action_hide_buttons, 4, R.string.hide_buttons);
+		pm.setOnMenuItemClickListener(it -> {
+			handleVkOptions(it.getItemId());
+			return true;
+		});
+		pm.show();
+	}
+
+	private void che779MainMenu(View anchor) {
+		android.widget.PopupMenu pm = new android.widget.PopupMenu(this, anchor);
+		pm.getMenuInflater().inflate(R.menu.midlet_displayable, pm.getMenu());
+		Menu m = pm.getMenu();
+		MenuItem lock = m.findItem(R.id.action_lock_orientation);
+		lock.setVisible(true);
+		lock.setChecked(getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+		m.setGroupVisible(R.id.action_group_canvas, current instanceof Canvas);
+		m.findItem(R.id.action_ime_keyboard).setVisible(false);
+		m.findItem(R.id.action_take_screenshot).setVisible(false);
+		m.findItem(R.id.action_submenu_vk).setVisible(false);
+		m.add(0, ID_TABBAR_COLLAPSE, 100, "Thu gọn thanh tab");
+		pm.setOnMenuItemClickListener(it -> {
+			if (it.getItemId() == ID_TABBAR_COLLAPSE) {
+				tabBar.setCollapsed(true);
+			} else {
+				onOptionsItemSelected(it);
+			}
+			return true;
+		});
+		pm.show();
+	}
+
 	@Override
 	protected void onDestroy() {
 		if (isFinishing()) {
 			ru.playsoftware.j2meloader.slots.Slots.markStopped(this);
 			ru.playsoftware.j2meloader.slots.SlotService.stop(this);
 		}
+		tabBar = null;
 		binding = null;
 		super.onDestroy();
 	}
