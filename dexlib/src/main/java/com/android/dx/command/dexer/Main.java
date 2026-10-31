@@ -1199,7 +1199,7 @@ public class Main {
          *
          * @param args {@code non-null;} the arguments
          */
-        private void parse(String[] args) {
+        public void parse(String[] args) {
             ArgumentsParser parser = new ArgumentsParser(args);
 
             parseFlags(parser);
