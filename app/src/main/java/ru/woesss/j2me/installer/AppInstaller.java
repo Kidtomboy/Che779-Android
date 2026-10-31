@@ -289,9 +289,7 @@ public class AppInstaller {
 			}
 		}
 		try {
-			Main.main(new String[]{"--no-optimize", "--core-library",
-					"--output=" + tmpDir + Config.MIDLET_DEX_FILE,
-					srcJar.getAbsolutePath()});
+			MultiDex.convert(srcJar, tmpDir);
 		} catch (Throwable e) {
 			throw new ConverterException("Dexing error", e);
 		}

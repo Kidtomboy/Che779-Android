@@ -175,7 +175,6 @@ public class MicroLoader {
 	MIDlet loadMIDlet(String mainClass) throws ClassNotFoundException, InstantiationException,
 			IllegalAccessException, NoSuchMethodException, InvocationTargetException, IOException {
 		if (BuildConfig.FULL_EMULATOR) {
-			File dexSource = new File(appDir, Config.MIDLET_DEX_FILE);
 			File codeCacheDir = ContextCompat.getCodeCacheDir(context);
 			File dexOptDir = new File(codeCacheDir, Config.DEX_OPT_CACHE_DIR);
 			if (dexOptDir.exists()) {
@@ -183,15 +182,29 @@ public class MicroLoader {
 			} else if (!dexOptDir.mkdir()) {
 				throw new IOException("Can't create directory: [" + dexOptDir + ']');
 			}
-			if (SDK_INT >= UPSIDE_DOWN_CAKE) {
-				File dexCache = new File(dexOptDir, appDirName);
-				FilesKt.copyTo(dexSource, dexCache, true, ConstantsKt.DEFAULT_BUFFER_SIZE);
-				if (!dexCache.setReadOnly()) {
-					throw new IOException("Can't set readOnly flag for dex cache file");
+			// converted.dex, converted2.dex, ... (big merged games are split by the installer)
+			StringBuilder dexPaths = new StringBuilder();
+			for (int i = 1; ; i++) {
+				File dex = new File(appDir, i == 1 ? Config.MIDLET_DEX_FILE : "/converted" + i + ".dex");
+				if (!dex.isFile()) {
+					break;
 				}
-				dexSource = dexCache;
+				File source = dex;
+				if (SDK_INT >= UPSIDE_DOWN_CAKE) {
+					File dexCache = new File(dexOptDir, appDirName + (i == 1 ? "" : "_" + i));
+					FilesKt.copyTo(dex, dexCache, true, ConstantsKt.DEFAULT_BUFFER_SIZE);
+					if (!dexCache.setReadOnly()) {
+						throw new IOException("Can't set readOnly flag for dex cache file");
+					}
+					source = dexCache;
+				}
+				if (dexPaths.length() > 0) {
+					dexPaths.append(File.pathSeparator);
+				}
+				dexPaths.append(source.getAbsolutePath());
 			}
-			ClassLoader loader = new AppClassLoader(dexSource.getAbsolutePath(),
+			File dexSource = new File(dexPaths.toString());
+			ClassLoader loader = new AppClassLoader(dexPaths.toString(),
 					dexOptDir.getAbsolutePath(), context.getClassLoader(), appDir);
 			Log.i(TAG, "loadMIDletList main: " + mainClass + " from dex:" + dexSource.getPath());
 			//noinspection unchecked
