@@ -60,13 +60,23 @@ final class MultiDex {
 			throw new IOException("Can't create directory: " + classDir);
 		}
 		try {
-			List<List<String>> chunks = new ArrayList<>();
-			List<String> all = new ArrayList<>();
+			// One directory per chunk, keeping the original package paths: the instrumenter
+			// requires the class name to match its path inside the input directory.
+			List<File> chunks = new ArrayList<>();
 			try (ZipFile zip = new ZipFile(jar)) {
 				int i = 0;
-				List<String> cur = new ArrayList<>();
+				File cur = null;
 				for (String name : names) {
-					File f = new File(classDir, "c" + (i++) + ".class");
+					if (i % CLASSES_PER_DEX == 0) {
+						cur = new File(classDir, "p" + (i / CLASSES_PER_DEX));
+						chunks.add(cur);
+					}
+					i++;
+					File f = new File(cur, name);
+					File parent = f.getParentFile();
+					if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
+						throw new IOException("Can't create directory: " + parent);
+					}
 					try (InputStream in = zip.getInputStream(zip.getEntry(name));
 						 FileOutputStream out = new FileOutputStream(f)) {
 						byte[] buf = new byte[16384];
@@ -75,14 +85,6 @@ final class MultiDex {
 							out.write(buf, 0, n);
 						}
 					}
-					cur.add(f.getAbsolutePath());
-					if (cur.size() == CLASSES_PER_DEX) {
-						chunks.add(cur);
-						cur = new ArrayList<>();
-					}
-				}
-				if (!cur.isEmpty()) {
-					chunks.add(cur);
 				}
 			}
 			int threads = Math.max(1, Math.min(Runtime.getRuntime().availableProcessors(), 4));
@@ -91,14 +93,13 @@ final class MultiDex {
 				List<Future<?>> jobs = new ArrayList<>();
 				for (int c = 0; c < chunks.size(); c++) {
 					final String out = outDir + (c == 0 ? Config.MIDLET_DEX_FILE : "/converted" + (c + 1) + ".dex");
-					final List<String> files = chunks.get(c);
+					final File dir = chunks.get(c);
 					jobs.add(pool.submit(() -> {
 						List<String> args = new ArrayList<>();
 						args.add("--no-optimize");
-						args.add("--no-strict");
 						args.add("--core-library");
 						args.add("--output=" + out);
-						args.addAll(files);
+						args.add(dir.getAbsolutePath());
 						run(args.toArray(new String[0]));
 						return null;
 					}));
