@@ -47,9 +47,37 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 			new PickDirResultContract(),
 			this::onPickDirResult);
 
+	private final ActivityResultLauncher<String[]> pickBackgroundLauncher = registerForActivityResult(
+			new androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+			this::onPickBackgroundResult);
+
+	private void onPickBackgroundResult(Uri uri) {
+		if (uri == null) {
+			return;
+		}
+		try {
+			requireContext().getContentResolver().takePersistableUriPermission(
+					uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		} catch (Exception ignored) {
+		}
+		getPreferenceManager().getSharedPreferences().edit()
+				.putString(ru.playsoftware.j2meloader.util.Constants.PREF_CUSTOM_BACKGROUND, uri.toString())
+				.apply();
+	}
+
 	@Override
 	public void onCreatePreferences(Bundle bundle, String s) {
 		addPreferencesFromResource(R.xml.preferences);
+		findPreference("pref_custom_background").setOnPreferenceClickListener(preference -> {
+			pickBackgroundLauncher.launch(new String[]{"image/*"});
+			return true;
+		});
+		findPreference("pref_clear_background").setOnPreferenceClickListener(preference -> {
+			getPreferenceManager().getSharedPreferences().edit()
+					.remove(ru.playsoftware.j2meloader.util.Constants.PREF_CUSTOM_BACKGROUND)
+					.apply();
+			return true;
+		});
 		findPreference("pref_default_settings").setIntent(new Intent(requireActivity(), ProfilesActivity.class));
 		prefFolder = findPreference(PREF_EMULATOR_DIR);
 		prefFolder.setSummary(Config.getEmulatorDir());

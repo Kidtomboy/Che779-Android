@@ -94,6 +94,30 @@ public class MainActivity extends BaseActivity {
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+		applyCustomBackground();
+	}
+
+	private void applyCustomBackground() {
+		android.widget.ImageView view = findViewById(R.id.main_background);
+		if (view == null) {
+			return;
+		}
+		String uri = PreferenceManager.getDefaultSharedPreferences(this)
+				.getString(ru.playsoftware.j2meloader.util.Constants.PREF_CUSTOM_BACKGROUND, null);
+		if (uri == null) {
+			view.setImageDrawable(null);
+			return;
+		}
+		try {
+			view.setImageURI(Uri.parse(uri));
+		} catch (Exception e) {
+			view.setImageDrawable(null);
+		}
+	}
+
 	private void checkAndCreateDirs() {
 		String emulatorDir = Config.getEmulatorDir();
 		File dir = new File(emulatorDir);

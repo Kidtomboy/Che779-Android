@@ -10,6 +10,15 @@
         android:key="pref_theme"
         app:useSimpleSummaryProvider="true"
         android:title="@string/pref_theme_title" />
+    <Preference
+        android:key="pref_custom_background"
+        android:icon="@drawable/ic_setting_theme"
+        android:title="@string/pref_custom_background_title"
+        android:summary="@string/pref_custom_background_summary" />
+    <Preference
+        android:key="pref_clear_background"
+        android:title="@string/pref_clear_background_title"
+        android:summary="@string/pref_clear_background_summary" />
     <SwitchPreferenceCompat
         android:defaultValue="false"
         android:icon="@drawable/ic_setting_black_background"
@@ -59,7 +68,7 @@
         android:key="emulator_dir"
         android:icon="@drawable/ic_setting_folder"
         android:title="@string/pref_emulator_dir"
-        tools:summary="/sdcard/J2ME-Loader" />
+        tools:summary="/sdcard/J2ME-Che779" />
     <PreferenceCategory android:title="@string/pref_category_experimental">
         <SwitchPreferenceCompat
             android:key="micro3d_using_message"
