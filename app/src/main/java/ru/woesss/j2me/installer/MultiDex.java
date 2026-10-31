@@ -6,7 +6,7 @@
 package ru.woesss.j2me.installer;
 
 import com.android.dx.command.dexer.Main;
-import com.android.dx.command.DxContext;
+import com.android.dx.command.dexer.DxContext;
 
 import java.io.File;
 import java.io.FileOutputStream;
