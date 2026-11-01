@@ -32,6 +32,8 @@ final class TabBar extends LinearLayout {
 		void onPickGame();
 
 		void onGrid();
+
+		void onBubble();
 	}
 
 	private static final int BG = 0xFF14181F;
@@ -55,6 +57,11 @@ final class TabBar extends LinearLayout {
 		tabs.setOrientation(HORIZONTAL);
 		scroll.addView(tabs);
 		addView(scroll, new LayoutParams(0, dp(36), 1f));
+		ImageView bubbleBtn = new ImageView(context);
+		bubbleBtn.setImageResource(R.drawable.che779_bubble);
+		bubbleBtn.setPadding(dp(5), dp(2), dp(5), dp(2));
+		bubbleBtn.setOnClickListener(v -> listener.onBubble());
+		addView(bubbleBtn, new LayoutParams(dp(44), dp(36)));
 		addView(button(context, "−", v -> listener.onClose()));
 		addView(button(context, "+", v -> listener.onClone()));
 		addView(button(context, "▦", v -> listener.onGrid()));
