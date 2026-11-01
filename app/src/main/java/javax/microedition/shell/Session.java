@@ -63,6 +63,8 @@ public final class Session {
 	// per-game UI state (were fields of MicroActivity)
 	volatile MicroLoader microLoader;
 	public volatile String appName;
+	/** User-chosen tab name (null = show the tab number). */
+	public volatile String label;
 	public volatile javax.microedition.lcdui.Displayable current;
 	public volatile int menuKey;
 	public volatile boolean multiTouch;

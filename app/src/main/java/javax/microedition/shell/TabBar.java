@@ -37,6 +37,8 @@ final class TabBar extends LinearLayout {
 		void onBubble();
 
 		void onMenu();
+
+		void onRename(Session s);
 	}
 
 	private static final int BG = 0xFF14181F;
@@ -67,7 +69,12 @@ final class TabBar extends LinearLayout {
 		bubbleCell.addView(bubbleBtn, new FrameLayout.LayoutParams(dp(30), dp(30), Gravity.CENTER));
 		addView(bubbleCell, new LayoutParams(0, dp(36), 0.5f));
 		addView(button(context, "−", v -> listener.onClose()));
-		addView(button(context, "+", v -> listener.onClone()));
+		TextView plus = button(context, "+", v -> listener.onClone());
+		plus.setOnLongClickListener(v -> {
+			listener.onPickGame();
+			return true;
+		});
+		addView(plus);
 		addView(button(context, "▦", v -> listener.onGrid()));
 		ImageView pad = new ImageView(context);
 		pad.setImageResource(R.drawable.ic_che779_gamepad);
@@ -98,17 +105,24 @@ final class TabBar extends LinearLayout {
 		for (int i = 0; i < order.size(); i++) {
 			final Session s = order.get(i);
 			TextView t = new TextView(getContext());
-			t.setText(String.valueOf(i + 1));
+			t.setText(s.label != null && !s.label.isEmpty() ? (i + 1) + "·" + s.label : String.valueOf(i + 1));
+			t.setSingleLine(true);
+			t.setEllipsize(android.text.TextUtils.TruncateAt.END);
+			t.setPadding(dp(6), 0, dp(6), 0);
+			t.setOnLongClickListener(v -> {
+				listener.onRename(s);
+				return true;
+			});
 			t.setGravity(Gravity.CENTER);
 			t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
 			t.setTextColor(s == active ? Color.WHITE : 0xFF9AA4B2);
 			t.setBackgroundColor(s == active ? SELECTED : 0x00000000);
 			t.setOnClickListener((View v) -> listener.onSelect(s));
-			tabs.addView(t, new LayoutParams(dp(44), dp(36)));
+			tabs.addView(t, new LayoutParams(s.label != null && !s.label.isEmpty() ? dp(88) : dp(44), dp(36)));
 		}
 		int idx = order.indexOf(active);
 		if (idx >= 0) {
-			final int x = idx * dp(44);
+			final int x = idx * dp(60);
 			scroll.post(() -> scroll.smoothScrollTo(Math.max(0, x - dp(88)), 0));
 		}
 	}

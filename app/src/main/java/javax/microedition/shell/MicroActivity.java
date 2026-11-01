@@ -210,6 +210,22 @@ public class MicroActivity extends AppCompatActivity {
 			}
 
 			@Override
+			public void onRename(Session s) {
+				final EditText input = new EditText(MicroActivity.this);
+				input.setSingleLine(true);
+				input.setText(s.label == null ? "" : s.label);
+				new AlertDialog.Builder(MicroActivity.this)
+						.setTitle("Tên tab " + (tabs.indexOf(s) + 1))
+						.setView(input)
+						.setPositiveButton(android.R.string.ok, (d, w) -> {
+							s.label = input.getText().toString().trim();
+							refreshTabBar();
+						})
+						.setNegativeButton(android.R.string.cancel, null)
+						.show();
+			}
+
+			@Override
 			public void onMenu() {
 				openOptionsMenu();
 			}
@@ -296,6 +312,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void addSession(String appName, String appPath, String arguments) {
+		warnIfLowRam();
 		Session session = Session.create(appPath, nextDataSuffix(appPath));
 		session.appName = appName;
 		loadNet(session, tabs.size() + 1);
@@ -673,6 +690,24 @@ public class MicroActivity extends AppCompatActivity {
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
+	}
+
+	/** Opening another game costs RAM: tell the user how much is left before the phone struggles. */
+	private void warnIfLowRam() {
+		if (tabs.isEmpty()) {
+			return;
+		}
+		try {
+			android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+			android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+			am.getMemoryInfo(mi);
+			long mb = mi.availMem / (1024 * 1024);
+			if (mb < 600 || mi.lowMemory) {
+				Toast.makeText(this, "RAM trống còn " + mb + " MB, mở thêm tab có thể làm máy chậm hoặc văng game",
+						Toast.LENGTH_LONG).show();
+			}
+		} catch (Exception ignored) {
+		}
 	}
 
 	private void attachVk(Session s) {
