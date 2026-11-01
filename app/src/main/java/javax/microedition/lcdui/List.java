@@ -318,6 +318,8 @@ public class List extends Screen implements Choice {
 	}
 
 	private void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		javax.microedition.shell.Che779Diag.log("List click pos=" + position + " type=" + listType
+				+ " selectCommand=" + selectCommand + " listener=" + (listener != null));
 		boolean newValue = !adapter.getItem(position).isSelected();
 		setSelectedIndex(position, newValue);
 		if (listType == IMPLICIT) {

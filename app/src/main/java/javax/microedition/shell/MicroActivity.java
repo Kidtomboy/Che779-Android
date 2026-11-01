@@ -138,6 +138,7 @@ public class MicroActivity extends AppCompatActivity {
 		lockNightMode();
 		super.onCreate(savedInstanceState);
 		ContextHolder.setCurrentActivity(this);
+		Che779Diag.install();
 
 		binding = ActivityMicroBinding.inflate(getLayoutInflater());
 		View view = binding.getRoot();
@@ -1205,6 +1206,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		Displayable prev = s.current;
 		s.current = displayable;
+		Che779Diag.log("setCurrent " + (displayable == null ? "null" : displayable.getClass().getName()));
 		if (gridMode) {
 			final Session fs = s;
 			ViewHandler.postEvent(() -> {
@@ -1553,6 +1555,15 @@ public class MicroActivity extends AppCompatActivity {
 
 		@Override
 		public void process() {
+			try {
+				doProcess();
+			} catch (RuntimeException e) {
+				Che779Diag.error("SetCurrentEvent", e);
+				throw e;
+			}
+		}
+
+		private void doProcess() {
 			closeOptionsMenu();
 			if (current != null) {
 				current.clearDisplayableView();

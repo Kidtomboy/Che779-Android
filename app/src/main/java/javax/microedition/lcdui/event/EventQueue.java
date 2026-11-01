@@ -181,7 +181,11 @@ public class EventQueue implements Runnable {
 
 				if (event != null) {
 					synchronized (callbackLock) {
-						event.run();
+						try {
+							event.run();
+						} catch (Throwable t) {
+							javax.microedition.shell.Che779Diag.error("event " + event.getClass().getSimpleName(), t);
+						}
 					}
 				} else {
 					synchronized (waiter) {
