@@ -20,6 +20,12 @@
         android:title="@string/pref_clear_background_title"
         android:summary="@string/pref_clear_background_summary" />
     <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:icon="@drawable/ic_setting_enable_statusbar"
+        android:key="pref_main_fullscreen"
+        android:title="@string/pref_main_fullscreen_title"
+        android:summary="@string/pref_main_fullscreen_summary" />
+    <SwitchPreferenceCompat
         android:defaultValue="false"
         android:icon="@drawable/ic_setting_black_background"
         android:key="pref_black_background"
