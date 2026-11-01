@@ -65,7 +65,7 @@ public final class Che779Diag {
 			if (f == null) {
 				return;
 			}
-			if (f.length() > 512 * 1024) {
+			if (f.length() > 3 * 1024 * 1024) {
 				f.delete();
 			}
 			Session s = Session.current();
@@ -76,6 +76,37 @@ public final class Che779Diag {
 			}
 		} catch (Throwable ignored) {
 		}
+	}
+
+	private static int dumps;
+
+	/** Writes the stacks of all live threads after a delay (shows where a silent game thread is stuck). */
+	public static void dumpThreadsLater(final String why, final long delayMs) {
+		if (dumps >= 12) {
+			return;
+		}
+		dumps++;
+		Thread t = new Thread(() -> {
+			try {
+				Thread.sleep(delayMs);
+			} catch (InterruptedException ignored) {
+			}
+			StringBuilder sb = new StringBuilder("THREAD DUMP (" + why + ")\n");
+			for (java.util.Map.Entry<Thread, StackTraceElement[]> e : Thread.getAllStackTraces().entrySet()) {
+				Thread th = e.getKey();
+				StackTraceElement[] st = e.getValue();
+				if (st.length == 0) {
+					continue;
+				}
+				sb.append("--- ").append(th.getName()).append(" state=").append(th.getState()).append('\n');
+				for (int i = 0; i < Math.min(st.length, 22); i++) {
+					sb.append("    at ").append(st[i]).append('\n');
+				}
+			}
+			log(sb.toString());
+		}, "Che779-Dump");
+		t.setDaemon(true);
+		t.start();
 	}
 
 	public static void error(String what, Throwable e) {
