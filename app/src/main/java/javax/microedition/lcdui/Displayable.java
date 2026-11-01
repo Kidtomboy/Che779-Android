@@ -41,8 +41,6 @@ public abstract class Displayable {
 	private static final int TICKER_SHOW = 1;
 	private static final int TICKER_HIDE = 2;
 
-	protected static int virtualWidth;
-	protected static int virtualHeight;
 
 	CommandListener listener;
 	AbstractSoftKeysBar softBar;
@@ -74,16 +72,21 @@ public abstract class Displayable {
 	};
 
 	public static void setVirtualSize(int virtualWidth, int virtualHeight) {
-		Displayable.virtualWidth = virtualWidth;
-		Displayable.virtualHeight = virtualHeight;
+		javax.microedition.shell.Session s = javax.microedition.shell.Session.current();
+		if (s != null) {
+			s.dc.virtualWidth = virtualWidth;
+			s.dc.virtualHeight = virtualHeight;
+		}
 	}
 
 	public static int getVirtualWidth() {
-		return virtualWidth;
+		javax.microedition.shell.Session s = javax.microedition.shell.Session.current();
+		return s == null ? 0 : s.dc.virtualWidth;
 	}
 
 	public static int getVirtualHeight() {
-		return virtualHeight;
+		javax.microedition.shell.Session s = javax.microedition.shell.Session.current();
+		return s == null ? 0 : s.dc.virtualHeight;
 	}
 
 	public void setTitle(String title) {
@@ -175,11 +178,11 @@ public abstract class Displayable {
 	}
 
 	public int getWidth() {
-		return virtualWidth;
+		return getVirtualWidth();
 	}
 
 	public int getHeight() {
-		return virtualHeight;
+		return getVirtualHeight();
 	}
 
 	public void setTicker(Ticker newticker) {
