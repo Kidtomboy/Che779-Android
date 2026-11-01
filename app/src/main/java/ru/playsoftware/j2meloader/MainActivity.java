@@ -98,6 +98,36 @@ public class MainActivity extends BaseActivity {
 	protected void onResume() {
 		super.onResume();
 		applyCustomBackground();
+		applyFullscreen();
+	}
+
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		super.onWindowFocusChanged(hasFocus);
+		if (hasFocus) {
+			applyFullscreen();
+		}
+	}
+
+	/** Hides the status bar and lets the window use the display cutout area (like J2ME Loader v10). */
+	private void applyFullscreen() {
+		boolean on = PreferenceManager.getDefaultSharedPreferences(this)
+				.getBoolean("pref_main_fullscreen", true);
+		android.view.Window window = getWindow();
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+			window.getAttributes().layoutInDisplayCutoutMode = on
+					? android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+					: android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+		}
+		androidx.core.view.WindowInsetsControllerCompat controller =
+				androidx.core.view.WindowCompat.getInsetsController(window, window.getDecorView());
+		if (on) {
+			controller.setSystemBarsBehavior(
+					androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+			controller.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars());
+		} else {
+			controller.show(androidx.core.view.WindowInsetsCompat.Type.statusBars());
+		}
 	}
 
 	private void applyCustomBackground() {
