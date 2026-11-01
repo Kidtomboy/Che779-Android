@@ -266,4 +266,11 @@
     <string name="pref_main_fullscreen_summary">Hide the status bar on the game list and draw up to the screen edge</string>
     <string name="pref_bubble_title">Floating bubble</string>
     <string name="pref_bubble_summary">Keep games running in a bubble / floating window when you leave the app (needs \"Display over other apps\")</string>
+    <string name="action_sleep_now">Black screen (sleep)</string>
+    <string name="pref_category_che779">Che779: memory and sleep</string>
+    <string name="pref_mem_auto_title">Auto clean memory</string>
+    <string name="pref_mem_threshold_title">RAM threshold (MB)</string>
+    <string name="pref_mem_threshold_summary">Clean when free RAM drops below this</string>
+    <string name="pref_mem_interval_title">Check interval (seconds)</string>
+    <string name="pref_auto_sleep_title">Auto black screen</string>
 </resources>

@@ -105,6 +105,12 @@ public class MicroActivity extends AppCompatActivity {
 	private GridBar gridBar;
 	private boolean gridVkOn = true;
 	private boolean floating;
+	private final android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+	private android.widget.TextView sleepView;
+	private boolean sleeping;
+	private int treoBeforeSleep;
+	private final Runnable sleepRunnable = this::enterSleep;
+	private MemoryGuard memoryGuard;
 
 	public ActivityMicroBinding binding;
 
@@ -139,7 +145,8 @@ public class MicroActivity extends AppCompatActivity {
 		setSupportActionBar(binding.toolbar);
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-		actionBarEnabled = sp.getBoolean(PREF_TOOLBAR, false);
+		// Che779: no title bar over the game (options stay in the tab bar menu button)
+		actionBarEnabled = false;
 		statusBarEnabled = sp.getBoolean(PREF_STATUSBAR, false);
 		if (sp.getBoolean(PREF_ADD_CUTOUT_AREA, true) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 			getWindow().getAttributes().layoutInDisplayCutoutMode =
@@ -151,6 +158,8 @@ public class MicroActivity extends AppCompatActivity {
 		ContextHolder.setVibration(sp.getBoolean(PREF_VIBRATION, true));
 		Canvas.setScreenshotRawMode(sp.getBoolean(PREF_SCREENSHOT_SWITCH, false));
 		setupTabBar();
+		memoryGuard = new MemoryGuard(this);
+		memoryGuard.start();
 		if (sp.getBoolean("pref_bubble_enabled", true) && FloatingController.canDraw(this)) {
 			try {
 				Intent svc = new Intent(this, BubbleService.class);
@@ -199,6 +208,11 @@ public class MicroActivity extends AppCompatActivity {
 			@Override
 			public void onPickGame() {
 				pickGameForNewTab();
+			}
+
+			@Override
+			public void onMenu() {
+				openOptionsMenu();
 			}
 
 			@Override
@@ -682,6 +696,68 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
+	private int sleepDelayMs() {
+		try {
+			String v = PreferenceManager.getDefaultSharedPreferences(this).getString("pref_auto_sleep_sec", "0");
+			return Integer.parseInt(v.trim()) * 1000;
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
+	private void resetSleepTimer() {
+		uiHandler.removeCallbacks(sleepRunnable);
+		int delay = sleepDelayMs();
+		if (!sleeping && delay > 0 && visible && !floating) {
+			uiHandler.postDelayed(sleepRunnable, delay);
+		}
+	}
+
+	/** Black screen, no drawing: the games keep running but the phone does almost no work. */
+	private void enterSleep() {
+		if (sleeping || binding == null) {
+			return;
+		}
+		sleeping = true;
+		treoBeforeSleep = Session.treo;
+		Session.setTreo(2);
+		WindowManager.LayoutParams lp = getWindow().getAttributes();
+		lp.screenBrightness = 0.01f;
+		getWindow().setAttributes(lp);
+		sleepView = new android.widget.TextView(this);
+		sleepView.setBackgroundColor(0xFF000000);
+		sleepView.setTextColor(0xFF6B7380);
+		sleepView.setGravity(android.view.Gravity.CENTER);
+		sleepView.setText("Ấn vào đây để trở lại game");
+		sleepView.setOnClickListener(v -> wake());
+		binding.midletFrame.addView(sleepView, new android.widget.FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+	}
+
+	private void wake() {
+		if (!sleeping) {
+			return;
+		}
+		sleeping = false;
+		if (sleepView != null && binding != null) {
+			binding.midletFrame.removeView(sleepView);
+		}
+		sleepView = null;
+		Session.setTreo(treoBeforeSleep);
+		WindowManager.LayoutParams lp = getWindow().getAttributes();
+		lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+		getWindow().setAttributes(lp);
+		resetSleepTimer();
+	}
+
+	@Override
+	public boolean dispatchTouchEvent(android.view.MotionEvent ev) {
+		if (!sleeping) {
+			resetSleepTimer();
+		}
+		return super.dispatchTouchEvent(ev);
+	}
+
 	private boolean bubbleAllowed() {
 		return !isFinishing() && !tabs.isEmpty()
 				&& PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_bubble_enabled", true)
@@ -746,6 +822,18 @@ public class MicroActivity extends AppCompatActivity {
 			}
 
 			@Override
+			public void onHideLevel(int level) {
+				try {
+					android.app.ActivityManager am =
+							(android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+					for (android.app.ActivityManager.AppTask t : am.getAppTasks()) {
+						t.setExcludeFromRecents(level >= 1);
+					}
+				} catch (Exception ignored) {
+				}
+			}
+
+			@Override
 			public void onCycle(int delta) {
 				if (tabs.size() < 2) {
 					return;
@@ -794,12 +882,14 @@ public class MicroActivity extends AppCompatActivity {
 		super.onResume();
 		stopFloating();
 		visible = true;
+		resetSleepTimer();
 		MidletThread.resumeApp();
 	}
 
 	@Override
 	public void onPause() {
 		visible = false;
+		uiHandler.removeCallbacks(sleepRunnable);
 		hideSoftInput();
 		if (!floating && !bubbleAllowed()) {
 			MidletThread.pauseApp();
@@ -1065,6 +1155,8 @@ public class MicroActivity extends AppCompatActivity {
 		int id = item.getItemId();
 		if (id == R.id.action_exit_midlet) {
 			showExitConfirmation();
+		} else if (id == R.id.action_sleep_now) {
+			enterSleep();
 		} else if (id == R.id.action_save_log) {
 			saveLog();
 		} else if (id == R.id.action_lock_orientation) {
@@ -1310,6 +1402,10 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	protected void onDestroy() {
+		if (memoryGuard != null) {
+			memoryGuard.stop();
+		}
+		uiHandler.removeCallbacks(sleepRunnable);
 		if (floating) {
 			FloatingController.get(this).host().removeAllViews();
 			FloatingController.get(this).hide();
