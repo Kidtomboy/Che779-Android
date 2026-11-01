@@ -99,6 +99,7 @@ public class Display {
 	}
 
 	public void setCurrent(Displayable disp) {
+		javax.microedition.shell.Che779Diag.log("Display.setCurrent " + disp + (disp == current ? " (same, ignored)" : ""));
 		if (disp == current) {
 			return;
 		}

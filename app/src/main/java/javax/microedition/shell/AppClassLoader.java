@@ -36,6 +36,7 @@ import ru.playsoftware.j2meloader.util.FileUtils;
 import ru.playsoftware.j2meloader.util.IOUtils;
 
 public class AppClassLoader extends DexClassLoader {
+	private static volatile int loadLogCount;
 	private static final String TAG = AppClassLoader.class.getName();
 
 
@@ -179,10 +180,21 @@ public class AppClassLoader extends DexClassLoader {
 			if (resolve) {
 				resolveClass(localClass);
 			}
+			if (loadLogCount++ < 1500) {
+				Che779Diag.log("load " + name);
+			}
 			return localClass;
 		} catch (ClassNotFoundException e) {
 			// Class not found in this classloader, delegate to parent classloader
-			return super.loadClass(name, resolve);
+			try {
+				return super.loadClass(name, resolve);
+			} catch (ClassNotFoundException e2) {
+				Che779Diag.log("CLASS NOT FOUND " + name);
+				throw e2;
+			}
+		} catch (LinkageError e) {
+			Che779Diag.error("class " + name, e);
+			throw e;
 		}
 	}
 }
