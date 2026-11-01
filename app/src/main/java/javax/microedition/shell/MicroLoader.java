@@ -178,7 +178,10 @@ public class MicroLoader {
 			File codeCacheDir = ContextCompat.getCodeCacheDir(context);
 			File dexOptDir = new File(codeCacheDir, Config.DEX_OPT_CACHE_DIR);
 			if (dexOptDir.exists()) {
-				FileUtils.clearDirectory(dexOptDir);
+				// other tabs may still use files in here
+				if (Session.count() <= 1) {
+					FileUtils.clearDirectory(dexOptDir);
+				}
 			} else if (!dexOptDir.mkdir()) {
 				throw new IOException("Can't create directory: [" + dexOptDir + ']');
 			}
@@ -192,9 +195,11 @@ public class MicroLoader {
 				File source = dex;
 				if (SDK_INT >= UPSIDE_DOWN_CAKE) {
 					File dexCache = new File(dexOptDir, appDirName + (i == 1 ? "" : "_" + i));
-					FilesKt.copyTo(dex, dexCache, true, ConstantsKt.DEFAULT_BUFFER_SIZE);
-					if (!dexCache.setReadOnly()) {
-						throw new IOException("Can't set readOnly flag for dex cache file");
+					if (!dexCache.isFile()) {
+						FilesKt.copyTo(dex, dexCache, true, ConstantsKt.DEFAULT_BUFFER_SIZE);
+						if (!dexCache.setReadOnly()) {
+							throw new IOException("Can't set readOnly flag for dex cache file");
+						}
 					}
 					source = dexCache;
 				}
