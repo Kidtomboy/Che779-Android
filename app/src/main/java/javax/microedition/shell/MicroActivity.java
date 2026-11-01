@@ -104,6 +104,7 @@ public class MicroActivity extends AppCompatActivity {
 	private GridPanel gridPanel;
 	private GridBar gridBar;
 	private boolean gridVkOn = true;
+	private boolean floating;
 
 	public ActivityMicroBinding binding;
 
@@ -150,6 +151,18 @@ public class MicroActivity extends AppCompatActivity {
 		ContextHolder.setVibration(sp.getBoolean(PREF_VIBRATION, true));
 		Canvas.setScreenshotRawMode(sp.getBoolean(PREF_SCREENSHOT_SWITCH, false));
 		setupTabBar();
+		if (sp.getBoolean("pref_bubble_enabled", true) && FloatingController.canDraw(this)) {
+			try {
+				Intent svc = new Intent(this, BubbleService.class);
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					startForegroundService(svc);
+				} else {
+					startService(svc);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		handleLaunchIntent(getIntent(), false);
 	}
 
@@ -467,7 +480,7 @@ public class MicroActivity extends AppCompatActivity {
 					vk.setView(binding.overlayView);
 					binding.overlayView.addLayer(vk);
 				}
-				binding.displayableContainer.removeAllViews();
+				host().removeAllViews();
 				ViewHandler.postEvent(new SetCurrentEvent(null, neighbour.current));
 				MidletThread.resumeApp();
 			}
@@ -527,7 +540,7 @@ public class MicroActivity extends AppCompatActivity {
 	private void enterGrid() {
 		gridMode = true;
 		Session.grid = true;
-		binding.displayableContainer.removeAllViews();
+		host().removeAllViews();
 		gridPanel = new GridPanel(this, this::focusGrid);
 		gridBar = new GridBar(this, Session.syncKeys, new GridBar.Listener() {
 			@Override
@@ -560,7 +573,7 @@ public class MicroActivity extends AppCompatActivity {
 			}
 		});
 		binding.virtualDisplay.addView(gridBar, 2);
-		binding.displayableContainer.addView(gridPanel, new android.widget.FrameLayout.LayoutParams(
+		host().addView(gridPanel, new android.widget.FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 		LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) binding.toolbar.getLayoutParams();
 		lp.height = 0;
@@ -578,12 +591,12 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void rebuildGrid() {
-		binding.displayableContainer.post(() -> {
+		host().post(() -> {
 			if (!gridMode || gridPanel == null) {
 				return;
 			}
-			gridPanel.rebuild(tabs, Session.active(),
-					binding.displayableContainer.getWidth(), binding.displayableContainer.getHeight());
+			ViewGroup h = host();
+			gridPanel.rebuild(tabs, Session.active(), h.getWidth(), h.getHeight());
 		});
 	}
 
@@ -620,7 +633,7 @@ public class MicroActivity extends AppCompatActivity {
 		if (gridPanel != null) {
 			gridPanel.detachAll();
 		}
-		binding.displayableContainer.removeAllViews();
+		host().removeAllViews();
 		if (gridBar != null) {
 			binding.virtualDisplay.removeView(gridBar);
 		}
@@ -651,9 +664,105 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
+	private boolean bubbleAllowed() {
+		return !isFinishing() && !tabs.isEmpty()
+				&& PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_bubble_enabled", true)
+				&& FloatingController.canDraw(this);
+	}
+
+	private ViewGroup host() {
+		return floating ? FloatingController.get(this).host() : binding.displayableContainer;
+	}
+
+	private void updateFloatLabel() {
+		if (floating) {
+			Session a = Session.active();
+			FloatingController.get(this).setLabel(
+					a == null ? "" : (tabs.indexOf(a) + 1) + "/" + tabs.size());
+		}
+	}
+
+	/** Activity left the screen: games keep running in the bubble. */
+	private void startFloating() {
+		if (floating || !bubbleAllowed() || binding == null) {
+			return;
+		}
+		floating = true;
+		FloatingController fc = FloatingController.get(this);
+		android.view.View content = binding.displayableContainer.getChildCount() > 0
+				? binding.displayableContainer.getChildAt(0) : null;
+		binding.displayableContainer.removeAllViews();
+		if (content != null) {
+			fc.host().removeAllViews();
+			fc.host().addView(content, new android.widget.FrameLayout.LayoutParams(
+					ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+		}
+		fc.show(new FloatingController.Callbacks() {
+			@Override
+			public void onDock() {
+				Intent i = new Intent(getApplicationContext(), MicroActivity.class);
+				i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(i);
+			}
+
+			@Override
+			public void onStar() {
+				Session a = Session.active();
+				if (a != null && a.current instanceof Canvas) {
+					final Canvas c = (Canvas) a.current;
+					c.postKeyPressed(Canvas.KEY_STAR);
+					ViewHandler.postDelayed(() -> c.postKeyReleased(Canvas.KEY_STAR), 80);
+				}
+			}
+
+			@Override
+			public void onCycle(int delta) {
+				if (tabs.size() < 2) {
+					return;
+				}
+				int idx = tabs.indexOf(Session.active());
+				Session next = tabs.get((idx + delta + tabs.size()) % tabs.size());
+				if (gridMode) {
+					focusGrid(next);
+				} else {
+					activate(next);
+				}
+				updateFloatLabel();
+			}
+		});
+		updateFloatLabel();
+	}
+
+	/** Back on screen: put the game view back and hide the bubble. */
+	private void stopFloating() {
+		if (!floating) {
+			return;
+		}
+		FloatingController fc = FloatingController.get(this);
+		android.view.View content = fc.host().getChildCount() > 0 ? fc.host().getChildAt(0) : null;
+		fc.host().removeAllViews();
+		fc.hide();
+		floating = false;
+		binding.displayableContainer.removeAllViews();
+		if (content != null) {
+			binding.displayableContainer.addView(content, new android.widget.FrameLayout.LayoutParams(
+					ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+		}
+		if (gridMode) {
+			rebuildGrid();
+		}
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		startFloating();
+	}
+
 	@Override
 	public void onResume() {
 		super.onResume();
+		stopFloating();
 		visible = true;
 		MidletThread.resumeApp();
 	}
@@ -662,7 +771,9 @@ public class MicroActivity extends AppCompatActivity {
 	public void onPause() {
 		visible = false;
 		hideSoftInput();
-		MidletThread.pauseApp();
+		if (!bubbleAllowed()) {
+			MidletThread.pauseApp();
+		}
 		super.onPause();
 	}
 
@@ -1136,7 +1247,7 @@ public class MicroActivity extends AppCompatActivity {
 			if (next instanceof Alert) {
 				return;
 			}
-			binding.displayableContainer.removeAllViews();
+			host().removeAllViews();
 			ActionBar actionBar = Objects.requireNonNull(getSupportActionBar());
 			LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) binding.toolbar.getLayoutParams();
 			int toolbarHeight = 0;
@@ -1162,13 +1273,22 @@ public class MicroActivity extends AppCompatActivity {
 			binding.toolbar.setLayoutParams(layoutParams);
 			invalidateOptionsMenu();
 			if (next != null) {
-				binding.displayableContainer.addView(next.getDisplayableView());
+				host().addView(next.getDisplayableView());
 			}
 		}
 	}
 
 	@Override
 	protected void onDestroy() {
+		if (floating) {
+			FloatingController.get(this).host().removeAllViews();
+			FloatingController.get(this).hide();
+			floating = false;
+		}
+		try {
+			stopService(new Intent(this, BubbleService.class));
+		} catch (Exception ignored) {
+		}
 		binding = null;
 		super.onDestroy();
 	}

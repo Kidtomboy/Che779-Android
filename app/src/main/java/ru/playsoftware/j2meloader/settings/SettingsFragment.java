@@ -78,6 +78,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 					.apply();
 			return true;
 		});
+		findPreference("pref_bubble_enabled").setOnPreferenceChangeListener((preference, newValue) -> {
+			if (Boolean.TRUE.equals(newValue) && android.os.Build.VERSION.SDK_INT >= 23
+					&& !android.provider.Settings.canDrawOverlays(requireContext())) {
+				startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+						android.net.Uri.parse("package:" + requireContext().getPackageName())));
+			}
+			return true;
+		});
 		findPreference("pref_default_settings").setIntent(new Intent(requireActivity(), ProfilesActivity.class));
 		prefFolder = findPreference(PREF_EMULATOR_DIR);
 		prefFolder.setSummary(Config.getEmulatorDir());

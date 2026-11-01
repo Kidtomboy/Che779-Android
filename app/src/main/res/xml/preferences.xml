@@ -26,6 +26,12 @@
         android:title="@string/pref_main_fullscreen_title"
         android:summary="@string/pref_main_fullscreen_summary" />
     <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:icon="@drawable/ic_setting_enable_statusbar"
+        android:key="pref_bubble_enabled"
+        android:title="@string/pref_bubble_title"
+        android:summary="@string/pref_bubble_summary" />
+    <SwitchPreferenceCompat
         android:defaultValue="false"
         android:icon="@drawable/ic_setting_black_background"
         android:key="pref_black_background"

@@ -264,4 +264,6 @@
     <string name="pref_clear_background_summary">Back to the default background</string>
     <string name="pref_main_fullscreen_title">Full-screen main screen</string>
     <string name="pref_main_fullscreen_summary">Hide the status bar on the game list and draw up to the screen edge</string>
+    <string name="pref_bubble_title">Floating bubble</string>
+    <string name="pref_bubble_summary">Keep games running in a bubble / floating window when you leave the app (needs \"Display over other apps\")</string>
 </resources>
