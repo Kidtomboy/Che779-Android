@@ -26,6 +26,11 @@ public final class Session {
 	private static volatile Session active;
 	private static int nextId = 1;
 
+	/** Grid mode: copy keys of the active tab to all others. */
+	public static volatile boolean syncKeys;
+	/** True while tabs are shown side by side. */
+	public static volatile boolean grid;
+
 	public final int id;
 	public final String appPath;
 	public final DisplayConfig dc = new DisplayConfig();
@@ -97,6 +102,10 @@ public final class Session {
 	public static void clearAll() {
 		ALL.clear();
 		active = null;
+	}
+
+	public static java.util.Collection<Session> all() {
+		return ALL.values();
 	}
 
 	public static int count() {

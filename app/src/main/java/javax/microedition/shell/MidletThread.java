@@ -123,6 +123,12 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 	}
 
 	static void pauseApp() {
+		if (Session.grid) {
+			for (Session s : Session.all()) {
+				if (s.thread != null) s.thread.handler.obtainMessage(PAUSE).sendToTarget();
+			}
+			return;
+		}
 		MidletThread instance = instance();
 		if (instance != null)
 			instance.handler.obtainMessage(PAUSE).sendToTarget();
@@ -130,6 +136,12 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 
 	public static void resumeApp() {
 		MicroActivity activity = ContextHolder.getActivity();
+		if (Session.grid && activity != null && activity.isVisible()) {
+			for (Session s : Session.all()) {
+				if (s.thread != null) s.thread.handler.obtainMessage(START).sendToTarget();
+			}
+			return;
+		}
 		MidletThread instance = instance();
 		if (instance != null && activity != null && activity.isVisible())
 			instance.handler.obtainMessage(START).sendToTarget();

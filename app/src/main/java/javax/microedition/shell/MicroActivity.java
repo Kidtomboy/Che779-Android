@@ -100,6 +100,10 @@ public class MicroActivity extends AppCompatActivity {
 	/** Tabs in creation order (tab numbers shown in the bar). */
 	private final java.util.ArrayList<Session> tabs = new java.util.ArrayList<>();
 	private TabBar tabBar;
+	private boolean gridMode;
+	private GridPanel gridPanel;
+	private GridBar gridBar;
+	private boolean gridVkOn = true;
 
 	public ActivityMicroBinding binding;
 
@@ -162,7 +166,11 @@ public class MicroActivity extends AppCompatActivity {
 		tabBar = new TabBar(this, new TabBar.Listener() {
 			@Override
 			public void onSelect(Session s) {
-				activate(s);
+				if (gridMode) {
+					focusGrid(s);
+				} else {
+					activate(s);
+				}
 			}
 
 			@Override
@@ -178,6 +186,15 @@ public class MicroActivity extends AppCompatActivity {
 			@Override
 			public void onPickGame() {
 				pickGameForNewTab();
+			}
+
+			@Override
+			public void onGrid() {
+				if (gridMode) {
+					exitGrid();
+				} else {
+					promptGrid();
+				}
 			}
 		});
 		binding.virtualDisplay.addView(tabBar, 1);
@@ -240,7 +257,7 @@ public class MicroActivity extends AppCompatActivity {
 		Session prev = Session.active();
 		if (prev != null && prev != session) {
 			detachSession(prev);
-			if (prev.current != null) {
+			if (prev.current != null && !gridMode) {
 				prev.current.clearDisplayableView();
 			}
 		}
@@ -273,6 +290,9 @@ public class MicroActivity extends AppCompatActivity {
 		session.menuKey = microLoader.getMenuKeyCode();
 		inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 		refreshTabBar();
+		if (gridMode) {
+			rebuildGrid();
+		}
 		try {
 			loadMIDlet();
 		} catch (Exception e) {
@@ -318,7 +338,11 @@ public class MicroActivity extends AppCompatActivity {
 
 	/** Height of the tab bar; the overlay (virtual keyboard) must be shifted by it as well. */
 	private int tabBarHeight() {
-		return tabBar == null ? 0 : (int) (36 * getResources().getDisplayMetrics().density + 0.5f);
+		if (tabBar == null) {
+			return 0;
+		}
+		int rows = gridMode ? 2 : 1;
+		return (int) (36 * rows * getResources().getDisplayMetrics().density + 0.5f);
 	}
 
 	private void refreshTabBar() {
@@ -423,6 +447,18 @@ public class MicroActivity extends AppCompatActivity {
 			if (s.thread != null) {
 				s.thread.quitSession();
 			}
+			if (gridMode) {
+				if (!wasActive && s.current != null) {
+					s.current.clearDisplayableView();
+				}
+				if (wasActive && neighbour != null) {
+					Session.setActive(neighbour);
+					attachVk(neighbour);
+				}
+				rebuildGrid();
+				refreshTabBar();
+				return;
+			}
 			if (wasActive && neighbour != null) {
 				Session.setActive(neighbour);
 				neighbour.microLoader.applyDisplayConfiguration();
@@ -437,6 +473,173 @@ public class MicroActivity extends AppCompatActivity {
 			}
 			refreshTabBar();
 		});
+	}
+
+	private void attachVk(Session s) {
+		VirtualKeyboard vk = s.vk;
+		if (vk != null && gridVkOn) {
+			vk.setView(binding.overlayView);
+			binding.overlayView.addLayer(vk);
+		}
+		binding.overlayView.setVisibility(true);
+	}
+
+	private void promptGrid() {
+		if (tabs.isEmpty()) {
+			return;
+		}
+		final EditText input = new EditText(this);
+		input.setInputType(InputType.TYPE_CLASS_NUMBER);
+		input.setText(String.valueOf(Math.max(2, tabs.size())));
+		input.setSelectAllOnFocus(true);
+		new AlertDialog.Builder(this)
+				.setTitle("Chế độ lưới: nhập số ô (N)")
+				.setMessage("Thiếu ô nào sẽ tự mở thêm bản sao game của tab 1. Mỗi ô tốn thêm RAM.")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok, (d, w) -> {
+					int n = tabs.size();
+					try {
+						n = Integer.parseInt(input.getText().toString().trim());
+					} catch (NumberFormatException ignored) {
+					}
+					startGrid(Math.max(1, Math.min(n, 36)));
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void startGrid(int n) {
+		Session keep = Session.active();
+		while (tabs.size() < n) {
+			int before = tabs.size();
+			cloneFirstTab();
+			if (tabs.size() == before) {
+				break;
+			}
+		}
+		if (keep != null && keep != Session.active() && tabs.contains(keep)) {
+			detachSession(Session.active());
+			Session.setActive(keep);
+		}
+		enterGrid();
+	}
+
+	private void enterGrid() {
+		gridMode = true;
+		Session.grid = true;
+		binding.displayableContainer.removeAllViews();
+		gridPanel = new GridPanel(this, this::focusGrid);
+		gridBar = new GridBar(this, Session.syncKeys, new GridBar.Listener() {
+			@Override
+			public void onSyncKeys(boolean on) {
+				Session.syncKeys = on;
+			}
+
+			@Override
+			public void onProxy() {
+				Toast.makeText(MicroActivity.this,
+						"Proxy riêng cho từng ô sẽ có ở bản sau", Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void onKeyboard() {
+				gridVkOn = !gridVkOn;
+				Session a = Session.active();
+				if (a != null && a.vk != null) {
+					if (gridVkOn) {
+						attachVk(a);
+					} else {
+						binding.overlayView.removeLayer(a.vk);
+					}
+				}
+			}
+
+			@Override
+			public void onBackToList() {
+				exitGrid();
+			}
+		});
+		binding.virtualDisplay.addView(gridBar, 2);
+		binding.displayableContainer.addView(gridPanel, new android.widget.FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+		LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) binding.toolbar.getLayoutParams();
+		lp.height = 0;
+		binding.toolbar.setLayoutParams(lp);
+		Objects.requireNonNull(getSupportActionBar()).hide();
+		hideSystemUI();
+		binding.overlayView.setLocation(0, tabBarHeight());
+		Session a = Session.active();
+		if (a != null) {
+			attachVk(a);
+		}
+		refreshTabBar();
+		rebuildGrid();
+		MidletThread.resumeApp();
+	}
+
+	private void rebuildGrid() {
+		binding.displayableContainer.post(() -> {
+			if (!gridMode || gridPanel == null) {
+				return;
+			}
+			gridPanel.rebuild(tabs, Session.active(),
+					binding.displayableContainer.getWidth(), binding.displayableContainer.getHeight());
+		});
+	}
+
+	private void focusGrid(Session s) {
+		Session prev = Session.active();
+		if (s == null || prev == s || !tabs.contains(s)) {
+			return;
+		}
+		if (prev != null) {
+			detachSession(prev);
+		}
+		Session.setActive(s);
+		if (s.microLoader != null) {
+			s.microLoader.applyDisplayConfiguration();
+		}
+		attachVk(s);
+		if (gridPanel != null) {
+			gridPanel.setActive(s);
+		}
+		Displayable d = s.current;
+		if (d != null) {
+			d.getDisplayableView().requestFocus();
+		}
+		refreshTabBar();
+	}
+
+	private void exitGrid() {
+		if (!gridMode) {
+			return;
+		}
+		gridMode = false;
+		Session.grid = false;
+		Session act = Session.active();
+		if (gridPanel != null) {
+			gridPanel.detachAll();
+		}
+		binding.displayableContainer.removeAllViews();
+		if (gridBar != null) {
+			binding.virtualDisplay.removeView(gridBar);
+		}
+		gridPanel = null;
+		gridBar = null;
+		for (Session o : tabs) {
+			if (o != act) {
+				if (o.current != null) {
+					o.current.clearDisplayableView();
+				}
+				detachSession(o);
+			}
+		}
+		if (act != null) {
+			attachVk(act);
+			ViewHandler.postEvent(new SetCurrentEvent(null, act.current));
+		}
+		refreshTabBar();
+		MidletThread.resumeApp();
 	}
 
 	public void lockNightMode() {
@@ -582,7 +785,17 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		Displayable prev = s.current;
 		s.current = displayable;
-		if (s == Session.active()) {
+		if (gridMode) {
+			final Session fs = s;
+			ViewHandler.postEvent(() -> {
+				if (prev != null && prev != displayable) {
+					prev.clearDisplayableView();
+				}
+				if (gridPanel != null) {
+					gridPanel.show(fs);
+				}
+			});
+		} else if (s == Session.active()) {
 			ViewHandler.postEvent(new SetCurrentEvent(prev, displayable));
 		}
 	}
