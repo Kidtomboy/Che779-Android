@@ -136,7 +136,7 @@ public class MicroActivity extends AppCompatActivity {
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 		actionBarEnabled = sp.getBoolean(PREF_TOOLBAR, false);
 		statusBarEnabled = sp.getBoolean(PREF_STATUSBAR, false);
-		if (sp.getBoolean(PREF_ADD_CUTOUT_AREA, false) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+		if (sp.getBoolean(PREF_ADD_CUTOUT_AREA, true) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 			getWindow().getAttributes().layoutInDisplayCutoutMode =
 					WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
 		}
@@ -314,6 +314,11 @@ public class MicroActivity extends AppCompatActivity {
 		ViewHandler.postEvent(new SetCurrentEvent(prev != null ? prev.current : null, next.current));
 		refreshTabBar();
 		MidletThread.resumeApp();
+	}
+
+	/** Height of the tab bar; the overlay (virtual keyboard) must be shifted by it as well. */
+	private int tabBarHeight() {
+		return tabBar == null ? 0 : (int) (36 * getResources().getDisplayMetrics().density + 0.5f);
 	}
 
 	private void refreshTabBar() {
@@ -940,7 +945,7 @@ public class MicroActivity extends AppCompatActivity {
 				toolbarHeight = getToolBarHeight();
 				layoutParams.height = toolbarHeight;
 			}
-			binding.overlayView.setLocation(0, toolbarHeight);
+			binding.overlayView.setLocation(0, toolbarHeight + tabBarHeight());
 			binding.toolbar.setLayoutParams(layoutParams);
 			invalidateOptionsMenu();
 			if (next != null) {

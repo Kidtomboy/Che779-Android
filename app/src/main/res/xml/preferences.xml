@@ -38,9 +38,9 @@
         android:summary="@string/pref_enable_actionbar_summary"
         android:title="@string/pref_enable_statusbar_title" />
     <SwitchPreferenceCompat
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:icon="@drawable/ic_setting_add_cutout_area"
-        android:key="pref_add_cutout_area"
+        android:key="pref_cutout_area_v2"
         android:title="@string/pref_add_cutout_area_title"
         app:isPreferenceVisible="false"
         tools:isPreferenceVisible="true" />
