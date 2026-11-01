@@ -31,6 +31,7 @@ import java.util.Map;
 
 import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.io.Connector;
+import javax.microedition.shell.Session;
 import javax.microedition.lcdui.Display;
 import javax.microedition.shell.MidletThread;
 import javax.microedition.util.ContextHolder;
@@ -40,18 +41,17 @@ import ru.playsoftware.j2meloader.util.AppUtils;
 
 public abstract class MIDlet {
 	private static final String TAG = MIDlet.class.getName();
-	private static Map<String, String> properties;
 
 	protected MIDlet() {
 		Display.getDisplay(this); // init display for this instance
 	}
 
 	public static void initProps(Map<String, String> p) {
-		properties = p;
+		Session.current().props = p;
 	}
 
 	public String getAppProperty(String key) {
-		String value = properties.get(key);
+		String value = Session.current().props.get(key);
 		Log.d(TAG, "MIDlet.getAppProperty: " + key + "=" + value);
 		return value;
 	}
