@@ -202,6 +202,24 @@ public class MicroActivity extends AppCompatActivity {
 			}
 
 			@Override
+			public void onBubble() {
+				if (!FloatingController.canDraw(MicroActivity.this)) {
+					Toast.makeText(MicroActivity.this,
+							"Hãy cấp quyền \"Hiển thị trên ứng dụng khác\" rồi bấm lại nút bong bóng",
+							Toast.LENGTH_LONG).show();
+					if (Build.VERSION.SDK_INT >= 23) {
+						startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+								Uri.parse("package:" + getPackageName())));
+					}
+					return;
+				}
+				startFloating(true);
+				if (floating) {
+					moveTaskToBack(true);
+				}
+			}
+
+			@Override
 			public void onGrid() {
 				if (gridMode) {
 					exitGrid();
@@ -683,11 +701,23 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	/** Activity left the screen: games keep running in the bubble. */
-	private void startFloating() {
-		if (floating || !bubbleAllowed() || binding == null) {
+	private void startFloating(boolean force) {
+		boolean ok = force ? !isFinishing() && !tabs.isEmpty() && FloatingController.canDraw(this)
+				: bubbleAllowed();
+		if (floating || !ok || binding == null) {
 			return;
 		}
 		floating = true;
+		try {
+			Intent svc = new Intent(this, BubbleService.class);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				startForegroundService(svc);
+			} else {
+				startService(svc);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		FloatingController fc = FloatingController.get(this);
 		android.view.View content = binding.displayableContainer.getChildCount() > 0
 				? binding.displayableContainer.getChildAt(0) : null;
@@ -756,7 +786,7 @@ public class MicroActivity extends AppCompatActivity {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		startFloating();
+		startFloating(false);
 	}
 
 	@Override
@@ -771,7 +801,7 @@ public class MicroActivity extends AppCompatActivity {
 	public void onPause() {
 		visible = false;
 		hideSoftInput();
-		if (!bubbleAllowed()) {
+		if (!floating && !bubbleAllowed()) {
 			MidletThread.pauseApp();
 		}
 		super.onPause();
