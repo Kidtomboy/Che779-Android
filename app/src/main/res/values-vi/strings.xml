@@ -211,4 +211,5 @@
     <string name="pref_mem_threshold_summary">Dọn khi RAM trống thấp hơn mức này</string>
     <string name="pref_mem_interval_title">Chu kỳ kiểm tra (giây)</string>
     <string name="pref_auto_sleep_title">Tự ngủ màn hình đen</string>
+    <string name="action_proxy">Proxy và chuyển hướng IP</string>
 </resources>

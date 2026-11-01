@@ -145,8 +145,7 @@ public class MicroActivity extends AppCompatActivity {
 		setSupportActionBar(binding.toolbar);
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-		// Che779: no title bar over the game (options stay in the tab bar menu button)
-		actionBarEnabled = false;
+		actionBarEnabled = sp.getBoolean(PREF_TOOLBAR, false);
 		statusBarEnabled = sp.getBoolean(PREF_STATUSBAR, false);
 		if (sp.getBoolean(PREF_ADD_CUTOUT_AREA, true) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 			getWindow().getAttributes().layoutInDisplayCutoutMode =
@@ -299,6 +298,7 @@ public class MicroActivity extends AppCompatActivity {
 	private void addSession(String appName, String appPath, String arguments) {
 		Session session = Session.create(appPath, nextDataSuffix(appPath));
 		session.appName = appName;
+		loadNet(session, tabs.size() + 1);
 		Session prev = Session.active();
 		if (prev != null && prev != session) {
 			detachSession(prev);
@@ -520,6 +520,161 @@ public class MicroActivity extends AppCompatActivity {
 		});
 	}
 
+	// ------------------------------------------------------------ proxy / IP redirect
+
+	private SharedPreferences netPrefs() {
+		return PreferenceManager.getDefaultSharedPreferences(this);
+	}
+
+	private void loadNet(Session s, int tabNo) {
+		SharedPreferences sp = netPrefs();
+		NetConfig parsed = NetConfig.parse(sp.getString("che779_tab_proxy_" + tabNo, ""));
+		if (parsed != null) {
+			copyProxy(parsed, s.net);
+		}
+		s.net.redirects = sp.getString("che779_redirects", "");
+	}
+
+	private static void copyProxy(NetConfig from, NetConfig to) {
+		to.type = from.type;
+		to.host = from.host;
+		to.port = from.port;
+		to.user = from.user;
+		to.pass = from.pass;
+	}
+
+	private java.util.List<NetConfig> proxyList() {
+		java.util.ArrayList<NetConfig> out = new java.util.ArrayList<>();
+		for (String line : netPrefs().getString("che779_proxy_list", "").split("\n")) {
+			NetConfig c = NetConfig.parse(line);
+			if (c != null) {
+				out.add(c);
+			}
+		}
+		return out;
+	}
+
+	private void setTabProxy(Session s, NetConfig c) {
+		int no = tabs.indexOf(s) + 1;
+		if (c == null) {
+			s.net.type = NetConfig.NONE;
+			netPrefs().edit().remove("che779_tab_proxy_" + no).apply();
+		} else {
+			copyProxy(c, s.net);
+			netPrefs().edit().putString("che779_tab_proxy_" + no, c.serialize()).apply();
+		}
+	}
+
+	private EditText multiLine(String text, String hint) {
+		EditText e = new EditText(this);
+		e.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+		e.setMinLines(5);
+		e.setGravity(android.view.Gravity.TOP);
+		e.setHint(hint);
+		e.setText(text);
+		return e;
+	}
+
+	private void showProxyDialog() {
+		final Session cur = Session.active();
+		if (cur == null) {
+			return;
+		}
+		final int no = tabs.indexOf(cur) + 1;
+		String[] items = {
+				"Chọn proxy cho tab " + no + " (đang: " + cur.net.label() + ")",
+				"Nhập / sửa danh sách proxy",
+				"Gán lần lượt mỗi tab một proxy",
+				"Chuyển hướng IP",
+				"Tắt proxy của tab " + no
+		};
+		new AlertDialog.Builder(this)
+				.setTitle("Proxy")
+				.setItems(items, (d, which) -> {
+					if (which == 0) {
+						chooseProxy(cur);
+					} else if (which == 1) {
+						editProxyList();
+					} else if (which == 2) {
+						assignProxies();
+					} else if (which == 3) {
+						editRedirects();
+					} else {
+						setTabProxy(cur, null);
+						Toast.makeText(this, "Đã tắt proxy tab " + no + " (áp dụng cho kết nối mới)",
+								Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void chooseProxy(final Session cur) {
+		final java.util.List<NetConfig> list = proxyList();
+		if (list.isEmpty()) {
+			Toast.makeText(this, "Danh sách proxy đang trống, hãy nhập danh sách trước", Toast.LENGTH_LONG).show();
+			editProxyList();
+			return;
+		}
+		String[] names = new String[list.size()];
+		for (int i = 0; i < names.length; i++) {
+			names[i] = (i + 1) + ". " + list.get(i).label();
+		}
+		new AlertDialog.Builder(this)
+				.setTitle("Chọn proxy cho tab " + (tabs.indexOf(cur) + 1))
+				.setItems(names, (d, which) -> {
+					setTabProxy(cur, list.get(which));
+					Toast.makeText(this, "Đã đặt proxy (áp dụng cho kết nối mới)", Toast.LENGTH_SHORT).show();
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void editProxyList() {
+		final EditText input = multiLine(netPrefs().getString("che779_proxy_list", ""),
+				"Mỗi dòng một proxy:\nsocks5://user:pass@host:port\nhttp://host:port\nhost:port:user:pass");
+		new AlertDialog.Builder(this)
+				.setTitle("Danh sách proxy")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok, (d, w) -> {
+					String text = input.getText().toString();
+					netPrefs().edit().putString("che779_proxy_list", text).apply();
+					Toast.makeText(this, "Đọc được " + proxyList().size() + " proxy hợp lệ", Toast.LENGTH_SHORT).show();
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void assignProxies() {
+		java.util.List<NetConfig> list = proxyList();
+		if (list.isEmpty()) {
+			Toast.makeText(this, "Danh sách proxy đang trống", Toast.LENGTH_LONG).show();
+			return;
+		}
+		for (int i = 0; i < tabs.size(); i++) {
+			setTabProxy(tabs.get(i), list.get(i % list.size()));
+		}
+		Toast.makeText(this, "Đã gán proxy cho " + tabs.size() + " tab (áp dụng cho kết nối mới)",
+				Toast.LENGTH_LONG).show();
+	}
+
+	private void editRedirects() {
+		final EditText input = multiLine(netPrefs().getString("che779_redirects", ""),
+				"Mỗi dòng một luật: ip_cu[:port]=ip_moi[:port]\nVí dụ: game.example.com:19129=10.0.0.5:19129");
+		new AlertDialog.Builder(this)
+				.setTitle("Chuyển hướng IP")
+				.setView(input)
+				.setPositiveButton(android.R.string.ok, (d, w) -> {
+					String text = input.getText().toString();
+					netPrefs().edit().putString("che779_redirects", text).apply();
+					for (Session t : tabs) {
+						t.net.redirects = text;
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
 	private void attachVk(Session s) {
 		VirtualKeyboard vk = s.vk;
 		if (vk != null && gridVkOn) {
@@ -582,8 +737,7 @@ public class MicroActivity extends AppCompatActivity {
 
 			@Override
 			public void onProxy() {
-				Toast.makeText(MicroActivity.this,
-						"Proxy riêng cho từng ô sẽ có ở bản sau", Toast.LENGTH_SHORT).show();
+				showProxyDialog();
 			}
 
 			@Override
@@ -1155,6 +1309,8 @@ public class MicroActivity extends AppCompatActivity {
 		int id = item.getItemId();
 		if (id == R.id.action_exit_midlet) {
 			showExitConfirmation();
+		} else if (id == R.id.action_proxy) {
+			showProxyDialog();
 		} else if (id == R.id.action_sleep_now) {
 			enterSleep();
 		} else if (id == R.id.action_save_log) {

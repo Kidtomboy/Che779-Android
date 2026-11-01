@@ -58,7 +58,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		} catch (MalformedURLException ex) {
 			throw new IOException(ex.toString());
 		}
-		cn = url.openConnection();
+		cn = org.microemu.cldc.NetHooks.open(url);
 		// Add encoding info to the header
 		cn.setRequestProperty("Accept-Encoding", "identity");
 		// J2ME do not follow redirects. Test this url

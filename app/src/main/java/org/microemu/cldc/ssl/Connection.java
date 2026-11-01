@@ -88,7 +88,7 @@ public class Connection extends org.microemu.cldc.socket.SocketConnection implem
 			SSLContext sc = SSLContext.getInstance("SSL");
 			sc.init(null, trustAllCerts, new SecureRandom());
 			SSLSocketFactory factory = sc.getSocketFactory();
-			socket = factory.createSocket(host, port);
+			socket = factory.createSocket(org.microemu.cldc.NetHooks.rawSocket(host, port), host, port, true);
 		} catch (NoSuchAlgorithmException ex) {
 			throw new IOException(ex.toString());
 		} catch (KeyManagementException ex) {
