@@ -30,9 +30,12 @@ final class MemoryGuard {
 				ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
 				am.getMemoryInfo(mi);
 				long availMb = mi.availMem / (1024 * 1024);
-				if (mi.lowMemory || availMb < readInt(sp, "pref_mem_threshold_mb", 150)) {
-					System.gc();
-					Runtime.getRuntime().runFinalization();
+				if (mi.lowMemory || availMb < readInt(sp, "pref_mem_threshold_mb", 100)) {
+					// never on the UI thread: a slow finalizer must not freeze the screen
+					Thread t = new Thread(System::gc, "Che779-MemGuard");
+					t.setDaemon(true);
+					t.setPriority(Thread.MIN_PRIORITY);
+					t.start();
 				}
 			}
 			handler.postDelayed(this, Math.max(5, readInt(sp, "pref_mem_interval_s", 30)) * 1000L);
