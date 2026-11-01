@@ -11,6 +11,7 @@ import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -34,6 +35,8 @@ final class TabBar extends LinearLayout {
 		void onGrid();
 
 		void onBubble();
+
+		void onMenu();
 	}
 
 	private static final int BG = 0xFF14181F;
@@ -57,11 +60,12 @@ final class TabBar extends LinearLayout {
 		tabs.setOrientation(HORIZONTAL);
 		scroll.addView(tabs);
 		addView(scroll, new LayoutParams(0, dp(36), 1f));
+		FrameLayout bubbleCell = new FrameLayout(context);
 		ImageView bubbleBtn = new ImageView(context);
 		bubbleBtn.setImageResource(R.drawable.che779_bubble);
-		bubbleBtn.setPadding(dp(5), dp(2), dp(5), dp(2));
 		bubbleBtn.setOnClickListener(v -> listener.onBubble());
-		addView(bubbleBtn, new LayoutParams(dp(44), dp(36)));
+		bubbleCell.addView(bubbleBtn, new FrameLayout.LayoutParams(dp(30), dp(30), Gravity.CENTER));
+		addView(bubbleCell, new LayoutParams(0, dp(36), 0.5f));
 		addView(button(context, "−", v -> listener.onClose()));
 		addView(button(context, "+", v -> listener.onClone()));
 		addView(button(context, "▦", v -> listener.onGrid()));
@@ -70,6 +74,7 @@ final class TabBar extends LinearLayout {
 		pad.setPadding(dp(10), dp(8), dp(10), dp(8));
 		pad.setOnClickListener(v -> listener.onPickGame());
 		addView(pad, new LayoutParams(dp(44), dp(36)));
+		addView(button(context, "⋮", v -> listener.onMenu()));
 	}
 
 	private int dp(int v) {

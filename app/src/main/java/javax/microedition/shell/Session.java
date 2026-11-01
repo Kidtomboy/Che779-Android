@@ -31,6 +31,19 @@ public final class Session {
 	/** True while tabs are shown side by side. */
 	public static volatile boolean grid;
 
+	/** "Treo" render mode: 0 = draw, 1 = 20 FPS, 2 = no drawing (games keep running). */
+	public static volatile int treo;
+
+	public static void setTreo(int mode) {
+		treo = mode;
+		for (Session s : ALL.values()) {
+			javax.microedition.lcdui.Displayable d = s.current;
+			if (d instanceof javax.microedition.lcdui.Canvas) {
+				((javax.microedition.lcdui.Canvas) d).repaint();
+			}
+		}
+	}
+
 	public final int id;
 	public final String appPath;
 	public final DisplayConfig dc = new DisplayConfig();

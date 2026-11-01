@@ -204,4 +204,11 @@
     <string name="pref_main_fullscreen_summary">Ẩn thanh trạng thái ở danh sách game và vẽ sát mép màn hình</string>
     <string name="pref_bubble_title">Bong bóng nổi</string>
     <string name="pref_bubble_summary">Khi thoát ra ngoài, game chạy nền trong bong bóng / cửa sổ nổi (cần quyền \"Hiển thị trên ứng dụng khác\")</string>
+    <string name="action_sleep_now">Ngủ màn hình (đen)</string>
+    <string name="pref_category_che779">Che779: bộ nhớ và tự ngủ</string>
+    <string name="pref_mem_auto_title">Tự động dọn bộ nhớ</string>
+    <string name="pref_mem_threshold_title">Ngưỡng RAM (MB)</string>
+    <string name="pref_mem_threshold_summary">Dọn khi RAM trống thấp hơn mức này</string>
+    <string name="pref_mem_interval_title">Chu kỳ kiểm tra (giây)</string>
+    <string name="pref_auto_sleep_title">Tự ngủ màn hình đen</string>
 </resources>

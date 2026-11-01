@@ -150,6 +150,7 @@ public abstract class Canvas extends Displayable {
 	private Handler uiHandler;
 	private Overlay overlay;
 	private FpsCounter fpsCounter;
+	private long lastBlit;
 	private boolean skipLeftSoft;
 	private boolean skipRightSoft;
 	private int[][] lastPointerPos = new int[20][2];
@@ -683,6 +684,17 @@ public abstract class Canvas extends Displayable {
 
 	@SuppressLint("NewApi")
 	private boolean repaintScreen() {
+		int treo = Session.treo;
+		if (treo == 2) {
+			return true;
+		}
+		if (treo == 1) {
+			long now = System.currentTimeMillis();
+			if (now - lastBlit < 50) {
+				return true;
+			}
+			lastBlit = now;
+		}
 		Surface surface = this.surface;
 		if (surface == null || !surface.isValid()) {
 			return true;

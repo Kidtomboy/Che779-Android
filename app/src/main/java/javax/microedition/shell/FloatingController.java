@@ -44,6 +44,9 @@ final class FloatingController {
 
 		/** Previous (-1) / next (+1) tab. */
 		void onCycle(int delta);
+
+		/** Hide level changed (0 OFF, 1 SOFT, 2 STEALTH, 3 NINJA). */
+		void onHideLevel(int level);
 	}
 
 	private static FloatingController instance;
@@ -126,6 +129,7 @@ final class FloatingController {
 		} else {
 			showBubble();
 		}
+		applyHide();
 	}
 
 	void hide() {
@@ -133,6 +137,7 @@ final class FloatingController {
 			return;
 		}
 		showing = false;
+		hideMenu();
 		removeBubble();
 		removeWindow();
 	}
@@ -158,11 +163,7 @@ final class FloatingController {
 		int size = dp(56);
 		bubbleLp = params(size, size, sp.getInt(K_BX, dp(8)), sp.getInt(K_BY, dp(200)));
 		final int slop = dp(8);
-		final Runnable longPress = () -> {
-			if (callbacks != null) {
-				callbacks.onDock();
-			}
-		};
+		final Runnable longPress = this::showMenu;
 		bubble.setOnTouchListener(new View.OnTouchListener() {
 			float downX, downY;
 			int startX, startY;
@@ -208,9 +209,101 @@ final class FloatingController {
 		});
 		try {
 			wm.addView(bubble, bubbleLp);
+			applyHide();
 		} catch (Exception e) {
 			e.printStackTrace();
 			bubble = null;
+		}
+	}
+
+	static final String[] HIDE_NAMES = {"OFF", "SOFT", "STEALTH", "NINJA"};
+
+	int hideLevel() {
+		return sp.getInt("hide_level", 0);
+	}
+
+	/** SOFT: out of recents. STEALTH: small and faint bubble. NINJA: almost invisible bubble. */
+	void applyHide() {
+		int level = hideLevel();
+		if (callbacks != null) {
+			callbacks.onHideLevel(level);
+		}
+		if (bubble == null) {
+			return;
+		}
+		int size = level == 2 ? dp(40) : level == 3 ? dp(32) : dp(56);
+		bubble.setAlpha(level == 2 ? 0.4f : level == 3 ? 0.08f : 1f);
+		bubbleLp.width = size;
+		bubbleLp.height = size;
+		try {
+			wm.updateViewLayout(bubble, bubbleLp);
+		} catch (Exception ignored) {
+		}
+	}
+
+	private View menu;
+
+	private void hideMenu() {
+		if (menu != null) {
+			try {
+				wm.removeView(menu);
+			} catch (Exception ignored) {
+			}
+			menu = null;
+		}
+	}
+
+	private void menuItem(LinearLayout col, String text, Runnable action) {
+		TextView t = new TextView(ctx);
+		t.setText(text);
+		t.setTextColor(Color.WHITE);
+		t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+		t.setPadding(dp(14), dp(10), dp(14), dp(10));
+		t.setOnClickListener(v -> {
+			hideMenu();
+			action.run();
+		});
+		col.addView(t);
+	}
+
+	@SuppressLint("ClickableViewAccessibility")
+	private void showMenu() {
+		hideMenu();
+		if (bubble == null) {
+			return;
+		}
+		LinearLayout col = new LinearLayout(ctx);
+		col.setOrientation(LinearLayout.VERTICAL);
+		col.setBackgroundColor(0xF01C222B);
+		menuItem(col, "Mở lại app", () -> {
+			if (callbacks != null) {
+				callbacks.onDock();
+			}
+		});
+		String[] treoNames = {"Treo: Vẽ bình thường", "Treo: Vẽ 20 FPS", "Treo: Không vẽ"};
+		for (int i = 0; i < 3; i++) {
+			final int mode = i;
+			menuItem(col, (Session.treo == i ? "✓ " : "    ") + treoNames[i], () -> Session.setTreo(mode));
+		}
+		menuItem(col, "Mức ẩn: " + HIDE_NAMES[hideLevel()] + " (chạm để đổi)", () -> {
+			sp.edit().putInt("hide_level", (hideLevel() + 1) % 4).apply();
+			applyHide();
+		});
+		col.setOnTouchListener((v, e) -> {
+			if (e.getActionMasked() == MotionEvent.ACTION_OUTSIDE) {
+				hideMenu();
+			}
+			return false;
+		});
+		WindowManager.LayoutParams lp = params(ViewGroup.LayoutParams.WRAP_CONTENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT, bubbleLp.x + bubbleLp.width, bubbleLp.y);
+		lp.flags |= WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+		menu = col;
+		try {
+			wm.addView(menu, lp);
+		} catch (Exception e) {
+			e.printStackTrace();
+			menu = null;
 		}
 	}
 
@@ -272,7 +365,7 @@ final class FloatingController {
 			}
 		}));
 		bar.addView(button("–", v -> showBubble()));
-		bar.addView(button("🔍➕", v -> {
+		bar.addView(button("🔍", v -> {
 			if (callbacks != null) {
 				callbacks.onDock();
 			}

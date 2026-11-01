@@ -81,6 +81,28 @@
         android:icon="@drawable/ic_setting_folder"
         android:title="@string/pref_emulator_dir"
         tools:summary="/sdcard/J2ME-Che779" />
+    <PreferenceCategory android:title="@string/pref_category_che779">
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="pref_mem_auto"
+            android:title="@string/pref_mem_auto_title" />
+        <EditTextPreference
+            android:defaultValue="150"
+            android:key="pref_mem_threshold_mb"
+            android:title="@string/pref_mem_threshold_title"
+            android:summary="@string/pref_mem_threshold_summary" />
+        <EditTextPreference
+            android:defaultValue="30"
+            android:key="pref_mem_interval_s"
+            android:title="@string/pref_mem_interval_title" />
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/che779_sleep_entries"
+            android:entryValues="@array/che779_sleep_values"
+            android:key="pref_auto_sleep_sec"
+            android:title="@string/pref_auto_sleep_title"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_category_experimental">
         <SwitchPreferenceCompat
             android:key="micro3d_using_message"
