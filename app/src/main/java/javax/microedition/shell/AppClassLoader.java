@@ -38,24 +38,23 @@ import ru.playsoftware.j2meloader.util.IOUtils;
 public class AppClassLoader extends DexClassLoader {
 	private static final String TAG = AppClassLoader.class.getName();
 
-	private static AppClassLoader instance;
-	private static ZipFile zipFile;
-	private static String dataDir;
-	private static File oldResDir;
 
 	AppClassLoader(String paths, String tmpDir, ClassLoader parent, File appDir) {
 		super(paths, tmpDir, null, parent);
 		if (appDir == null)
 			throw new NullPointerException("App path is null");
-		oldResDir = new File(appDir, Config.MIDLET_RES_DIR);
-		instance = this;
+		Session session = Session.current();
+		session.oldResDir = new File(appDir, Config.MIDLET_RES_DIR);
+		session.classLoader = this;
 		setDataDir(appDir);
 		File jar = new File(appDir, Config.MIDLET_RES_FILE);
-		zipFile = jar.exists() ? new ZipFile(jar) : null;
+		session.resZip = jar.exists() ? new ZipFile(jar) : null;
 	}
 
 	public static void setDataDir(File appDir) {
-		dataDir = appDir.getParentFile().getParent() + Config.MIDLET_DATA_DIR + appDir.getName();
+		Session session = Session.current();
+		session.dataDir = appDir.getParentFile().getParent() + Config.MIDLET_DATA_DIR + appDir.getName()
+				+ session.dataSuffix;
 	}
 
 	public static InputStream getResourceAsStream(Class<?> resClass, String resName) {
@@ -85,7 +84,7 @@ public class AppClassLoader extends DexClassLoader {
 	}
 
 	public static String getDataDir() {
-		return dataDir;
+		return Session.current().dataDir;
 	}
 
 	public static byte[] getResourceAsBytes(String resName) {
@@ -127,8 +126,10 @@ public class AppClassLoader extends DexClassLoader {
 				return null;
 			}
 		}
+		Session session = Session.current();
+		ZipFile zipFile = session.resZip;
 		if (zipFile == null) {
-			final File file = new File(oldResDir, name);
+			final File file = new File(session.oldResDir, name);
 			try {
 				return FileUtils.getBytes(file);
 			} catch (Exception e) {
@@ -161,7 +162,7 @@ public class AppClassLoader extends DexClassLoader {
 	}
 
 	public static AppClassLoader getInstance() {
-		return instance;
+		return Session.current().classLoader;
 	}
 
 	@Override

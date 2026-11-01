@@ -82,6 +82,18 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 	}
 
 	public static void notifyDestroyed() {
+		Session closing = Session.current();
+		if (closing != null && Session.count() > 1) {
+			// other tabs are alive: close only this one
+			MicroActivity activity = ContextHolder.getActivity();
+			if (closing.thread != null) {
+				closing.thread.state = DESTROYED;
+			}
+			if (activity != null) {
+				activity.removeSession(closing);
+			}
+			return;
+		}
 		Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);
 		MidletThread instance = instance();
 		if (instance != null) {
@@ -97,8 +109,17 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 		Process.killProcess(Process.myPid());
 	}
 
+	void requestDestroy() {
+		handler.obtainMessage(DESTROY).sendToTarget();
+	}
+
+	void quitSession() {
+		quit();
+	}
+
 	public static void notifyPaused() {
-		instance().state = PAUSED;
+		MidletThread t = instance();
+		if (t != null) t.state = PAUSED;
 	}
 
 	static void pauseApp() {
@@ -115,6 +136,13 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 	}
 
 	static void destroyApp() {
+		if (Session.count() > 1) {
+			MidletThread self = instance();
+			if (self != null) {
+				self.handler.obtainMessage(DESTROY).sendToTarget();
+			}
+			return;
+		}
 		Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);
 		new Thread(() -> {
 			try {

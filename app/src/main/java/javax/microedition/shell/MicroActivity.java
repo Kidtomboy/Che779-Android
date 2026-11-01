@@ -93,17 +93,34 @@ public class MicroActivity extends AppCompatActivity {
 	private static final int ORIENTATION_PORTRAIT = 2;
 	private static final int ORIENTATION_LANDSCAPE = 3;
 
-	private Displayable current;
 	private boolean visible;
 	private boolean actionBarEnabled;
 	private boolean statusBarEnabled;
-	private MicroLoader microLoader;
-	private String appName;
 	private InputMethodManager inputMethodManager;
-	private int menuKey;
-	private String appPath;
+	/** Tabs in creation order (tab numbers shown in the bar). */
+	private final java.util.ArrayList<Session> tabs = new java.util.ArrayList<>();
+	private TabBar tabBar;
 
 	public ActivityMicroBinding binding;
+
+	private Displayable cur() {
+		Session s = Session.current();
+		return s == null ? null : s.current;
+	}
+
+	private MicroLoader loader() {
+		return Session.active().microLoader;
+	}
+
+	private String name() {
+		Session s = Session.active();
+		return s == null || s.appName == null ? "" : s.appName;
+	}
+
+	private int menuKey() {
+		Session s = Session.active();
+		return s == null ? KeyEvent.KEYCODE_BACK : s.menuKey;
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -128,7 +145,48 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		ContextHolder.setVibration(sp.getBoolean(PREF_VIBRATION, true));
 		Canvas.setScreenshotRawMode(sp.getBoolean(PREF_SCREENSHOT_SWITCH, false));
-		Intent intent = getIntent();
+		setupTabBar();
+		handleLaunchIntent(getIntent(), false);
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		setIntent(intent);
+		if (binding != null && intent.getData() != null) {
+			handleLaunchIntent(intent, true);
+		}
+	}
+
+	private void setupTabBar() {
+		tabBar = new TabBar(this, new TabBar.Listener() {
+			@Override
+			public void onSelect(Session s) {
+				activate(s);
+			}
+
+			@Override
+			public void onClose() {
+				confirmCloseActive();
+			}
+
+			@Override
+			public void onClone() {
+				cloneFirstTab();
+			}
+
+			@Override
+			public void onPickGame() {
+				pickGameForNewTab();
+			}
+		});
+		binding.virtualDisplay.addView(tabBar, 1);
+	}
+
+	/** Starts a game described by the intent: first launch, or a new tab when already running. */
+	private void handleLaunchIntent(Intent intent, boolean additional) {
+		String appName;
+		String appPath;
 		if (BuildConfig.FULL_EMULATOR) {
 			appName = intent.getStringExtra(KEY_MIDLET_NAME);
 			Uri data = intent.getData();
@@ -149,30 +207,58 @@ public class MicroActivity extends AppCompatActivity {
 		if (arguments != null) {
 			MidletSystem.setProperty("com.nokia.mid.cmdline", arguments);
 			String[] arr = arguments.split(";");
-			for (String s: arr) {
+			for (String s : arr) {
 				if (s.length() == 0) {
 					continue;
 				}
 				if (s.contains("=")) {
 					int i = s.indexOf('=');
-					String k = s.substring(0, i);
-					String v = s.substring(i + 1);
-					MidletSystem.setProperty(k, v);
+					MidletSystem.setProperty(s.substring(0, i), s.substring(i + 1));
 				} else {
 					MidletSystem.setProperty(s, "");
 				}
 			}
 		}
 		MidletSystem.setProperty("com.nokia.mid.cmdline.instance", "1");
-		Session session = Session.create(appPath);
-		session.bindCurrentThread();
+		addSession(appName, appPath, arguments);
+	}
+
+	/** Number of already open tabs running the same game (decides the data folder suffix). */
+	private String nextDataSuffix(String appPath) {
+		int same = 0;
+		for (Session t : tabs) {
+			if (appPath.equals(t.appPath)) {
+				same++;
+			}
+		}
+		return same == 0 ? "" : "-t" + (same + 1);
+	}
+
+	private void addSession(String appName, String appPath, String arguments) {
+		Session session = Session.create(appPath, nextDataSuffix(appPath));
+		session.appName = appName;
+		Session prev = Session.active();
+		if (prev != null && prev != session) {
+			detachSession(prev);
+			if (prev.current != null) {
+				prev.current.clearDisplayableView();
+			}
+		}
 		Session.setActive(session);
-		microLoader = new MicroLoader(this, appPath);
+		MicroLoader microLoader = new MicroLoader(this, appPath);
+		session.microLoader = microLoader;
 		if (!microLoader.init()) {
+			session.remove();
+			if (prev != null) {
+				Session.setActive(prev);
+			}
 			Config.startApp(this, appName, appPath, true, arguments);
-			finish();
+			if (tabs.isEmpty()) {
+				finish();
+			}
 			return;
 		}
+		tabs.add(session);
 		microLoader.applyConfiguration();
 		VirtualKeyboard vk = ContextHolder.getVk();
 		int orientation = microLoader.getOrientation();
@@ -184,15 +270,168 @@ public class MicroActivity extends AppCompatActivity {
 			}
 		}
 		setOrientation(orientation);
-		menuKey = microLoader.getMenuKeyCode();
+		session.menuKey = microLoader.getMenuKeyCode();
 		inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-
+		refreshTabBar();
 		try {
 			loadMIDlet();
 		} catch (Exception e) {
 			e.printStackTrace();
 			showErrorDialog(e.toString());
 		}
+	}
+
+	/** Removes the visible parts of a tab that is going to the background. */
+	private void detachSession(Session s) {
+		VirtualKeyboard vk = s.vk;
+		if (vk != null) {
+			binding.overlayView.removeLayer(vk);
+		}
+	}
+
+	private void activate(Session next) {
+		Session prev = Session.active();
+		if (next == null || prev == next || !tabs.contains(next)) {
+			return;
+		}
+		if (prev != null) {
+			detachSession(prev);
+		}
+		Session.setActive(next);
+		if (next.microLoader != null) {
+			next.microLoader.applyDisplayConfiguration();
+		}
+		VirtualKeyboard vk = next.vk;
+		int orientation = next.microLoader != null ? next.microLoader.getOrientation() : ORIENTATION_DEFAULT;
+		if (vk != null) {
+			vk.setView(binding.overlayView);
+			binding.overlayView.addLayer(vk);
+			if (vk.isPhone()) {
+				orientation = ORIENTATION_PORTRAIT;
+			}
+		}
+		setOrientation(orientation);
+		ViewHandler.postEvent(new SetCurrentEvent(prev != null ? prev.current : null, next.current));
+		refreshTabBar();
+		MidletThread.resumeApp();
+	}
+
+	private void refreshTabBar() {
+		if (tabBar != null) {
+			tabBar.update(tabs, Session.active());
+		}
+	}
+
+	private void cloneFirstTab() {
+		if (tabs.isEmpty()) {
+			return;
+		}
+		Session first = tabs.get(0);
+		addSession(first.appName, first.appPath, null);
+	}
+
+	private void pickGameForNewTab() {
+		final java.util.ArrayList<String> names = new java.util.ArrayList<>();
+		final java.util.ArrayList<String> paths = new java.util.ArrayList<>();
+		File appsDir = new File(Config.getAppDir());
+		String[] list = appsDir.list();
+		if (list != null) {
+			java.util.Arrays.sort(list);
+			for (String folder : list) {
+				File dir = new File(appsDir, folder);
+				if (!new File(dir, Config.MIDLET_DEX_FILE).isFile()) {
+					continue;
+				}
+				String title = folder;
+				try {
+					title = new ru.woesss.j2me.jar.Descriptor(
+							new File(dir, Config.MIDLET_MANIFEST_FILE), false).getName();
+				} catch (Exception ignored) {
+				}
+				names.add(title);
+				paths.add(dir.getAbsolutePath());
+			}
+		}
+		new AlertDialog.Builder(this)
+				.setTitle("Chọn game mở ở tab mới")
+				.setItems(names.toArray(new String[0]), (d, which) ->
+						addSession(names.get(which), paths.get(which), null))
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void confirmCloseActive() {
+		final Session s = Session.active();
+		if (s == null) {
+			return;
+		}
+		final int no = tabs.indexOf(s) + 1;
+		new AlertDialog.Builder(this)
+				.setTitle(R.string.CONFIRMATION_REQUIRED)
+				.setMessage("Đóng tab " + no + "?")
+				.setPositiveButton(android.R.string.ok, (d, w) -> {
+					if (tabs.size() <= 1) {
+						MidletThread.destroyApp();
+					} else {
+						closeSession(s);
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	/** Asks the game of a tab to exit; the tab disappears when it does. */
+	private void closeSession(Session s) {
+		MidletThread t = s.thread;
+		if (t != null) {
+			t.requestDestroy();
+		} else {
+			removeSession(s);
+		}
+	}
+
+	/** Called (from any thread) when a tab's game has ended. */
+	public void removeSession(final Session s) {
+		runOnUiThread(() -> {
+			if (!tabs.contains(s)) {
+				return;
+			}
+			int idx = tabs.indexOf(s);
+			boolean wasActive = Session.active() == s;
+			Session neighbour = null;
+			if (tabs.size() > 1) {
+				neighbour = tabs.get(idx > 0 ? idx - 1 : 1);
+			}
+			if (wasActive) {
+				detachSession(s);
+				Displayable old = s.current;
+				if (old != null) {
+					old.clearDisplayableView();
+				}
+				Session.setActive(null);
+			}
+			tabs.remove(s);
+			s.remove();
+			if (s.queue != null) {
+				s.queue.stopProcessing();
+			}
+			if (s.thread != null) {
+				s.thread.quitSession();
+			}
+			if (wasActive && neighbour != null) {
+				Session.setActive(neighbour);
+				neighbour.microLoader.applyDisplayConfiguration();
+				VirtualKeyboard vk = neighbour.vk;
+				if (vk != null) {
+					vk.setView(binding.overlayView);
+					binding.overlayView.addLayer(vk);
+				}
+				binding.displayableContainer.removeAllViews();
+				ViewHandler.postEvent(new SetCurrentEvent(null, neighbour.current));
+				MidletThread.resumeApp();
+			}
+			refreshTabBar();
+		});
 	}
 
 	public void lockNightMode() {
@@ -230,7 +469,7 @@ public class MicroActivity extends AppCompatActivity {
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
 		if (hasFocus && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
-				current instanceof Canvas) {
+				cur() instanceof Canvas) {
 			hideSystemUI();
 		}
 	}
@@ -255,14 +494,14 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void loadMIDlet() throws Exception {
-		LinkedHashMap<String, String> midlets = microLoader.loadMIDletList();
+		LinkedHashMap<String, String> midlets = loader().loadMIDletList();
 		int size = midlets.size();
 		String[] midletsNameArray = midlets.values().toArray(new String[0]);
 		String[] midletsClassArray = midlets.keySet().toArray(new String[0]);
 		if (size == 0) {
 			throw new Exception("No MIDlets found");
 		} else if (size == 1) {
-			MidletThread.create(microLoader, midletsClassArray[0]);
+			MidletThread.create(loader(), midletsClassArray[0]);
 		} else {
 			showMidletDialog(midletsNameArray, midletsClassArray);
 		}
@@ -281,7 +520,7 @@ public class MicroActivity extends AppCompatActivity {
 					}
 					sb.append("Begin app: ").append(names[n]).append(", ").append(clazz);
 					errorReporter.putCustomData(Constants.KEY_APPCENTER_ATTACHMENT, sb.toString());
-					MidletThread.create(microLoader, clazz);
+					MidletThread.create(loader(), clazz);
 					MidletThread.resumeApp();
 				})
 				.setOnCancelListener(d -> {
@@ -332,12 +571,19 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	public void setCurrent(Displayable displayable) {
-		ViewHandler.postEvent(new SetCurrentEvent(current, displayable));
-		current = displayable;
+		Session s = Session.current();
+		if (s == null) {
+			return;
+		}
+		Displayable prev = s.current;
+		s.current = displayable;
+		if (s == Session.active()) {
+			ViewHandler.postEvent(new SetCurrentEvent(prev, displayable));
+		}
 	}
 
 	public Displayable getCurrent() {
-		return current;
+		return cur();
 	}
 
 	public boolean isVisible() {
@@ -354,7 +600,7 @@ public class MicroActivity extends AppCompatActivity {
 				})
 				.setNeutralButton(R.string.action_settings, (d, w) -> {
 					hideSoftInput();
-					Config.startApp(this, appName, appPath, true);
+					Config.startApp(this, name(), Session.active().appPath, true);
 					MidletThread.destroyApp();
 				})
 				.setNegativeButton(android.R.string.cancel, null);
@@ -364,7 +610,7 @@ public class MicroActivity extends AppCompatActivity {
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
 		if (event.getKeyCode() == KeyEvent.KEYCODE_MENU)
-			if (current instanceof Canvas && binding.displayableContainer.dispatchKeyEvent(event)) {
+			if (cur() instanceof Canvas && binding.displayableContainer.dispatchKeyEvent(event)) {
 				return true;
 			} else if (event.getAction() == KeyEvent.ACTION_DOWN) {
 				if (event.getRepeatCount() == 0) {
@@ -382,7 +628,7 @@ public class MicroActivity extends AppCompatActivity {
 	@Override
 	public void openOptionsMenu() {
 		if (!actionBarEnabled &&
-				Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && current instanceof Canvas) {
+				Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && cur() instanceof Canvas) {
 			showSystemUI();
 		}
 		super.openOptionsMenu();
@@ -390,7 +636,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-		if (keyCode == menuKey || keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
+		if (keyCode == menuKey() || keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
 			showExitConfirmation();
 			return true;
 		}
@@ -407,7 +653,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		if ((keyCode == menuKey || keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)
+		if ((keyCode == menuKey() || keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)
 				&& (event.getFlags() & (KeyEvent.FLAG_LONG_PRESS | KeyEvent.FLAG_CANCELED)) == 0) {
 			openOptionsMenu();
 			return true;
@@ -442,7 +688,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		if (current instanceof Canvas) {
+		if (cur() instanceof Canvas) {
 			menu.setGroupVisible(R.id.action_group_canvas, true);
 			VirtualKeyboard vk = ContextHolder.getVk();
 			if (vk != null) {
@@ -465,7 +711,7 @@ public class MicroActivity extends AppCompatActivity {
 		} else if (id == R.id.action_lock_orientation) {
 			if (item.isChecked()) {
 				VirtualKeyboard vk = ContextHolder.getVk();
-				int orientation = vk != null && vk.isPhone() ? ORIENTATION_PORTRAIT : microLoader.getOrientation();
+				int orientation = vk != null && vk.isPhone() ? ORIENTATION_PORTRAIT : loader().getOrientation();
 				setOrientation(orientation);
 				item.setChecked(false);
 			} else {
@@ -507,7 +753,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	@SuppressLint("CheckResult")
 	private void takeScreenshot() {
-		microLoader.takeScreenshot((Canvas) current, new SingleObserver<String>() {
+		loader().takeScreenshot((Canvas) cur(), new SingleObserver<String>() {
 			@Override
 			public void onSubscribe(@NonNull Disposable d) {
 			}
@@ -593,7 +839,7 @@ public class MicroActivity extends AppCompatActivity {
 					if (vk.isPhone()) {
 						setOrientation(ORIENTATION_PORTRAIT);
 					} else {
-						setOrientation(microLoader.getOrientation());
+						setOrientation(loader().getOrientation());
 					}
 				});
 		builder.show();
@@ -626,20 +872,20 @@ public class MicroActivity extends AppCompatActivity {
 						fps = TextUtils.isEmpty(text) ? 0 : Integer.parseInt(text.toString().trim());
 					} catch (NumberFormatException ignored) {
 					}
-					microLoader.setLimitFps(fps);
+					loader().setLimitFps(fps);
 				})
 				.setNegativeButton(android.R.string.cancel, null)
-				.setNeutralButton(R.string.reset, ((d, which) -> microLoader.setLimitFps(-1)))
+				.setNeutralButton(R.string.reset, ((d, which) -> loader().setLimitFps(-1)))
 				.show();
 	}
 
 	@Override
 	public boolean onContextItemSelected(@NonNull MenuItem item) {
-		if (current instanceof Form) {
-			((Form) current).contextMenuItemSelected(item);
-		} else if (current instanceof List) {
+		if (cur() instanceof Form) {
+			((Form) cur()).contextMenuItemSelected(item);
+		} else if (cur() instanceof List) {
 			AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-			((List) current).contextMenuItemSelected(item, info.position);
+			((List) cur()).contextMenuItemSelected(item, info.position);
 		}
 
 		return super.onContextItemSelected(item);
@@ -651,7 +897,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	public String getAppName() {
-		return appName;
+		return name();
 	}
 
 	private class SetCurrentEvent extends SimpleEvent {
@@ -682,7 +928,7 @@ public class MicroActivity extends AppCompatActivity {
 					actionBar.hide();
 				} else {
 					final String title = next.getTitle();
-					actionBar.setTitle(title == null ? appName : title);
+					actionBar.setTitle(title == null ? name() : title);
 					toolbarHeight = (int) (getToolBarHeight() / 1.5);
 					layoutParams.height = toolbarHeight;
 				}
@@ -690,7 +936,7 @@ public class MicroActivity extends AppCompatActivity {
 				showSystemUI();
 				actionBar.show();
 				final String title = next != null ? next.getTitle() : null;
-				actionBar.setTitle(title == null ? appName : title);
+				actionBar.setTitle(title == null ? name() : title);
 				toolbarHeight = getToolBarHeight();
 				layoutParams.height = toolbarHeight;
 			}

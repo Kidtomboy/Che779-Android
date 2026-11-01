@@ -104,7 +104,7 @@ public class MicroLoader {
 		Graphics3D.initGraphics3D();
 		File cacheDir = ContextHolder.getCacheDir();
 		// Some phones return null here
-		if (cacheDir != null && cacheDir.exists()) {
+		if (cacheDir != null && cacheDir.exists() && Session.count() <= 1) {
 			FileUtils.clearDirectory(cacheDir);
 		}
 		File internalDriveDir = new File(Config.getFsInternalDir());
@@ -238,6 +238,35 @@ public class MicroLoader {
 		System.setProperty("user.home", Config.getFsInternalDir());
 	}
 
+	/** Display-related statics of the engine; re-applied whenever this game's tab is brought to front. */
+	void applyDisplayConfiguration() {
+		try {
+			int screenWidth = params.screenWidth;
+			int screenHeight = params.screenHeight;
+			Displayable.setVirtualSize(screenWidth, screenHeight);
+			Canvas.setBackgroundColor(params.screenBackgroundColor);
+			Canvas.setScale(params.screenGravity, params.screenScaleType, params.screenScaleRatio);
+			Canvas.setFilterBitmap(params.screenFilter);
+			EventQueue.setImmediate(params.immediateMode);
+			Canvas.setGraphicsMode(params.graphicsMode, params.parallelRedrawScreen);
+			ShaderInfo shader = params.shader;
+			if (shader != null) {
+				shader.dir = workDir + Config.SHADERS_DIR;
+			}
+			Canvas.setShaderFilter(shader);
+			Canvas.setForceFullscreen(params.forceFullscreen);
+			Canvas.setShowFps(params.showFps);
+			Canvas.setLimitFps(params.fpsLimit);
+
+			Font.applySettings(params);
+
+			KeyMapper.setKeyMapping(params);
+			Canvas.setHasTouchInput(params.touchInput);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	public int getOrientation() {
 		return params.orientation;
 	}
@@ -272,27 +301,7 @@ public class MicroLoader {
 				MidletSystem.setProperty("microedition.encoding", "ISO-8859-1");
 			}
 
-			int screenWidth = params.screenWidth;
-			int screenHeight = params.screenHeight;
-			Displayable.setVirtualSize(screenWidth, screenHeight);
-			Canvas.setBackgroundColor(params.screenBackgroundColor);
-			Canvas.setScale(params.screenGravity, params.screenScaleType, params.screenScaleRatio);
-			Canvas.setFilterBitmap(params.screenFilter);
-			EventQueue.setImmediate(params.immediateMode);
-			Canvas.setGraphicsMode(params.graphicsMode, params.parallelRedrawScreen);
-			ShaderInfo shader = params.shader;
-			if (shader != null) {
-				shader.dir = workDir + Config.SHADERS_DIR;
-			}
-			Canvas.setShaderFilter(shader);
-			Canvas.setForceFullscreen(params.forceFullscreen);
-			Canvas.setShowFps(params.showFps);
-			Canvas.setLimitFps(params.fpsLimit);
-
-			Font.applySettings(params);
-
-			KeyMapper.setKeyMapping(params);
-			Canvas.setHasTouchInput(params.touchInput);
+			applyDisplayConfiguration();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
