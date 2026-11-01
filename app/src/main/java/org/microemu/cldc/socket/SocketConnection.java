@@ -39,7 +39,7 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 	}
 
 	public SocketConnection(String host, int port) throws IOException {
-		this.socket = new Socket(host, port);
+		this.socket = org.microemu.cldc.NetHooks.connect(host, port);
 	}
 
 	public SocketConnection(Socket socket) {

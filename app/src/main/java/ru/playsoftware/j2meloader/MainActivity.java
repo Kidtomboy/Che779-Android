@@ -115,10 +115,24 @@ public class MainActivity extends BaseActivity {
 				.getBoolean("pref_main_fullscreen", true);
 		android.view.Window window = getWindow();
 		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-			window.getAttributes().layoutInDisplayCutoutMode = on
+			android.view.WindowManager.LayoutParams attrs = window.getAttributes();
+			attrs.layoutInDisplayCutoutMode = on
 					? android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
 					: android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+			window.setAttributes(attrs);
 		}
+		// no blank strip above the toolbar where the status bar / camera cutout used to be
+		androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(window.getDecorView(), (v, insets) -> {
+			androidx.core.view.WindowInsetsCompat r = insets;
+			if (on) {
+				r = new androidx.core.view.WindowInsetsCompat.Builder(insets)
+						.setInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars(), androidx.core.graphics.Insets.NONE)
+						.setInsets(androidx.core.view.WindowInsetsCompat.Type.displayCutout(), androidx.core.graphics.Insets.NONE)
+						.build();
+			}
+			return androidx.core.view.ViewCompat.onApplyWindowInsets(v, r);
+		});
+		window.getDecorView().requestApplyInsets();
 		androidx.core.view.WindowInsetsControllerCompat controller =
 				androidx.core.view.WindowCompat.getInsetsController(window, window.getDecorView());
 		if (on) {
