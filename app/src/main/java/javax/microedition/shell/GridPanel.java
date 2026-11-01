@@ -125,7 +125,12 @@ final class GridPanel extends LinearLayout {
 		if (v.getParent() instanceof ViewGroup) {
 			((ViewGroup) v.getParent()).removeView(v);
 		}
-		cell.addView(v, new FrameLayout.LayoutParams(
+		// own background: lists and forms are transparent and would show the blue focus border colour
+		FrameLayout content = new FrameLayout(getContext());
+		content.setBackgroundColor(d instanceof javax.microedition.lcdui.Canvas ? 0xFF000000 : 0xFFFAFAFA);
+		content.addView(v, new FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+		cell.addView(content, new FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 	}
 

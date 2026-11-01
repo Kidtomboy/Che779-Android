@@ -64,10 +64,18 @@ public class CommandActionEvent extends Event {
 
 	@Override
 	public void process() {
-		if (listener != null) {
-			listener.commandAction(command, displayable);
-		} else if (itemlistener != null) {
-			itemlistener.commandAction(command, item);
+		try {
+			javax.microedition.shell.Che779Diag.log("commandAction cmd=" + command + " prio="
+					+ (command == null ? -1 : command.getPriority()) + " on " + displayable);
+			if (listener != null) {
+				listener.commandAction(command, displayable);
+			} else if (itemlistener != null) {
+				itemlistener.commandAction(command, item);
+			}
+			javax.microedition.shell.Che779Diag.log("commandAction returned");
+		} catch (Throwable t) {
+			javax.microedition.shell.Che779Diag.error("commandAction", t);
+			throw t;
 		}
 	}
 
