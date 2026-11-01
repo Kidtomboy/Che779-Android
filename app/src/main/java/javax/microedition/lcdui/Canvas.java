@@ -73,6 +73,7 @@ import javax.microedition.lcdui.overlay.Layer;
 import javax.microedition.lcdui.overlay.Overlay;
 import javax.microedition.lcdui.overlay.OverlayView;
 import javax.microedition.shell.MicroActivity;
+import javax.microedition.shell.DisplayConfig;
 import javax.microedition.shell.Session;
 import javax.microedition.util.ContextHolder;
 
@@ -248,7 +249,27 @@ public abstract class Canvas extends Displayable {
 		}
 	}
 
+	/** Key sync (grid mode): keys of the focused tab are copied to every other tab. */
+	private void mirrorKey(int kind, int keyCode) {
+		if (!Session.syncKeys || session != Session.active()) {
+			return;
+		}
+		for (Session o : Session.all()) {
+			if (o == session) {
+				continue;
+			}
+			Displayable d = o.current;
+			if (d instanceof Canvas) {
+				Canvas c = (Canvas) d;
+				if (kind == 0) c.postKeyPressed(keyCode);
+				else if (kind == 1) c.postKeyReleased(keyCode);
+				else c.postKeyRepeated(keyCode);
+			}
+		}
+	}
+
 	public void postKeyPressed(int keyCode) {
+		mirrorKey(0, keyCode);
 		if (keyCode == KEY_SOFT_LEFT && softBar.fireLeftSoft()) {
 			skipLeftSoft = true;
 			return;
@@ -262,6 +283,7 @@ public abstract class Canvas extends Displayable {
 	}
 
 	public void postKeyReleased(int keyCode) {
+		mirrorKey(1, keyCode);
 		if (keyCode == KEY_SOFT_LEFT && skipLeftSoft) {
 			skipLeftSoft = false;
 			return;
@@ -275,6 +297,7 @@ public abstract class Canvas extends Displayable {
 	}
 
 	public void postKeyRepeated(int keyCode) {
+		mirrorKey(2, keyCode);
 		if (keyCode == KEY_SOFT_LEFT && skipLeftSoft) {
 			return;
 		} else if (keyCode == KEY_SOFT_RIGHT && skipRightSoft) {
@@ -350,7 +373,7 @@ public abstract class Canvas extends Displayable {
 		 * has the same aspect ratio as the actual screen of the device.
 		 */
 		int scaledDisplayHeight;
-		VirtualKeyboard vk = ContextHolder.getVk();
+		VirtualKeyboard vk = session.vk;
 		boolean isPhoneSkin = vk != null && vk.isPhone();
 
 		// if phone keyboard layout is active, then scale down the virtual screen
@@ -1204,7 +1227,7 @@ public abstract class Canvas extends Displayable {
 			}
 			overlayView.addLayer(softBar, 0);
 			overlayView.setVisibility(true);
-			overlay = ContextHolder.getVk();
+			overlay = session.vk;
 			if (overlay != null) {
 				overlay.setTarget(Canvas.this);
 			}
@@ -1379,7 +1402,7 @@ public abstract class Canvas extends Displayable {
 			float left;
 			float right;
 			float bottom;
-			VirtualKeyboard vk = ContextHolder.getVk();
+			VirtualKeyboard vk = session.vk;
 			if (vk != null && vk.isPhone()) {
 				float vkTop = displayHeight - vk.getPhoneKeyboardHeight(displayWidth, displayHeight) - 1;
 				if (onWidth < displayWidth / 2.0f || onWidth > displayWidth) {

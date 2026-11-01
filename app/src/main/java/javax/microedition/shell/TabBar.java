@@ -30,6 +30,8 @@ final class TabBar extends LinearLayout {
 		void onClone();
 
 		void onPickGame();
+
+		void onGrid();
 	}
 
 	private static final int BG = 0xFF14181F;
@@ -55,6 +57,7 @@ final class TabBar extends LinearLayout {
 		addView(scroll, new LayoutParams(0, dp(36), 1f));
 		addView(button(context, "−", v -> listener.onClose()));
 		addView(button(context, "+", v -> listener.onClone()));
+		addView(button(context, "▦", v -> listener.onGrid()));
 		ImageView pad = new ImageView(context);
 		pad.setImageResource(R.drawable.ic_che779_gamepad);
 		pad.setPadding(dp(10), dp(8), dp(10), dp(8));
