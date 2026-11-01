@@ -28,6 +28,7 @@ public final class Session {
 
 	public final int id;
 	public final String appPath;
+	public final DisplayConfig dc = new DisplayConfig();
 	public volatile Display display;
 	public volatile EventQueue queue;
 	public volatile VirtualKeyboard vk;

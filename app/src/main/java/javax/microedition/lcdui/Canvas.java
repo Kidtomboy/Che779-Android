@@ -121,26 +121,14 @@ public abstract class Canvas extends Displayable {
 
 	private static final float FULLSCREEN_HEIGHT_RATIO = 0.85f;
 
-	private static boolean filter;
-	private static boolean touchInput;
-	private static int graphicsMode;
-	private static ShaderInfo shaderFilter;
-	private static boolean parallelRedraw;
-	private static boolean forceFullscreen;
-	private static boolean showFps;
-	private static int backgroundColor;
-	private static int scaleRatio;
-	private static int fpsLimit;
 	private static boolean screenshotRawMode;
-	private static int scaleType;
-	private static int screenGravity;
 
 	private final Session session = Session.current();
 	private final Object bufferLock = new Object();
 	private final Object surfaceLock = new Object();
 	private final PaintEvent paintEvent = new PaintEvent();
 	private final SoftBar softBar = new SoftBar();
-	private final CanvasWrapper canvasWrapper = new CanvasWrapper(filter);
+	private final CanvasWrapper canvasWrapper = new CanvasWrapper(session.dc.filter);
 	private final RectF virtualScreen = new RectF();
 
 	protected int width, height;
@@ -166,16 +154,16 @@ public abstract class Canvas extends Displayable {
 	private int[][] lastPointerPos = new int[20][2];
 
 	protected Canvas() {
-		this(forceFullscreen);
+		this(Session.current().dc.forceFullscreen);
 	}
 
 	protected Canvas(boolean fullscreen) {
 		this.fullscreen = fullscreen;
 		super.softBar = softBar;
-		if (graphicsMode == 1) {
+		if (session.dc.graphicsMode == 1) {
 			renderer = new GLRenderer();
 		}
-		if (parallelRedraw) {
+		if (session.dc.parallelRedraw) {
 			uiHandler = new Handler(Looper.getMainLooper(), msg -> repaintScreen());
 		}
 		displayWidth = ContextHolder.getDisplayWidth();
@@ -183,47 +171,55 @@ public abstract class Canvas extends Displayable {
 		updateSize();
 	}
 
+	private static DisplayConfig dc() {
+		Session s = Session.current();
+		return s != null ? s.dc : new DisplayConfig();
+	}
+
 	public static void setShaderFilter(ShaderInfo shader) {
-		Canvas.shaderFilter = shader;
+		dc().shaderFilter = shader;
 	}
 
 	public static void setScale(int screenGravity, int scaleType, int scaleRatio) {
-		Canvas.screenGravity = screenGravity;
-		Canvas.scaleType = scaleType;
-		Canvas.scaleRatio = scaleRatio;
+		DisplayConfig c = dc();
+		c.screenGravity = screenGravity;
+		c.scaleType = scaleType;
+		c.scaleRatio = scaleRatio;
 	}
 
 	public static void setBackgroundColor(int color) {
-		backgroundColor = color | 0xFF000000;
+		dc().backgroundColor = color | 0xFF000000;
 	}
 
 	public static void setFilterBitmap(boolean filter) {
-		Canvas.filter = filter;
+		dc().filter = filter;
 	}
 
 	public static void setHasTouchInput(boolean touchInput) {
-		Canvas.touchInput = touchInput;
+		dc().touchInput = touchInput;
 	}
 
 	public static void setGraphicsMode(int mode, boolean parallel) {
-		Canvas.graphicsMode = mode;
-		Canvas.parallelRedraw = (mode == 0 || mode == 3) && parallel;
+		DisplayConfig c = dc();
+		c.graphicsMode = mode;
+		c.parallelRedraw = (mode == 0 || mode == 3) && parallel;
 	}
 
 	public static void setForceFullscreen(boolean forceFullscreen) {
-		Canvas.forceFullscreen = forceFullscreen;
+		dc().forceFullscreen = forceFullscreen;
 	}
 
 	public static void setShowFps(boolean showFps) {
-		Canvas.showFps = showFps;
+		dc().showFps = showFps;
 	}
 
 	public static void setLimitFps(int fpsLimit) {
-		if (fpsLimit == 0 && (graphicsMode == 1 || graphicsMode == 2)) {
+		DisplayConfig c = dc();
+		if (fpsLimit == 0 && (c.graphicsMode == 1 || c.graphicsMode == 2)) {
 			// hack for async redraw
 			fpsLimit = 1000;
 		}
-		Canvas.fpsLimit = fpsLimit;
+		c.fpsLimit = fpsLimit;
 	}
 
 	public static void setScreenshotRawMode(boolean enable) {
@@ -300,10 +296,10 @@ public abstract class Canvas extends Displayable {
 	}
 
 	public void onDraw(android.graphics.Canvas canvas) {
-		if (graphicsMode != 2) return; // Fix for Android Pie
+		if (session.dc.graphicsMode != 2) return; // Fix for Android Pie
 		CanvasWrapper g = canvasWrapper;
 		g.bind(canvas);
-		g.clear(backgroundColor);
+		g.clear(session.dc.backgroundColor);
 		synchronized (bufferLock) {
 			offscreenCopy.getBitmap().prepareToDraw();
 			g.drawImage(offscreenCopy, virtualScreen);
@@ -364,29 +360,29 @@ public abstract class Canvas extends Displayable {
 		} else {
 			scaledDisplayHeight = displayHeight;
 		}
-		if (virtualWidth > 0) {
-			if (virtualHeight > 0) {
+		if (session.dc.virtualWidth > 0) {
+			if (session.dc.virtualHeight > 0) {
 				/*
 				 * the width and height of the canvas are strictly set
 				 */
-				width = virtualWidth;
-				height = virtualHeight;
+				width = session.dc.virtualWidth;
+				height = session.dc.virtualHeight;
 			} else {
 				/*
 				 * only the canvas width is set
 				 * height is selected by the ratio of the real screen
 				 */
-				width = virtualWidth;
-				height = scaledDisplayHeight * virtualWidth / displayWidth;
+				width = session.dc.virtualWidth;
+				height = scaledDisplayHeight * session.dc.virtualWidth / displayWidth;
 			}
 		} else {
-			if (virtualHeight > 0) {
+			if (session.dc.virtualHeight > 0) {
 				/*
 				 * only the canvas height is set
 				 * width is selected by the ratio of the real screen
 				 */
-				width = displayWidth * virtualHeight / scaledDisplayHeight;
-				height = virtualHeight;
+				width = displayWidth * session.dc.virtualHeight / scaledDisplayHeight;
+				height = session.dc.virtualHeight;
 			} else {
 				/*
 				 * nothing is set - screen-sized canvas
@@ -400,8 +396,8 @@ public abstract class Canvas extends Displayable {
 		 * We turn the size of the canvas into the size of the image
 		 * that will be displayed on the screen of the device.
 		 */
-		int scaleRatio = Canvas.scaleRatio;
-		switch (scaleType) {
+		int scaleRatio = session.dc.scaleRatio;
+		switch (session.dc.scaleType) {
 			case 0:
 				// without scaling
 				onWidth = width;
@@ -434,7 +430,7 @@ public abstract class Canvas extends Displayable {
 		onWidth = onWidth * scaleRatio / 100;
 		onHeight = onHeight * scaleRatio / 100;
 
-		switch (Canvas.screenGravity) {
+		switch (session.dc.screenGravity) {
 			case 0: // left
 				onX = 0;
 				onY = (scaledDisplayHeight - onHeight) / 2;
@@ -491,7 +487,7 @@ public abstract class Canvas extends Displayable {
 			overlay.resize(screen, onX, onY, onX + onWidth, onY + onHeight + softBarHeight);
 		}
 
-		if (graphicsMode == 1) {
+		if (session.dc.graphicsMode == 1) {
 			float gl = 2.0f * virtualScreen.left / displayWidth - 1.0f;
 			float gt = 1.0f - 2.0f * virtualScreen.top / displayHeight;
 			float gr = 2.0f * virtualScreen.right / displayWidth - 1.0f;
@@ -529,7 +525,7 @@ public abstract class Canvas extends Displayable {
 		if (layout == null) {
 			layout = (LinearLayout) super.getDisplayableView();
 			MicroActivity activity = ContextHolder.getActivity();
-			if (graphicsMode == 1) {
+			if (session.dc.graphicsMode == 1) {
 				GlesView glesView = new GlesView(activity);
 				glesView.setRenderer(renderer);
 				glesView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -537,7 +533,7 @@ public abstract class Canvas extends Displayable {
 				innerView = glesView;
 			} else {
 				CanvasView canvasView = new CanvasView(this, activity);
-				if (graphicsMode == 2) {
+				if (session.dc.graphicsMode == 2) {
 					canvasView.setWillNotDraw(false);
 				}
 				canvasView.getHolder().setFormat(PixelFormat.RGBA_8888);
@@ -576,11 +572,11 @@ public abstract class Canvas extends Displayable {
 	}
 
 	public boolean hasPointerEvents() {
-		return touchInput;
+		return session.dc.touchInput;
 	}
 
 	public boolean hasPointerMotionEvents() {
-		return touchInput;
+		return session.dc.touchInput;
 	}
 
 	public boolean hasRepeatEvents() {
@@ -652,9 +648,9 @@ public abstract class Canvas extends Displayable {
 	}
 
 	private void limitFps() {
-		if (fpsLimit <= 0) return;
+		if (session.dc.fpsLimit <= 0) return;
 		try {
-			long millis = (1000 / fpsLimit) - (System.currentTimeMillis() - lastFrameTime);
+			long millis = (1000 / session.dc.fpsLimit) - (System.currentTimeMillis() - lastFrameTime);
 			if (millis > 0) Thread.sleep(millis);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -670,14 +666,14 @@ public abstract class Canvas extends Displayable {
 		}
 		try {
 			synchronized (surfaceLock) {
-				android.graphics.Canvas canvas = graphicsMode == 3 ?
+				android.graphics.Canvas canvas = session.dc.graphicsMode == 3 ?
 						surface.lockHardwareCanvas() : surface.lockCanvas(null);
 				if (canvas == null) {
 					return true;
 				}
 				CanvasWrapper g = this.canvasWrapper;
 				g.bind(canvas);
-				g.clear(backgroundColor);
+				g.clear(session.dc.backgroundColor);
 				synchronized (bufferLock) {
 					g.drawImage(offscreenCopy, virtualScreen);
 				}
@@ -686,7 +682,7 @@ public abstract class Canvas extends Displayable {
 			if (fpsCounter != null) {
 				fpsCounter.increment();
 			}
-			if (parallelRedraw) uiHandler.removeMessages(0);
+			if (session.dc.parallelRedraw) uiHandler.removeMessages(0);
 		} catch (Exception e) {
 			Log.w(TAG, "repaintScreen: " + e);
 		}
@@ -781,8 +777,8 @@ public abstract class Canvas extends Displayable {
 
 		@Override
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-			program = new ShaderProgram(shaderFilter);
-			int c = Canvas.backgroundColor;
+			program = new ShaderProgram(session.dc.shaderFilter);
+			int c = session.dc.backgroundColor;
 			glClearColor((c >> 16 & 0xff) / 255.0f, (c >> 8 & 0xff) / 255.0f, (c & 0xff) / 255.0f, 1.0f);
 			glDisable(GL_BLEND);
 			glDisable(GL_DEPTH_TEST);
@@ -790,8 +786,8 @@ public abstract class Canvas extends Displayable {
 			initTex();
 			Bitmap bitmap = offscreenCopy.getBitmap();
 			program.loadVbo(vbo, bitmap.getWidth(), bitmap.getHeight());
-			if (shaderFilter != null && shaderFilter.values != null) {
-				glUniform4fv(program.uSetting, 1, shaderFilter.values, 0);
+			if (session.dc.shaderFilter != null && session.dc.shaderFilter.values != null) {
+				glUniform4fv(program.uSetting, 1, session.dc.shaderFilter.values, 0);
 			}
 			isStarted = true;
 		}
@@ -818,8 +814,8 @@ public abstract class Canvas extends Displayable {
 			glGenTextures(1, bgTextureId, 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, bgTextureId[0]);
-			glTexParameteri(GLES20.GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter ? GL_LINEAR : GL_NEAREST);
-			glTexParameteri(GLES20.GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter ? GL_LINEAR : GL_NEAREST);
+			glTexParameteri(GLES20.GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, session.dc.filter ? GL_LINEAR : GL_NEAREST);
+			glTexParameteri(GLES20.GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, session.dc.filter ? GL_LINEAR : GL_NEAREST);
 			glTexParameteri(GLES20.GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GLES20.GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -1066,7 +1062,7 @@ public abstract class Canvas extends Displayable {
 					if (overlay != null) {
 						overlay.pointerPressed(id, x, y);
 					}
-					if (touchInput && virtualScreen.contains(x, y)) {
+					if (session.dc.touchInput && virtualScreen.contains(x, y)) {
 						int cX = Math.round(convertPointerX(x));
 						int cY = Math.round(convertPointerY(y));
 						if (id < 20) {
@@ -1091,7 +1087,7 @@ public abstract class Canvas extends Displayable {
 							if (overlay != null) {
 								overlay.pointerDragged(id, x, y);
 							}
-							if (touchInput && virtualScreen.contains(x, y)) {
+							if (session.dc.touchInput && virtualScreen.contains(x, y)) {
 								int cX = Math.round(convertPointerX(x));
 								int cY = Math.round(convertPointerY(y));
 								if (id < 20) {
@@ -1118,7 +1114,7 @@ public abstract class Canvas extends Displayable {
 						if (overlay != null) {
 							overlay.pointerDragged(id, x, y);
 						}
-						if (touchInput && virtualScreen.contains(x, y)) {
+						if (session.dc.touchInput && virtualScreen.contains(x, y)) {
 							int cX = Math.round(convertPointerX(x));
 							int cY = Math.round(convertPointerY(y));
 							if (id < 20) {
@@ -1150,7 +1146,7 @@ public abstract class Canvas extends Displayable {
 					if (overlay != null) {
 						overlay.pointerReleased(id, x, y);
 					}
-					if (touchInput && virtualScreen.contains(x, y)) {
+					if (session.dc.touchInput && virtualScreen.contains(x, y)) {
 						int cX = Math.round(convertPointerX(x));
 						int cY = Math.round(convertPointerY(y));
 						lastPointerPos[id][0] = cX;
@@ -1202,7 +1198,7 @@ public abstract class Canvas extends Displayable {
 			surface = holder.getSurface();
 			session.queue.postEvent(CanvasEvent.getInstance(Canvas.this, CanvasEvent.SHOW_NOTIFY));
 			repaintInternal();
-			if (showFps) {
+			if (session.dc.showFps) {
 				fpsCounter = new FpsCounter(overlayView);
 				overlayView.addLayer(fpsCounter);
 			}
@@ -1241,15 +1237,15 @@ public abstract class Canvas extends Displayable {
 	}
 
 	private void requestFlushToScreen() {
-		if (graphicsMode == 1) {
+		if (session.dc.graphicsMode == 1) {
 			if (innerView != null) {
 				renderer.requestRender();
 			}
-		} else if (graphicsMode == 2) {
+		} else if (session.dc.graphicsMode == 2) {
 			if (innerView != null) {
 				innerView.postInvalidate();
 			}
-		} else if (!parallelRedraw) {
+		} else if (!session.dc.parallelRedraw) {
 			repaintScreen();
 		} else if (!uiHandler.hasMessages(0)) {
 			uiHandler.sendEmptyMessage(0);
