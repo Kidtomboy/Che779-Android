@@ -6,6 +6,8 @@ import android.service.quicksettings.TileService;
 
 import androidx.annotation.RequiresApi;
 
+import javax.microedition.util.ContextHolder;
+
 /** Quick Settings tile: cycles the power mode of the running games (lives in the :midlet process). */
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class PowerTileService extends TileService {
