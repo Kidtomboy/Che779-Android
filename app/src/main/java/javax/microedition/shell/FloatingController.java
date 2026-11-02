@@ -190,18 +190,41 @@ final class FloatingController {
 							bubbleLp.x = startX + (int) dx;
 							bubbleLp.y = startY + (int) dy;
 							wm.updateViewLayout(bubble, bubbleLp);
+							showDropTarget();
+							dropHot = overDropTarget();
+							dropView.setAlpha(dropHot ? 1f : 0.6f);
 						}
 						return true;
 					case MotionEvent.ACTION_UP:
 						handler.removeCallbacks(longPress);
 						if (moved) {
+							boolean drop = overDropTarget();
+							removeDropTarget();
+							if (drop) {
+								// dropped on the X: close the bubble
+								sp.edit().putBoolean("pref_bubble_enabled", false).apply();
+								hide();
+								return true;
+							}
 							sp.edit().putInt(K_BX, bubbleLp.x).putInt(K_BY, bubbleLp.y).apply();
+						} else if (pendingTap != null) {
+							// double tap: bring the full app back
+							handler.removeCallbacks(pendingTap);
+							pendingTap = null;
+							if (callbacks != null) {
+								callbacks.onDock();
+							}
 						} else {
-							showWindow();
+							pendingTap = () -> {
+								pendingTap = null;
+								showWindow();
+							};
+							handler.postDelayed(pendingTap, 280);
 						}
 						return true;
 					case MotionEvent.ACTION_CANCEL:
 						handler.removeCallbacks(longPress);
+						removeDropTarget();
 						return true;
 				}
 				return false;
@@ -213,6 +236,55 @@ final class FloatingController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			bubble = null;
+		}
+	}
+
+	private Runnable pendingTap;
+	private TextView dropView;
+	private boolean dropHot;
+
+	private void showDropTarget() {
+		if (dropView != null) {
+			return;
+		}
+		dropView = new TextView(ctx);
+		dropView.setText("\u2715");
+		dropView.setTextColor(Color.WHITE);
+		dropView.setTextSize(24);
+		dropView.setGravity(Gravity.CENTER);
+		android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+		bg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+		bg.setColor(0xCCD32F2F);
+		dropView.setBackground(bg);
+		DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+		int size = dp(64);
+		WindowManager.LayoutParams lp = params(size, size, (dm.widthPixels - size) / 2,
+				dm.heightPixels - size - dp(48));
+		try {
+			wm.addView(dropView, lp);
+		} catch (Exception e) {
+			dropView = null;
+		}
+	}
+
+	private boolean overDropTarget() {
+		if (dropView == null || bubble == null) {
+			return false;
+		}
+		DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+		int cx = bubbleLp.x + bubbleLp.width / 2, cy = bubbleLp.y + bubbleLp.height / 2;
+		int tx = dm.widthPixels / 2, ty = dm.heightPixels - dp(48) - dp(32);
+		int r = dp(64);
+		return (cx - tx) * (cx - tx) + (cy - ty) * (cy - ty) < r * r;
+	}
+
+	private void removeDropTarget() {
+		if (dropView != null) {
+			try {
+				wm.removeView(dropView);
+			} catch (Exception ignored) {
+			}
+			dropView = null;
 		}
 	}
 
