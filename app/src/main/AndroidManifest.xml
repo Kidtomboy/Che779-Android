@@ -128,6 +128,17 @@
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
             android:process=":midlet" />
         <service
+            android:name="javax.microedition.shell.PowerTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Che779"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:process=":midlet">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
             android:name="javax.microedition.shell.BubbleService"
             android:exported="false"
             android:process=":midlet" />

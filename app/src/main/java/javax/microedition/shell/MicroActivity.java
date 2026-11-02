@@ -353,6 +353,10 @@ public class MicroActivity extends AppCompatActivity {
 		session.menuKey = microLoader.getMenuKeyCode();
 		inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 		refreshTabBar();
+		saveTabs();
+		if (tabs.size() == 1 && !restoring) {
+			restoreTabs(appPath);
+		}
 		if (gridMode) {
 			rebuildGrid();
 		}
@@ -362,6 +366,120 @@ public class MicroActivity extends AppCompatActivity {
 			e.printStackTrace();
 			showErrorDialog(e.toString());
 		}
+	}
+
+	// ------------------------------------------------------------ restore tabs
+
+	private boolean restoring;
+
+	private void saveTabs() {
+		if (tabs.isEmpty() || restoring) {
+			return;
+		}
+		org.json.JSONArray arr = new org.json.JSONArray();
+		try {
+			for (Session t : tabs) {
+				org.json.JSONObject o = new org.json.JSONObject();
+				o.put("n", t.appName == null ? "" : t.appName);
+				o.put("p", t.appPath);
+				arr.put(o);
+			}
+		} catch (org.json.JSONException ignored) {
+		}
+		PreferenceManager.getDefaultSharedPreferences(this).edit().putString("che779_tabs", arr.toString()).apply();
+	}
+
+	/** After the first game of a launch started: reopen the other tabs of the last run. */
+	private void restoreTabs(String firstPath) {
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		if (!sp.getBoolean("pref_restore_tabs", true)) {
+			return;
+		}
+		final java.util.List<String[]> rest = new java.util.ArrayList<>();
+		try {
+			org.json.JSONArray arr = new org.json.JSONArray(sp.getString("che779_tabs", "[]"));
+			if (arr.length() < 2 || !firstPath.equals(arr.getJSONObject(0).getString("p"))) {
+				return;
+			}
+			for (int i = 1; i < arr.length(); i++) {
+				org.json.JSONObject o = arr.getJSONObject(i);
+				rest.add(new String[]{o.getString("n"), o.getString("p")});
+			}
+		} catch (org.json.JSONException e) {
+			return;
+		}
+		restoring = true;
+		final Session first = Session.active();
+		final int[] k = {0};
+		uiHandler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				if (isFinishing() || k[0] >= rest.size()) {
+					restoring = false;
+					saveTabs();
+					if (first != null && tabs.contains(first) && !gridMode) {
+						activate(first);
+					}
+					return;
+				}
+				String[] g = rest.get(k[0]++);
+				addSession(g[0], g[1], null);
+				uiHandler.postDelayed(this, 2500);
+			}
+		}, 2500);
+	}
+
+	// ------------------------------------------------------------ power modes
+
+	private int powerMode;
+	static final String[] POWER_NAMES = {"Bình thường", "Tiết kiệm pin", "Siêu tiết kiệm", "Headless (chạy ngầm, không vẽ)"};
+
+	public int powerMode() {
+		return powerMode;
+	}
+
+	public void applyPowerMode(int mode) {
+		powerMode = mode;
+		if (mode == 0) {
+			for (Session t : Session.all()) {
+				if (t.fpsBackup >= 0) {
+					t.dc.fpsLimit = t.fpsBackup;
+					t.fpsBackup = -1;
+				}
+			}
+			Session.setTreo(0);
+		} else {
+			int fps = mode == 1 ? 20 : 8;
+			for (Session t : Session.all()) {
+				if (t.fpsBackup < 0) {
+					t.fpsBackup = t.dc.fpsLimit;
+				}
+				if (mode != 3) {
+					t.dc.fpsLimit = fps;
+				}
+			}
+			Session.setTreo(mode == 3 ? 2 : 1);
+		}
+		if (mode == 3) {
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+			moveTaskToBack(true);
+		}
+	}
+
+	/** Used by the Quick Settings tile. */
+	public void cyclePowerMode() {
+		uiHandler.post(() -> applyPowerMode((powerMode + 1) % POWER_NAMES.length));
+	}
+
+	private void showPowerDialog() {
+		new AlertDialog.Builder(this)
+				.setTitle("Chế độ pin")
+				.setSingleChoiceItems(POWER_NAMES, powerMode, (d, w) -> {
+					d.dismiss();
+					applyPowerMode(w);
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
 	}
 
 	/** Removes the visible parts of a tab that is going to the background. */
@@ -510,6 +628,15 @@ public class MicroActivity extends AppCompatActivity {
 			if (s.thread != null) {
 				s.thread.quitSession();
 			}
+			final Session dead = s;
+			new Thread(() -> {
+				try {
+					Thread.sleep(800);
+				} catch (InterruptedException ignored) {
+				}
+				dead.killThreads();
+			}, "Che779-Cleanup").start();
+			saveTabs();
 			if (gridMode) {
 				if (!wasActive && s.current != null) {
 					s.current.clearDisplayableView();
@@ -1071,6 +1198,12 @@ public class MicroActivity extends AppCompatActivity {
 	public void onResume() {
 		super.onResume();
 		stopFloating();
+		if (powerMode == 3) {
+			applyPowerMode(0);
+			if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PREF_KEEP_SCREEN, false)) {
+				getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+			}
+		}
 		visible = true;
 		resetSleepTimer();
 		MidletThread.resumeApp();
@@ -1348,6 +1481,8 @@ public class MicroActivity extends AppCompatActivity {
 			showExitConfirmation();
 		} else if (id == R.id.action_proxy) {
 			showProxyDialog();
+		} else if (id == R.id.action_power) {
+			showPowerDialog();
 		} else if (id == R.id.action_sleep_now) {
 			enterSleep();
 		} else if (id == R.id.action_save_log) {

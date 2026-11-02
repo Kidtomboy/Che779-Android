@@ -212,4 +212,6 @@
     <string name="pref_mem_interval_title">Chu kỳ kiểm tra (giây)</string>
     <string name="pref_auto_sleep_title">Tự ngủ màn hình đen</string>
     <string name="action_proxy">Proxy và chuyển hướng IP</string>
+    <string name="action_power">Chế độ pin</string>
+    <string name="pref_restore_tabs">Tự khôi phục các tab lần chạy trước</string>
 </resources>

@@ -38,6 +38,7 @@ import ru.playsoftware.j2meloader.util.IOUtils;
 public class AppClassLoader extends DexClassLoader {
 	private static volatile int loadLogCount;
 	private static volatile int nfCount;
+	private final Session owner;
 	private static final String TAG = AppClassLoader.class.getName();
 
 
@@ -46,6 +47,7 @@ public class AppClassLoader extends DexClassLoader {
 		if (appDir == null)
 			throw new NullPointerException("App path is null");
 		Session session = Session.current();
+		owner = session;
 		session.oldResDir = new File(appDir, Config.MIDLET_RES_DIR);
 		session.classLoader = this;
 		setDataDir(appDir);
@@ -181,6 +183,7 @@ public class AppClassLoader extends DexClassLoader {
 			if (resolve) {
 				resolveClass(localClass);
 			}
+			owner.classes.add(name);
 			if (loadLogCount++ < 1500) {
 				Che779Diag.log("load " + name);
 			}
