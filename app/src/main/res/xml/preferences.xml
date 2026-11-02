@@ -84,6 +84,10 @@
     <PreferenceCategory android:title="@string/pref_category_che779">
         <SwitchPreferenceCompat
             android:defaultValue="true"
+            android:key="pref_restore_tabs"
+            android:title="@string/pref_restore_tabs" />
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
             android:key="pref_mem_auto"
             android:title="@string/pref_mem_auto_title" />
         <EditTextPreference

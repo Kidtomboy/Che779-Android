@@ -232,6 +232,20 @@ final class FloatingController {
 		});
 		try {
 			wm.addView(bubble, bubbleLp);
+			bubble.animate().scaleX(1.07f).scaleY(1.07f).setDuration(1400)
+					.withEndAction(new Runnable() {
+						boolean up;
+
+						@Override
+						public void run() {
+							if (bubble == null) {
+								return;
+							}
+							up = !up;
+							float v = up ? 1f : 1.07f;
+							bubble.animate().scaleX(v).scaleY(v).setDuration(1400).withEndAction(this);
+						}
+					});
 			applyHide();
 		} catch (Exception e) {
 			e.printStackTrace();

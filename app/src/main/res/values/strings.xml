@@ -274,4 +274,6 @@
     <string name="pref_mem_interval_title">Check interval (seconds)</string>
     <string name="pref_auto_sleep_title">Auto black screen</string>
     <string name="action_proxy">Proxy and IP redirect</string>
+    <string name="action_power">Power mode</string>
+    <string name="pref_restore_tabs">Restore tabs of the last run</string>
 </resources>
