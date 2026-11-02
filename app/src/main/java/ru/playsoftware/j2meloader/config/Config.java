@@ -67,7 +67,7 @@ public class Config {
 
 	static {
 		Context context = ContextHolder.getAppContext();
-		String appName = "J2ME-Che779";
+		String appName = ru.playsoftware.j2meloader.BuildConfig.DATA_DIR_NAME;
 		if (!BuildConfig.FULL_EMULATOR) {
 			appName = context.getString(R.string.app_name);
 		}
