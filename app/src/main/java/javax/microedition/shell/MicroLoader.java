@@ -208,6 +208,21 @@ public class MicroLoader {
 				}
 				dexPaths.append(source.getAbsolutePath());
 			}
+			try {
+				for (String dp : dexPaths.toString().split(File.pathSeparator)) {
+					int cnt = 0;
+					try {
+						@SuppressWarnings("deprecation")
+						dalvik.system.DexFile df = new dalvik.system.DexFile(dp);
+						java.util.Enumeration<String> en = df.entries();
+						while (en.hasMoreElements()) { en.nextElement(); cnt++; }
+						df.close();
+					} catch (Throwable t) { cnt = -1; }
+					Che779Diag.log("DEX " + dp + " size=" + new File(dp).length() + " classes=" + cnt);
+				}
+				File[] all = appDir.listFiles();
+				if (all != null) for (File f : all) Che779Diag.log("APPDIR " + f.getName() + " " + f.length());
+			} catch (Throwable ignored) { }
 			File dexSource = new File(dexPaths.toString());
 			ClassLoader loader = new AppClassLoader(dexPaths.toString(),
 					dexOptDir.getAbsolutePath(), context.getClassLoader(), appDir);
