@@ -1,0 +1,44 @@
+name: Build clone APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_id:
+        description: 'Package name of the clone (e.g. com.che779.emulator2)'
+        required: true
+        default: 'com.che779.emulator2'
+      app_name:
+        description: 'App name shown on the phone'
+        required: true
+        default: 'Che779 2'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      - name: Build clone
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDevDebug -PcloneId='${{ inputs.app_id }}' -PcloneName='${{ inputs.app_name }}'
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="clone-$(echo '${{ inputs.app_id }}' | tr -c 'A-Za-z0-9\n' '-')"
+          cp app/build/outputs/apk/dev/debug/*.apk "Che779-clone.apk"
+          gh release delete "$TAG" --cleanup-tag --yes || true
+          gh release create "$TAG" Che779-clone.apk --prerelease \
+            --title "Clone ${{ inputs.app_id }}" --notes "Ban nhan ban: ${{ inputs.app_id }} (${{ inputs.app_name }})" \
+            --target "$GITHUB_SHA"
