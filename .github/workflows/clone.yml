@@ -12,6 +12,11 @@ on:
         required: true
         default: 'Che779 2'
 
+      data_dir:
+        description: 'Data folder name on the phone'
+        required: true
+        default: 'J2ME-Che779v2'
+
 permissions:
   contents: write
 
@@ -31,7 +36,7 @@ jobs:
       - name: Build clone
         run: |
           chmod +x gradlew
-          ./gradlew assembleDevDebug -PcloneId='${{ inputs.app_id }}' -PcloneName='${{ inputs.app_name }}'
+          ./gradlew assembleDevDebug -PcloneId='${{ inputs.app_id }}' -PcloneName='${{ inputs.app_name }}' -PcloneDir='${{ inputs.data_dir }}'
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}

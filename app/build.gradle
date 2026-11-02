@@ -16,6 +16,7 @@ android {
         versionCode 102
         versionName "0.2.0-base182"
         resValue 'string', 'app_name', (project.findProperty("cloneName") ?: rootProject.name)
+        buildConfigField 'String', 'DATA_DIR_NAME', '"' + (project.findProperty("cloneDir") ?: "J2ME-Che779") + '"'
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
