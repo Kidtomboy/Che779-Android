@@ -65,6 +65,8 @@ public final class Session {
 	public volatile String appName;
 	/** User-chosen tab name (null = show the tab number). */
 	public volatile String label;
+	/** True when this tab takes part in key sync (grid mode). */
+	public volatile boolean sync;
 	/** Names of the game classes loaded by this tab (used to find its threads when it is closed). */
 	public final java.util.Set<String> classes = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** fps limit before a power mode changed it (-1 = untouched). */

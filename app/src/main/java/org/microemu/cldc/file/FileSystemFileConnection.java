@@ -94,13 +94,14 @@ public class FileSystemFileConnection implements FileConnection {
 		if (root == null) throw new IllegalArgumentException("Root is not specified: " + url);
 		path = path.substring(root.length());
 		String fsRootPath = getFsRoot();
+		final boolean c = root.equalsIgnoreCase(FC_ROOTS[0]);
 		if (path.length() == 0) {
-			file = new File(fsRootPath);
+			file = new File(c ? Config.getEmulatorDir() : fsRootPath);
 			this.path = "";
 			name = "";
 			return;
 		}
-		file = new File(fsRootPath, path);
+		file = c ? resolveC(path) : new File(fsRootPath, path);
 		int nameSeparator = path.lastIndexOf(DIR_SEP, path.length() - 2);
 		if (nameSeparator == -1) {
 			name = path;
@@ -112,6 +113,29 @@ public class FileSystemFileConnection implements FileConnection {
 		if (!name.endsWith(DIR_SEP_STR) && file.isDirectory()) {
 			name += DIR_SEP;
 		}
+	}
+
+	/**
+	 * "c:/" lives in the emulator folder (J2ME-Che779/). For compatibility an existing file is
+	 * also looked up in the old fs/c/ folder and in the storage root (like older emulators did).
+	 */
+	private static File resolveC(String path) {
+		File main = new File(Config.getEmulatorDir(), path);
+		if (main.exists()) {
+			return main;
+		}
+		File old = new File(Config.getFsInternalDir(), path);
+		if (old.exists()) {
+			return old;
+		}
+		try {
+			File sd = new File(android.os.Environment.getExternalStorageDirectory(), path);
+			if (sd.exists() && sd.canRead()) {
+				return sd;
+			}
+		} catch (Throwable ignored) {
+		}
+		return main;
 	}
 
 	private String getFsRoot() {
