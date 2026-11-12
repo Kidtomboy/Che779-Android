@@ -929,15 +929,8 @@ public class MicroActivity extends AppCompatActivity {
 		if (a == null) {
 			return;
 		}
-		hideKeypad();
-		if (a.vk != null) {
-			binding.overlayView.removeLayer(a.vk);
-			a.vk.setView(binding.overlayView);
-			binding.overlayView.addLayer(a.vk);
-		}
-		binding.overlayView.setVisibility(true);
 		ViewHandler.postEvent(new SetCurrentEvent(a.current, a.current));
-		Toast.makeText(this, "Đã sửa bàn phím ảo", Toast.LENGTH_SHORT).show();
+		showListKeypad();
 	}
 
 	private void attachVk(Session s) {
@@ -1095,6 +1088,7 @@ public class MicroActivity extends AppCompatActivity {
 			attachVk(act);
 			// the old view is still inside a grid cell: clear it so a fresh one is built (fixes the white screen)
 			ViewHandler.postEvent(new SetCurrentEvent(act.current, act.current));
+			showListKeypad();
 		}
 		refreshTabBar();
 		MidletThread.resumeApp();
@@ -1551,6 +1545,38 @@ public class MicroActivity extends AppCompatActivity {
 
 	private KeypadView keypad;
 
+	/** List mode: our keypad is drawn over the (broken or missing) J2ME virtual keyboard. */
+	private void showListKeypad() {
+		Session a = Session.active();
+		hideKeypad();
+		if (a == null || gridMode || binding == null) {
+			return;
+		}
+		if (a.vk != null) {
+			binding.overlayView.removeLayer(a.vk);
+		}
+		keypad = new KeypadView(this, 50, 22, new KeypadView.Sink() {
+			@Override
+			public void key(int[] codes, boolean down) {
+				sendKeys(codes, down);
+			}
+
+			@Override
+			public void close() {
+				hideKeypad();
+				Session s = Session.active();
+				if (s != null && s.vk != null) {
+					s.vk.setView(binding.overlayView);
+					binding.overlayView.addLayer(s.vk);
+					binding.overlayView.setVisibility(true);
+				}
+			}
+		});
+		((ViewGroup) binding.getRoot()).addView(keypad, new android.widget.FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+				android.view.Gravity.BOTTOM));
+	}
+
 	private void toggleKeypad() {
 		if (keypad != null) {
 			hideKeypad();
@@ -1562,7 +1588,9 @@ public class MicroActivity extends AppCompatActivity {
 	private void hideKeypad() {
 		if (keypad != null) {
 			try {
-				binding.virtualDisplay.removeView(keypad);
+				if (keypad.getParent() instanceof ViewGroup) {
+					((ViewGroup) keypad.getParent()).removeView(keypad);
+				}
 			} catch (Exception ignored) {
 			}
 			keypad = null;
