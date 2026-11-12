@@ -45,6 +45,9 @@ final class FloatingController {
 		/** Previous (-1) / next (+1) tab. */
 		void onCycle(int delta);
 
+		/** Keys from the keypad of the floating window. */
+		void onKeys(int[] codes, boolean down);
+
 		/** Hide level changed (0 OFF, 1 SOFT, 2 STEALTH, 3 NINJA). */
 		void onHideLevel(int level);
 	}
@@ -450,6 +453,7 @@ final class FloatingController {
 				callbacks.onStar();
 			}
 		}));
+		bar.addView(button("⌨", v -> toggleKeypad()));
 		bar.addView(button("–", v -> showBubble()));
 		bar.addView(button("🔍", v -> {
 			if (callbacks != null) {
@@ -461,6 +465,7 @@ final class FloatingController {
 			((ViewGroup) host.getParent()).removeView(host);
 		}
 		column.addView(host, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+		keypadHolder = column;
 		window.addView(column, new FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -521,6 +526,35 @@ final class FloatingController {
 		}
 	}
 
+	private LinearLayout keypadHolder;
+	private KeypadView keypadView;
+
+	private void toggleKeypad() {
+		if (keypadHolder == null) {
+			return;
+		}
+		if (keypadView != null) {
+			keypadHolder.removeView(keypadView);
+			keypadView = null;
+			return;
+		}
+		keypadView = new KeypadView(ctx, 34, 15, new KeypadView.Sink() {
+			@Override
+			public void key(int[] codes, boolean down) {
+				if (callbacks != null) {
+					callbacks.onKeys(codes, down);
+				}
+			}
+
+			@Override
+			public void close() {
+				toggleKeypad();
+			}
+		});
+		keypadHolder.addView(keypadView, new LinearLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+	}
+
 	private void cycle(int d) {
 		if (callbacks != null) {
 			callbacks.onCycle(d);
@@ -539,6 +573,8 @@ final class FloatingController {
 			}
 			window = null;
 			label = null;
+			keypadHolder = null;
+			keypadView = null;
 		}
 	}
 }

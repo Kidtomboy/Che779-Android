@@ -1189,6 +1189,11 @@ public class MicroActivity extends AppCompatActivity {
 			}
 
 			@Override
+			public void onKeys(int[] codes, boolean down) {
+				sendKeys(codes, down);
+			}
+
+			@Override
 			public void onStar() {
 				Session a = Session.active();
 				if (a != null && a.current instanceof Canvas) {
@@ -1497,6 +1502,13 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
+	/** Sends J2ME key codes (a diagonal is two keys) to the active tab. */
+	void sendKeys(int[] codes, boolean down) {
+		for (int c : codes) {
+			sendKey(c, down);
+		}
+	}
+
 	private void sendKey(int code, boolean down) {
 		Session a = Session.active();
 		Displayable d = a == null ? null : a.current;
@@ -1523,61 +1535,17 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void showKeypad() {
-		final float dp = getResources().getDisplayMetrics().density;
-		final String[][] labels = {
-				{"Mềm trái", "▲", "Mềm phải", "✕"},
-				{"◀", "OK", "▶", "*"},
-				{"1", "2", "3", "▼"},
-				{"4", "5", "6", "#"},
-				{"7", "8", "9", "0"}};
-		final int[][] codes = {
-				{Canvas.KEY_SOFT_LEFT, Canvas.KEY_UP, Canvas.KEY_SOFT_RIGHT, 0},
-				{Canvas.KEY_LEFT, Canvas.KEY_FIRE, Canvas.KEY_RIGHT, Canvas.KEY_STAR},
-				{Canvas.KEY_NUM1, Canvas.KEY_NUM2, Canvas.KEY_NUM3, Canvas.KEY_DOWN},
-				{Canvas.KEY_NUM4, Canvas.KEY_NUM5, Canvas.KEY_NUM6, Canvas.KEY_POUND},
-				{Canvas.KEY_NUM7, Canvas.KEY_NUM8, Canvas.KEY_NUM9, Canvas.KEY_NUM0}};
-		LinearLayout root = new LinearLayout(this);
-		root.setOrientation(LinearLayout.VERTICAL);
-		root.setBackgroundColor(0xEE1C222B);
-		root.setPadding((int) (6 * dp), (int) (6 * dp), (int) (6 * dp), (int) (6 * dp));
-		for (int r = 0; r < labels.length; r++) {
-			LinearLayout row = new LinearLayout(this);
-			row.setOrientation(LinearLayout.HORIZONTAL);
-			for (int c = 0; c < labels[r].length; c++) {
-				final int code = codes[r][c];
-				TextView b = new TextView(this);
-				b.setText(labels[r][c]);
-				b.setTextColor(android.graphics.Color.WHITE);
-				b.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, code == Canvas.KEY_SOFT_LEFT || code == Canvas.KEY_SOFT_RIGHT ? 13 : 20);
-				b.setGravity(android.view.Gravity.CENTER);
-				b.setBackgroundColor(code == 0 ? 0xFFB3261E : 0xFF39424F);
-				LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, (int) (50 * dp), 1f);
-				lp.setMargins((int) (3 * dp), (int) (3 * dp), (int) (3 * dp), (int) (3 * dp));
-				b.setOnTouchListener((v, e) -> {
-					switch (e.getActionMasked()) {
-						case MotionEvent.ACTION_DOWN:
-							if (code == 0) {
-								hideKeypad();
-							} else {
-								v.setAlpha(0.6f);
-								sendKey(code, true);
-							}
-							return true;
-						case MotionEvent.ACTION_UP:
-						case MotionEvent.ACTION_CANCEL:
-							v.setAlpha(1f);
-							if (code != 0) {
-								sendKey(code, false);
-							}
-							return true;
-						default:
-							return true;
-					}
-				});
-				row.addView(b, lp);
+		KeypadView root = new KeypadView(this, 52, 22, new KeypadView.Sink() {
+			@Override
+			public void key(int[] codes, boolean down) {
+				sendKeys(codes, down);
 			}
-			root.addView(row, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		}
+
+			@Override
+			public void close() {
+				hideKeypad();
+			}
+		});
 		keypad = new android.widget.PopupWindow(root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, false);
 		keypad.setTouchable(true);
 		keypad.setOutsideTouchable(false);
