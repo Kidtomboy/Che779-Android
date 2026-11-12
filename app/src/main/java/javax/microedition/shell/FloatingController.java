@@ -45,6 +45,11 @@ final class FloatingController {
 		/** Previous (-1) / next (+1) tab. */
 		void onCycle(int delta);
 
+		/** Toggles key sync (all tabs of the same game); returns the new state. */
+		boolean onToggleSync();
+
+		boolean isSync();
+
 		/** Keys from the keypad of the floating window. */
 		void onKeys(int[] codes, boolean down);
 
@@ -453,6 +458,13 @@ final class FloatingController {
 				callbacks.onStar();
 			}
 		}));
+		final TextView syncBtn = button(callbacks != null && callbacks.isSync() ? "☑⇄" : "☐⇄", null);
+		syncBtn.setOnClickListener(v -> {
+			if (callbacks != null) {
+				syncBtn.setText(callbacks.onToggleSync() ? "☑⇄" : "☐⇄");
+			}
+		});
+		bar.addView(syncBtn);
 		bar.addView(button("⌨", v -> toggleKeypad()));
 		bar.addView(button("–", v -> showBubble()));
 		bar.addView(button("🔍", v -> {
