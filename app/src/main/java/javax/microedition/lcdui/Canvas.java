@@ -252,11 +252,11 @@ public abstract class Canvas extends Displayable {
 
 	/** Key sync (grid mode): keys of the focused tab are copied to every other tab. */
 	private void mirrorKey(int kind, int keyCode) {
-		if (!Session.syncKeys || session != Session.active()) {
+		if (!Session.syncKeys || !session.sync || session != Session.active()) {
 			return;
 		}
 		for (Session o : Session.all()) {
-			if (o == session) {
+			if (o == session || !o.sync) {
 				continue;
 			}
 			Displayable d = o.current;

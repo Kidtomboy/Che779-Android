@@ -38,6 +38,7 @@ import android.text.TextUtils;
 import android.text.method.DigitsKeyListener;
 import android.util.TypedValue;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -48,6 +49,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -103,7 +105,7 @@ public class MicroActivity extends AppCompatActivity {
 	private boolean gridMode;
 	private GridPanel gridPanel;
 	private GridBar gridBar;
-	private boolean gridVkOn = true;
+	private boolean gridVkOn = false;
 	private boolean floating;
 	private final android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
 	private android.widget.TextView sleepView;
@@ -373,7 +375,7 @@ public class MicroActivity extends AppCompatActivity {
 	private boolean restoring;
 
 	private void saveTabs() {
-		if (tabs.isEmpty() || restoring) {
+		if (tabs.isEmpty() || restoring || exiting) {
 			return;
 		}
 		org.json.JSONArray arr = new org.json.JSONArray();
@@ -894,8 +896,8 @@ public class MicroActivity extends AppCompatActivity {
 		gridPanel = new GridPanel(this, this::focusGrid);
 		gridBar = new GridBar(this, Session.syncKeys, new GridBar.Listener() {
 			@Override
-			public void onSyncKeys(boolean on) {
-				Session.syncKeys = on;
+			public void onSyncDialog() {
+				showSyncDialog();
 			}
 
 			@Override
@@ -905,15 +907,7 @@ public class MicroActivity extends AppCompatActivity {
 
 			@Override
 			public void onKeyboard() {
-				gridVkOn = !gridVkOn;
-				Session a = Session.active();
-				if (a != null && a.vk != null) {
-					if (gridVkOn) {
-						attachVk(a);
-					} else {
-						binding.overlayView.removeLayer(a.vk);
-					}
-				}
+				toggleKeypad();
 			}
 
 			@Override
@@ -976,6 +970,7 @@ public class MicroActivity extends AppCompatActivity {
 		if (!gridMode) {
 			return;
 		}
+		hideKeypad();
 		gridMode = false;
 		Session.grid = false;
 		Session act = Session.active();
@@ -998,7 +993,8 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		if (act != null) {
 			attachVk(act);
-			ViewHandler.postEvent(new SetCurrentEvent(null, act.current));
+			// the old view is still inside a grid cell: clear it so a fresh one is built (fixes the white screen)
+			ViewHandler.postEvent(new SetCurrentEvent(act.current, act.current));
 		}
 		refreshTabBar();
 		MidletThread.resumeApp();
@@ -1363,7 +1359,219 @@ public class MicroActivity extends AppCompatActivity {
 		return visible;
 	}
 
+	// ------------------------------------------------------------ sync keys list
+
+	private void showSyncDialog() {
+		final java.util.List<Session> list = new java.util.ArrayList<>(tabs);
+		if (list.isEmpty()) {
+			return;
+		}
+		boolean any = false;
+		for (Session t : list) {
+			any |= t.sync;
+		}
+		Session act = Session.active();
+		final boolean[] checked = new boolean[list.size()];
+		final String[] items = new String[list.size()];
+		for (int i = 0; i < list.size(); i++) {
+			Session t = list.get(i);
+			checked[i] = any ? t.sync : (act != null && t.appPath.equals(act.appPath));
+			String nm = t.label != null && !t.label.isEmpty() ? " · " + t.label : "";
+			items[i] = "Tab " + (i + 1) + nm + " — " + (t.appName == null ? "" : t.appName);
+		}
+		new AlertDialog.Builder(this)
+				.setTitle("Đồng bộ phím: chọn các tab")
+				.setMultiChoiceItems(items, checked, (d, w, on) -> checked[w] = on)
+				.setPositiveButton("Áp dụng", (d, w) -> {
+					int n = 0;
+					for (int i = 0; i < list.size(); i++) {
+						list.get(i).sync = checked[i];
+						if (checked[i]) {
+							n++;
+						}
+					}
+					Session.syncKeys = n >= 2;
+					if (gridBar != null) {
+						gridBar.setSyncOn(Session.syncKeys);
+					}
+					if (n == 1) {
+						Toast.makeText(this, "Cần chọn ít nhất 2 tab để đồng bộ", Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNeutralButton("Tắt đồng bộ", (d, w) -> {
+					Session.syncKeys = false;
+					for (Session t : list) {
+						t.sync = false;
+					}
+					if (gridBar != null) {
+						gridBar.setSyncOn(false);
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	// ------------------------------------------------------------ keypad popup (grid mode)
+
+	private android.widget.PopupWindow keypad;
+
+	private void toggleKeypad() {
+		if (keypad != null) {
+			hideKeypad();
+		} else {
+			showKeypad();
+		}
+	}
+
+	private void hideKeypad() {
+		if (keypad != null) {
+			try {
+				keypad.dismiss();
+			} catch (Exception ignored) {
+			}
+			keypad = null;
+		}
+	}
+
+	private void sendKey(int code, boolean down) {
+		Session a = Session.active();
+		Displayable d = a == null ? null : a.current;
+		if (d instanceof Canvas) {
+			Canvas c = (Canvas) d;
+			if (down) {
+				c.postKeyPressed(code);
+			} else {
+				c.postKeyReleased(code);
+			}
+			return;
+		}
+		int android;
+		switch (code) {
+			case Canvas.KEY_UP: android = KeyEvent.KEYCODE_DPAD_UP; break;
+			case Canvas.KEY_DOWN: android = KeyEvent.KEYCODE_DPAD_DOWN; break;
+			case Canvas.KEY_LEFT: android = KeyEvent.KEYCODE_DPAD_LEFT; break;
+			case Canvas.KEY_RIGHT: android = KeyEvent.KEYCODE_DPAD_RIGHT; break;
+			case Canvas.KEY_FIRE: android = KeyEvent.KEYCODE_DPAD_CENTER; break;
+			default: return;
+		}
+		getWindow().getDecorView().dispatchKeyEvent(new KeyEvent(
+				down ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP, android));
+	}
+
+	private void showKeypad() {
+		final float dp = getResources().getDisplayMetrics().density;
+		final String[][] labels = {
+				{"Mềm trái", "▲", "Mềm phải", "✕"},
+				{"◀", "OK", "▶", "*"},
+				{"1", "2", "3", "▼"},
+				{"4", "5", "6", "#"},
+				{"7", "8", "9", "0"}};
+		final int[][] codes = {
+				{Canvas.KEY_SOFT_LEFT, Canvas.KEY_UP, Canvas.KEY_SOFT_RIGHT, 0},
+				{Canvas.KEY_LEFT, Canvas.KEY_FIRE, Canvas.KEY_RIGHT, Canvas.KEY_STAR},
+				{Canvas.KEY_NUM1, Canvas.KEY_NUM2, Canvas.KEY_NUM3, Canvas.KEY_DOWN},
+				{Canvas.KEY_NUM4, Canvas.KEY_NUM5, Canvas.KEY_NUM6, Canvas.KEY_POUND},
+				{Canvas.KEY_NUM7, Canvas.KEY_NUM8, Canvas.KEY_NUM9, Canvas.KEY_NUM0}};
+		LinearLayout root = new LinearLayout(this);
+		root.setOrientation(LinearLayout.VERTICAL);
+		root.setBackgroundColor(0xEE1C222B);
+		root.setPadding((int) (6 * dp), (int) (6 * dp), (int) (6 * dp), (int) (6 * dp));
+		for (int r = 0; r < labels.length; r++) {
+			LinearLayout row = new LinearLayout(this);
+			row.setOrientation(LinearLayout.HORIZONTAL);
+			for (int c = 0; c < labels[r].length; c++) {
+				final int code = codes[r][c];
+				TextView b = new TextView(this);
+				b.setText(labels[r][c]);
+				b.setTextColor(android.graphics.Color.WHITE);
+				b.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, code == Canvas.KEY_SOFT_LEFT || code == Canvas.KEY_SOFT_RIGHT ? 13 : 20);
+				b.setGravity(android.view.Gravity.CENTER);
+				b.setBackgroundColor(code == 0 ? 0xFFB3261E : 0xFF39424F);
+				LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, (int) (50 * dp), 1f);
+				lp.setMargins((int) (3 * dp), (int) (3 * dp), (int) (3 * dp), (int) (3 * dp));
+				b.setOnTouchListener((v, e) -> {
+					switch (e.getActionMasked()) {
+						case MotionEvent.ACTION_DOWN:
+							if (code == 0) {
+								hideKeypad();
+							} else {
+								v.setAlpha(0.6f);
+								sendKey(code, true);
+							}
+							return true;
+						case MotionEvent.ACTION_UP:
+						case MotionEvent.ACTION_CANCEL:
+							v.setAlpha(1f);
+							if (code != 0) {
+								sendKey(code, false);
+							}
+							return true;
+						default:
+							return true;
+					}
+				});
+				row.addView(b, lp);
+			}
+			root.addView(row, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		}
+		keypad = new android.widget.PopupWindow(root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, false);
+		keypad.setTouchable(true);
+		keypad.setOutsideTouchable(false);
+		try {
+			keypad.showAtLocation(binding.getRoot(), android.view.Gravity.BOTTOM, 0, 0);
+		} catch (Exception e) {
+			keypad = null;
+		}
+	}
+
+	// ------------------------------------------------------------ exit
+
+	private boolean exiting;
+
+	/** Closes every tab and ends the process (no battery use afterwards). */
+	public void exitAll() {
+		exiting = true;
+		hideSoftInput();
+		hideKeypad();
+		try {
+			stopService(new Intent(this, BubbleService.class));
+		} catch (Exception ignored) {
+		}
+		for (Session t : new java.util.ArrayList<>(tabs)) {
+			if (t.thread != null) {
+				t.thread.requestDestroy();
+			}
+		}
+		new Thread(() -> {
+			try {
+				Thread.sleep(2500);
+			} catch (InterruptedException ignored) {
+			}
+			android.os.Process.killProcess(android.os.Process.myPid());
+		}, "Che779-ForceExit").start();
+		finishAndRemoveTask();
+	}
+
 	public void showExitConfirmation() {
+		if (tabs.size() > 1) {
+			new AlertDialog.Builder(this)
+					.setTitle(R.string.CONFIRMATION_REQUIRED)
+					.setMessage("Thoát hẳn toàn bộ " + tabs.size() + " tab, hay chỉ đóng tab đang chọn?")
+					.setPositiveButton("Thoát hết", (d, w) -> exitAll())
+					.setNeutralButton("Đóng tab này", (d, w) -> {
+						Session a = Session.active();
+						if (a != null) {
+							closeSession(a);
+						}
+					})
+					.setNegativeButton(android.R.string.cancel, null)
+					.show();
+			return;
+		}
+		showExitConfirmationSingle();
+	}
+
+	public void showExitConfirmationSingle() {
 		AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
 		alertBuilder.setTitle(R.string.CONFIRMATION_REQUIRED)
 				.setMessage(R.string.FORCE_CLOSE_CONFIRMATION)

@@ -8,13 +8,12 @@ import android.content.Context;
 import android.graphics.Color;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 final class GridBar extends LinearLayout {
 	interface Listener {
-		void onSyncKeys(boolean on);
+		void onSyncDialog();
 
 		void onProxy();
 
@@ -23,19 +22,22 @@ final class GridBar extends LinearLayout {
 		void onBackToList();
 	}
 
+	private final TextView syncButton;
+
+	void setSyncOn(boolean on) {
+		syncButton.setText(on ? "☑ Đồng bộ phím ▾" : "☐ Đồng bộ phím ▾");
+	}
+
 	GridBar(Context context, boolean syncOn, Listener l) {
 		super(context);
 		float d = context.getResources().getDisplayMetrics().density;
 		setOrientation(HORIZONTAL);
 		setBackgroundColor(0xFF1C222B);
 		setGravity(Gravity.CENTER_VERTICAL);
-		CheckBox sync = new CheckBox(context);
-		sync.setText("Đồng bộ phím");
-		sync.setTextColor(Color.WHITE);
-		sync.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-		sync.setChecked(syncOn);
-		sync.setOnCheckedChangeListener((b, on) -> l.onSyncKeys(on));
-		addView(sync, new LayoutParams(0, (int) (36 * d), 1f));
+		syncButton = button(context, "", v -> l.onSyncDialog(), d);
+		syncButton.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+		setSyncOn(syncOn);
+		addView(syncButton, new LayoutParams(0, (int) (36 * d), 1f));
 		addView(button(context, "Proxy", v -> l.onProxy(), d));
 		addView(button(context, "⌨", v -> l.onKeyboard(), d));
 		addView(button(context, "Danh sách", v -> l.onBackToList(), d));
