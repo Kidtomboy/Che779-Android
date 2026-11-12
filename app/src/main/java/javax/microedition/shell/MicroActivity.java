@@ -304,15 +304,36 @@ public class MicroActivity extends AppCompatActivity {
 		addSession(appName, appPath, arguments);
 	}
 
-	/** Number of already open tabs running the same game (decides the data folder suffix). */
-	private String nextDataSuffix(String appPath) {
-		int same = 0;
+	/**
+	 * Data folder suffix of a new tab. A slot remembers which account data it used for a game, so
+	 * re-opening tab 3 gives tab 3's account back and never an account that another open tab uses.
+	 */
+	private String nextDataSuffix(String appPath, int slot) {
+		java.util.Set<String> used = new java.util.HashSet<>();
 		for (Session t : tabs) {
 			if (appPath.equals(t.appPath)) {
-				same++;
+				used.add(t.dataSuffix == null ? "" : t.dataSuffix);
 			}
 		}
-		return same == 0 ? "" : "-t" + (same + 1);
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		String saved = sp.getString("che779_slot_data_" + slot, "");
+		int bar = saved.indexOf('|');
+		String suffix = null;
+		if (bar > 0 && saved.substring(0, bar).equals(appPath)) {
+			String cand = saved.substring(bar + 1);
+			if (!used.contains(cand)) {
+				suffix = cand;
+			}
+		}
+		if (suffix == null) {
+			int n = 1;
+			while (used.contains(n == 1 ? "" : "-t" + n)) {
+				n++;
+			}
+			suffix = n == 1 ? "" : "-t" + n;
+		}
+		sp.edit().putString("che779_slot_data_" + slot, appPath + "|" + suffix).apply();
+		return suffix;
 	}
 
 	private int pendingSlot;
@@ -353,9 +374,10 @@ public class MicroActivity extends AppCompatActivity {
 
 	private void addSession(String appName, String appPath, String arguments) {
 		warnIfLowRam();
-		Session session = Session.create(appPath, nextDataSuffix(appPath));
+		int slotNo = allocSlot(pendingSlot);
+		Session session = Session.create(appPath, nextDataSuffix(appPath, slotNo));
 		session.appName = appName;
-		session.slot = allocSlot(pendingSlot);
+		session.slot = slotNo;
 		if (pendingLabel != null && !pendingLabel.isEmpty()) {
 			session.label = pendingLabel;
 		}
@@ -398,9 +420,6 @@ public class MicroActivity extends AppCompatActivity {
 		session.menuKey = microLoader.getMenuKeyCode();
 		inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 		refreshTabBar();
-		if (tabs.size() == 1 && !restoring) {
-			restoreTabs(appPath);
-		}
 		saveTabs();
 		if (gridMode) {
 			rebuildGrid();
@@ -1189,6 +1208,37 @@ public class MicroActivity extends AppCompatActivity {
 			}
 
 			@Override
+			public boolean isSync() {
+				return Session.syncKeys;
+			}
+
+			@Override
+			public boolean onToggleSync() {
+				if (Session.syncKeys) {
+					Session.syncKeys = false;
+					return false;
+				}
+				Session a = Session.active();
+				int n = 0;
+				for (Session t : tabs) {
+					if (t.sync) {
+						n++;
+					}
+				}
+				if (n < 2 && a != null) {
+					n = 0;
+					for (Session t : tabs) {
+						t.sync = t.appPath.equals(a.appPath);
+						if (t.sync) {
+							n++;
+						}
+					}
+				}
+				Session.syncKeys = n >= 2;
+				return Session.syncKeys;
+			}
+
+			@Override
 			public void onKeys(int[] codes, boolean down) {
 				sendKeys(codes, down);
 			}
@@ -1482,7 +1532,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	// ------------------------------------------------------------ keypad popup (grid mode)
 
-	private android.widget.PopupWindow keypad;
+	private KeypadView keypad;
 
 	private void toggleKeypad() {
 		if (keypad != null) {
@@ -1495,7 +1545,7 @@ public class MicroActivity extends AppCompatActivity {
 	private void hideKeypad() {
 		if (keypad != null) {
 			try {
-				keypad.dismiss();
+				binding.virtualDisplay.removeView(keypad);
 			} catch (Exception ignored) {
 			}
 			keypad = null;
@@ -1535,7 +1585,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void showKeypad() {
-		KeypadView root = new KeypadView(this, 52, 22, new KeypadView.Sink() {
+		keypad = new KeypadView(this, 40, 20, new KeypadView.Sink() {
 			@Override
 			public void key(int[] codes, boolean down) {
 				sendKeys(codes, down);
@@ -1546,14 +1596,9 @@ public class MicroActivity extends AppCompatActivity {
 				hideKeypad();
 			}
 		});
-		keypad = new android.widget.PopupWindow(root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, false);
-		keypad.setTouchable(true);
-		keypad.setOutsideTouchable(false);
-		try {
-			keypad.showAtLocation(binding.getRoot(), android.view.Gravity.BOTTOM, 0, 0);
-		} catch (Exception e) {
-			keypad = null;
-		}
+		// docked under the grid: the grid shrinks instead of being covered
+		binding.virtualDisplay.addView(keypad, new LinearLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 	}
 
 	// ------------------------------------------------------------ exit
