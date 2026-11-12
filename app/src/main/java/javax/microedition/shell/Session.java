@@ -73,6 +73,8 @@ public final class Session {
 	public final java.util.Set<String> classes = java.util.concurrent.ConcurrentHashMap.newKeySet();
 	/** fps limit before a power mode changed it (-1 = untouched). */
 	public volatile int fpsBackup = -1;
+	/** Diagnostic thread-dump quota owned by this tab (avoids a process-wide per-tab map). */
+	final java.util.concurrent.atomic.AtomicInteger diagnosticDumps = new java.util.concurrent.atomic.AtomicInteger();
 
 	/** Interrupts every thread that is running code of this tab's game. */
 	public void killThreads() {

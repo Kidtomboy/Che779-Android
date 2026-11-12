@@ -55,8 +55,14 @@ public final class NetConfig {
 		c.type = HTTP;
 		int i = line.indexOf("://");
 		if (i > 0) {
-			String scheme = line.substring(0, i).toLowerCase();
-			c.type = scheme.startsWith("socks") ? SOCKS5 : HTTP;
+			String scheme = line.substring(0, i).toLowerCase(java.util.Locale.ROOT);
+			if ("socks".equals(scheme) || "socks5".equals(scheme) || "socks5h".equals(scheme)) {
+				c.type = SOCKS5;
+			} else if ("http".equals(scheme) || "https".equals(scheme)) {
+				c.type = HTTP;
+			} else {
+				return null;
+			}
 			line = line.substring(i + 3);
 		}
 		try {
@@ -81,6 +87,12 @@ public final class NetConfig {
 				return null;
 			}
 		} catch (NumberFormatException e) {
+			return null;
+		}
+		// IPv6 literals are not accepted by this legacy colon-delimited format.
+		// Reject invalid hosts/ports here instead of deferring failure to socket creation.
+		if (c.host == null || c.host.trim().isEmpty() || c.host.indexOf('[') >= 0
+				|| c.host.indexOf(']') >= 0 || c.port < 1 || c.port > 65535) {
 			return null;
 		}
 		return c.hasProxy() ? c : null;

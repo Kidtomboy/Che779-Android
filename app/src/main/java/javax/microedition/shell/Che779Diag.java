@@ -10,12 +10,12 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.microedition.util.ContextHolder;
 
@@ -58,37 +58,47 @@ public final class Che779Diag {
 		}
 	}
 
-	public static synchronized void log(String msg) {
+	public static void log(String msg) {
+		Session s = Session.current();
+		logForSession(msg, s == null ? -1 : s.id);
+	}
+
+	private static synchronized void logForSession(String msg, int sessionId) {
 		Log.i(TAG, msg);
 		try {
 			File f = file();
 			if (f == null) {
 				return;
 			}
-			if (f.length() > 3 * 1024 * 1024) {
-				f.delete();
-			}
-			Session s = Session.current();
-			try (FileWriter w = new FileWriter(f, true)) {
-				w.write(new SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(new Date())
-						+ " [" + Thread.currentThread().getName() + "] "
-						+ (s == null ? "" : "S" + s.id + " ") + msg + "\n");
-			}
+			String entry = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(new Date())
+					+ " [" + Thread.currentThread().getName() + "] "
+					+ (sessionId < 0 ? "" : "S" + sessionId + " ") + msg + "\n";
+			new DiagnosticLogStore(f, DiagnosticLogStore.DEFAULT_MAX_BYTES).append(entry);
 		} catch (Throwable ignored) {
 		}
 	}
 
-	private static int dumps;
+	private static final AtomicInteger totalDumps = new AtomicInteger();
+	private static final AtomicInteger noSessionDumps = new AtomicInteger();
 
-	/** Writes the stacks of all live threads after a delay (shows where a silent game thread is stuck). */
+	/** Writes stacks after a delay; limits are per tab (3) and per process (20). */
 	public static void dumpThreadsLater(final String why, final long delayMs) {
-		if (dumps >= 12) {
+		final long safeDelayMs = Math.max(0L, Math.min(delayMs, 60_000L));
+		Session owner = Session.current();
+		final int sessionId = owner == null ? -1 : owner.id;
+		AtomicInteger perSession = owner == null ? noSessionDumps : owner.diagnosticDumps;
+		if (perSession.incrementAndGet() > 3) {
+			perSession.decrementAndGet();
 			return;
 		}
-		dumps++;
+		if (totalDumps.incrementAndGet() > 20) {
+			totalDumps.decrementAndGet();
+			perSession.decrementAndGet();
+			return;
+		}
 		Thread t = new Thread(() -> {
 			try {
-				Thread.sleep(delayMs);
+				Thread.sleep(safeDelayMs);
 			} catch (InterruptedException ignored) {
 			}
 			StringBuilder sb = new StringBuilder("THREAD DUMP (" + why + ")\n");
@@ -103,7 +113,7 @@ public final class Che779Diag {
 					sb.append("    at ").append(st[i]).append('\n');
 				}
 			}
-			log(sb.toString());
+			logForSession(sb.toString(), sessionId);
 		}, "Che779-Dump");
 		t.setDaemon(true);
 		t.start();
