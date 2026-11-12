@@ -923,9 +923,26 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
+	/** Menu "Sửa bàn phím ảo": re-attach the virtual keyboard and rebuild the screen layout. */
+	private void repairVk() {
+		Session a = Session.active();
+		if (a == null) {
+			return;
+		}
+		hideKeypad();
+		if (a.vk != null) {
+			binding.overlayView.removeLayer(a.vk);
+			a.vk.setView(binding.overlayView);
+			binding.overlayView.addLayer(a.vk);
+		}
+		binding.overlayView.setVisibility(true);
+		ViewHandler.postEvent(new SetCurrentEvent(a.current, a.current));
+		Toast.makeText(this, "Đã sửa bàn phím ảo", Toast.LENGTH_SHORT).show();
+	}
+
 	private void attachVk(Session s) {
 		VirtualKeyboard vk = s.vk;
-		if (vk != null && gridVkOn) {
+		if (vk != null && (!gridMode || gridVkOn)) {
 			vk.setView(binding.overlayView);
 			binding.overlayView.addLayer(vk);
 		}
@@ -1766,6 +1783,8 @@ public class MicroActivity extends AppCompatActivity {
 			showExitConfirmation();
 		} else if (id == R.id.action_proxy) {
 			showProxyDialog();
+		} else if (id == R.id.action_fix_vk) {
+			repairVk();
 		} else if (id == R.id.action_power) {
 			showPowerDialog();
 		} else if (id == R.id.action_sleep_now) {
