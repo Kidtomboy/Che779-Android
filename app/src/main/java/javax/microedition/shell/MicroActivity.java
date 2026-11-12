@@ -218,11 +218,12 @@ public class MicroActivity extends AppCompatActivity {
 				input.setSingleLine(true);
 				input.setText(s.label == null ? "" : s.label);
 				new AlertDialog.Builder(MicroActivity.this)
-						.setTitle("Tên tab " + (tabs.indexOf(s) + 1))
+						.setTitle("Tên tab " + slotOf(s))
 						.setView(input)
 						.setPositiveButton(android.R.string.ok, (d, w) -> {
 							s.label = input.getText().toString().trim();
 							refreshTabBar();
+							saveTabs();
 						})
 						.setNegativeButton(android.R.string.cancel, null)
 						.show();
@@ -314,11 +315,53 @@ public class MicroActivity extends AppCompatActivity {
 		return same == 0 ? "" : "-t" + (same + 1);
 	}
 
+	private int pendingSlot;
+	private String pendingLabel;
+
+	private int slotOf(Session s) {
+		return s.slot > 0 ? s.slot : tabs.indexOf(s) + 1;
+	}
+
+	private boolean slotUsed(int n) {
+		for (Session t : tabs) {
+			if (t.slot == n) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** The wanted number when it is free, otherwise the smallest free number. */
+	private int allocSlot(int wanted) {
+		if (wanted > 0 && !slotUsed(wanted)) {
+			return wanted;
+		}
+		int n = 1;
+		while (slotUsed(n)) {
+			n++;
+		}
+		return n;
+	}
+
+	private void insertSorted(Session s) {
+		int i = 0;
+		while (i < tabs.size() && tabs.get(i).slot < s.slot) {
+			i++;
+		}
+		tabs.add(i, s);
+	}
+
 	private void addSession(String appName, String appPath, String arguments) {
 		warnIfLowRam();
 		Session session = Session.create(appPath, nextDataSuffix(appPath));
 		session.appName = appName;
-		loadNet(session, tabs.size() + 1);
+		session.slot = allocSlot(pendingSlot);
+		if (pendingLabel != null && !pendingLabel.isEmpty()) {
+			session.label = pendingLabel;
+		}
+		pendingSlot = 0;
+		pendingLabel = null;
+		loadNet(session, session.slot);
 		Session prev = Session.active();
 		if (prev != null && prev != session) {
 			detachSession(prev);
@@ -340,7 +383,7 @@ public class MicroActivity extends AppCompatActivity {
 			}
 			return;
 		}
-		tabs.add(session);
+		insertSorted(session);
 		microLoader.applyConfiguration();
 		VirtualKeyboard vk = ContextHolder.getVk();
 		int orientation = microLoader.getOrientation();
@@ -355,10 +398,10 @@ public class MicroActivity extends AppCompatActivity {
 		session.menuKey = microLoader.getMenuKeyCode();
 		inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 		refreshTabBar();
-		saveTabs();
 		if (tabs.size() == 1 && !restoring) {
 			restoreTabs(appPath);
 		}
+		saveTabs();
 		if (gridMode) {
 			rebuildGrid();
 		}
@@ -384,6 +427,8 @@ public class MicroActivity extends AppCompatActivity {
 				org.json.JSONObject o = new org.json.JSONObject();
 				o.put("n", t.appName == null ? "" : t.appName);
 				o.put("p", t.appPath);
+				o.put("s", slotOf(t));
+				o.put("l", t.label == null ? "" : t.label);
 				arr.put(o);
 			}
 		} catch (org.json.JSONException ignored) {
@@ -400,14 +445,31 @@ public class MicroActivity extends AppCompatActivity {
 		final java.util.List<String[]> rest = new java.util.ArrayList<>();
 		try {
 			org.json.JSONArray arr = new org.json.JSONArray(sp.getString("che779_tabs", "[]"));
-			if (arr.length() < 2 || !firstPath.equals(arr.getJSONObject(0).getString("p"))) {
+			if (arr.length() < 1 || !firstPath.equals(arr.getJSONObject(0).getString("p"))) {
 				return;
 			}
+			// the first tab gets back its old number and name
+			org.json.JSONObject f0 = arr.getJSONObject(0);
+			Session f = tabs.get(0);
+			int sl = f0.optInt("s", 1);
+			if (sl > 0 && sl != f.slot) {
+				f.slot = sl;
+				loadNet(f, sl);
+			}
+			String lb = f0.optString("l", "");
+			if (!lb.isEmpty()) {
+				f.label = lb;
+			}
+			refreshTabBar();
 			for (int i = 1; i < arr.length(); i++) {
 				org.json.JSONObject o = arr.getJSONObject(i);
-				rest.add(new String[]{o.getString("n"), o.getString("p")});
+				rest.add(new String[]{o.getString("n"), o.getString("p"),
+						String.valueOf(o.optInt("s", 0)), o.optString("l", "")});
 			}
 		} catch (org.json.JSONException e) {
+			return;
+		}
+		if (rest.isEmpty()) {
 			return;
 		}
 		restoring = true;
@@ -425,6 +487,8 @@ public class MicroActivity extends AppCompatActivity {
 					return;
 				}
 				String[] g = rest.get(k[0]++);
+				pendingSlot = Integer.parseInt(g[2]);
+				pendingLabel = g[3];
 				addSession(g[0], g[1], null);
 				uiHandler.postDelayed(this, 2500);
 			}
@@ -577,7 +641,7 @@ public class MicroActivity extends AppCompatActivity {
 		if (s == null) {
 			return;
 		}
-		final int no = tabs.indexOf(s) + 1;
+		final int no = slotOf(s);
 		new AlertDialog.Builder(this)
 				.setTitle(R.string.CONFIRMATION_REQUIRED)
 				.setMessage("Đóng tab " + no + "?")
@@ -702,7 +766,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void setTabProxy(Session s, NetConfig c) {
-		int no = tabs.indexOf(s) + 1;
+		int no = slotOf(s);
 		if (c == null) {
 			s.net.type = NetConfig.NONE;
 			netPrefs().edit().remove("che779_tab_proxy_" + no).apply();
@@ -727,7 +791,7 @@ public class MicroActivity extends AppCompatActivity {
 		if (cur == null) {
 			return;
 		}
-		final int no = tabs.indexOf(cur) + 1;
+		final int no = slotOf(cur);
 		String[] items = {
 				"Chọn proxy cho tab " + no + " (đang: " + cur.net.label() + ")",
 				"Nhập / sửa danh sách proxy",
@@ -768,7 +832,7 @@ public class MicroActivity extends AppCompatActivity {
 			names[i] = (i + 1) + ". " + list.get(i).label();
 		}
 		new AlertDialog.Builder(this)
-				.setTitle("Chọn proxy cho tab " + (tabs.indexOf(cur) + 1))
+				.setTitle("Chọn proxy cho tab " + slotOf(cur))
 				.setItems(names, (d, which) -> {
 					setTabProxy(cur, list.get(which));
 					Toast.makeText(this, "Đã đặt proxy (áp dụng cho kết nối mới)", Toast.LENGTH_SHORT).show();
@@ -1085,7 +1149,7 @@ public class MicroActivity extends AppCompatActivity {
 		if (floating) {
 			Session a = Session.active();
 			FloatingController.get(this).setLabel(
-					a == null ? "" : (tabs.indexOf(a) + 1) + "/" + tabs.size());
+					a == null ? "" : slotOf(a) + "/" + tabs.size());
 		}
 	}
 
