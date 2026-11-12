@@ -413,6 +413,12 @@ final class FloatingController {
 
 	// ---------------------------------------------------------------- window
 
+	private ImageView iconButton(int res, View.OnClickListener l) {
+		ImageView v = Icons.view(ctx, res, Color.WHITE, 6, l);
+		v.setLayoutParams(new LinearLayout.LayoutParams(dp(34), dp(32)));
+		return v;
+	}
+
 	private TextView button(String text, View.OnClickListener l) {
 		TextView t = new TextView(ctx);
 		t.setText(text);
@@ -445,29 +451,32 @@ final class FloatingController {
 		bar.setOrientation(LinearLayout.HORIZONTAL);
 		bar.setGravity(Gravity.CENTER_VERTICAL);
 		bar.setBackgroundColor(0xFF1C222B);
-		bar.addView(button("‹", v -> cycle(-1)));
+		bar.addView(iconButton(R.drawable.ic_c_left, v -> cycle(-1)));
 		label = new TextView(ctx);
 		label.setTextColor(0xFF9AA4B2);
 		label.setGravity(Gravity.CENTER);
 		label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
 		label.setLayoutParams(new LinearLayout.LayoutParams(0, dp(32), 1f));
-		bar.addView(button("›", v -> cycle(1)), 0 + 1);
+		bar.addView(iconButton(R.drawable.ic_c_right, v -> cycle(1)), 0 + 1);
 		bar.addView(label);
-		bar.addView(button("*", v -> {
+		bar.addView(iconButton(R.drawable.ic_c_swap, v -> {
 			if (callbacks != null) {
 				callbacks.onStar();
 			}
 		}));
-		final TextView syncBtn = button(callbacks != null && callbacks.isSync() ? "☑⇄" : "☐⇄", null);
+		final ImageView syncBtn = iconButton(R.drawable.ic_c_sync, null);
+		syncBtn.setColorFilter(callbacks != null && callbacks.isSync() ? 0xFF4CAF50 : Color.WHITE,
+				android.graphics.PorterDuff.Mode.SRC_IN);
 		syncBtn.setOnClickListener(v -> {
 			if (callbacks != null) {
-				syncBtn.setText(callbacks.onToggleSync() ? "☑⇄" : "☐⇄");
+				syncBtn.setColorFilter(callbacks.onToggleSync() ? 0xFF4CAF50 : Color.WHITE,
+						android.graphics.PorterDuff.Mode.SRC_IN);
 			}
 		});
 		bar.addView(syncBtn);
-		bar.addView(button("⌨", v -> toggleKeypad()));
-		bar.addView(button("–", v -> showBubble()));
-		bar.addView(button("🔍", v -> {
+		bar.addView(iconButton(R.drawable.ic_c_keyboard, v -> toggleKeypad()));
+		bar.addView(iconButton(R.drawable.ic_c_remove, v -> showBubble()));
+		bar.addView(iconButton(R.drawable.ic_c_full, v -> {
 			if (callbacks != null) {
 				callbacks.onDock();
 			}

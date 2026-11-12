@@ -25,7 +25,14 @@ final class GridBar extends LinearLayout {
 	private final TextView syncButton;
 
 	void setSyncOn(boolean on) {
-		syncButton.setText(on ? "☑ Đồng bộ phím ▾" : "☐ Đồng bộ phím ▾");
+		syncButton.setText("Đồng bộ phím ▾");
+		android.graphics.drawable.Drawable d = syncButton.getContext().getResources().getDrawable(
+				on ? ru.playsoftware.j2meloader.R.drawable.ic_c_checked : ru.playsoftware.j2meloader.R.drawable.ic_c_unchecked).mutate();
+		d.setColorFilter(Color.WHITE, android.graphics.PorterDuff.Mode.SRC_IN);
+		float dd = syncButton.getResources().getDisplayMetrics().density;
+		d.setBounds(0, 0, (int) (20 * dd), (int) (20 * dd));
+		syncButton.setCompoundDrawables(d, null, null, null);
+		syncButton.setCompoundDrawablePadding((int) (8 * dd));
 	}
 
 	GridBar(Context context, boolean syncOn, Listener l) {
@@ -39,7 +46,7 @@ final class GridBar extends LinearLayout {
 		setSyncOn(syncOn);
 		addView(syncButton, new LayoutParams(0, (int) (36 * d), 1f));
 		addView(button(context, "Proxy", v -> l.onProxy(), d));
-		addView(button(context, "⌨", v -> l.onKeyboard(), d));
+		addView(Icons.view(context, ru.playsoftware.j2meloader.R.drawable.ic_c_keyboard, Color.WHITE, 8, v -> l.onKeyboard()), new LayoutParams((int) (44 * d), (int) (36 * d)));
 		addView(button(context, "Danh sách", v -> l.onBackToList(), d));
 	}
 

@@ -68,20 +68,20 @@ final class TabBar extends LinearLayout {
 		bubbleBtn.setOnClickListener(v -> listener.onBubble());
 		bubbleCell.addView(bubbleBtn, new FrameLayout.LayoutParams(dp(30), dp(30), Gravity.CENTER));
 		addView(bubbleCell, new LayoutParams(0, dp(36), 0.5f));
-		addView(button(context, "−", v -> listener.onClose()));
-		TextView plus = button(context, "+", v -> listener.onClone());
+		addView(Icons.view(context, R.drawable.ic_c_remove, Color.WHITE, 8, v -> listener.onClose()), new LayoutParams(dp(40), dp(36)));
+		ImageView plus = Icons.view(context, R.drawable.ic_c_add, Color.WHITE, 8, v -> listener.onClone());
 		plus.setOnLongClickListener(v -> {
 			listener.onPickGame();
 			return true;
 		});
-		addView(plus);
-		addView(button(context, "▦", v -> listener.onGrid()));
+		addView(plus, new LayoutParams(dp(40), dp(36)));
+		addView(Icons.view(context, R.drawable.ic_c_grid, Color.WHITE, 8, v -> listener.onGrid()), new LayoutParams(dp(40), dp(36)));
 		ImageView pad = new ImageView(context);
 		pad.setImageResource(R.drawable.ic_che779_gamepad);
 		pad.setPadding(dp(10), dp(8), dp(10), dp(8));
 		pad.setOnClickListener(v -> listener.onPickGame());
 		addView(pad, new LayoutParams(dp(44), dp(36)));
-		addView(button(context, "⋮", v -> listener.onMenu()));
+		addView(Icons.view(context, R.drawable.ic_c_more, Color.WHITE, 8, v -> listener.onMenu()), new LayoutParams(dp(40), dp(36)));
 	}
 
 	private int dp(int v) {
