@@ -258,6 +258,8 @@ final class FloatingController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			bubble = null;
+			showing = false;
+			expanded = false;
 		}
 	}
 
@@ -544,6 +546,11 @@ final class FloatingController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			window = null;
+			// The window was not attached. Keep the floating controls reachable
+			// instead of leaving the game with neither a window nor a bubble.
+			showing = true;
+			expanded = false;
+			showBubble();
 		}
 	}
 

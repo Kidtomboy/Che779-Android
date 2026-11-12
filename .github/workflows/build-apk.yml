@@ -36,11 +36,11 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      - name: Build APK
+      - name: Run unit tests and build APK
         run: |
           chmod +x gradlew
           set -o pipefail
-          ./gradlew assembleDevDebug --stacktrace 2>&1 | tee build.log
+          ./gradlew testDevDebugUnitTest assembleDevDebug --stacktrace 2>&1 | tee build.log
 
       - name: Publish build log (de doc loi tu xa)
         if: always()

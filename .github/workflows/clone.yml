@@ -11,7 +11,6 @@ on:
         description: 'App name shown on the phone'
         required: true
         default: 'Che779 2'
-
       data_dir:
         description: 'Data folder name on the phone'
         required: true
@@ -31,19 +30,45 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Validate clone parameters
+        env:
+          CLONE_ID: ${{ inputs.app_id }}
+          CLONE_NAME: ${{ inputs.app_name }}
+          CLONE_DIR: ${{ inputs.data_dir }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$CLONE_ID" =~ ^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$ ]]; then
+            echo "Invalid application ID" >&2; exit 2
+          fi
+          if [[ ! "$CLONE_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._\ \(\)-]{0,39}$ ]]; then
+            echo "App name must be 1-40 safe ASCII letters, digits, spaces or ._()- characters" >&2; exit 2
+          fi
+          if [[ ! "$CLONE_DIR" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ || "$CLONE_DIR" == *..* ]]; then
+            echo "Invalid data directory name" >&2; exit 2
+          fi
       - name: Accept Android SDK licenses
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       - name: Build clone
+        env:
+          CLONE_ID: ${{ inputs.app_id }}
+          CLONE_NAME: ${{ inputs.app_name }}
+          CLONE_DIR: ${{ inputs.data_dir }}
         run: |
+          set -euo pipefail
           chmod +x gradlew
-          ./gradlew assembleDevDebug -PcloneId='${{ inputs.app_id }}' -PcloneName='${{ inputs.app_name }}' -PcloneDir='${{ inputs.data_dir }}'
+          ./gradlew testDevDebugUnitTest assembleDevDebug "-PcloneId=$CLONE_ID" "-PcloneName=$CLONE_NAME" "-PcloneDir=$CLONE_DIR"
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
+          CLONE_ID: ${{ inputs.app_id }}
+          CLONE_NAME: ${{ inputs.app_name }}
         run: |
-          TAG="clone-$(echo '${{ inputs.app_id }}' | tr -c 'A-Za-z0-9\n' '-')"
-          cp app/build/outputs/apk/dev/debug/*.apk "Che779-clone.apk"
+          set -euo pipefail
+          TAG="clone-$(printf '%s' "$CLONE_ID" | tr -c 'A-Za-z0-9' '-')"
+          APK=(app/build/outputs/apk/dev/debug/*.apk)
+          test -f "${APK[0]}"
+          cp "${APK[0]}" Che779-clone.apk
           gh release delete "$TAG" --cleanup-tag --yes || true
           gh release create "$TAG" Che779-clone.apk --prerelease \
-            --title "Clone ${{ inputs.app_id }}" --notes "Ban nhan ban: ${{ inputs.app_id }} (${{ inputs.app_name }})" \
+            --title "Clone $CLONE_ID" --notes "Clone build: $CLONE_ID ($CLONE_NAME)" \
             --target "$GITHUB_SHA"

@@ -4,30 +4,60 @@ plugins {
 
 def midletArchivesBaseName
 
+def cloneId = project.findProperty("cloneId") ?: "com.che779.emulator"
+def cloneName = project.findProperty("cloneName") ?: rootProject.name
+def cloneDir = project.findProperty("cloneDir") ?: "J2ME-Che779"
+if (!(cloneId ==~ /[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+/)) {
+    throw new GradleException("cloneId must be a valid dotted Android application ID")
+}
+if (!(cloneName.toString() ==~ /[A-Za-z0-9][A-Za-z0-9 ._()\-]{0,39}/)) {
+    throw new GradleException("cloneName must be 1-40 safe ASCII letters, digits, spaces or ._()- characters")
+}
+if (!(cloneDir ==~ /[A-Za-z0-9][A-Za-z0-9._-]{0,63}/) || cloneDir.contains("..")) {
+    throw new GradleException("cloneDir must be a safe folder name (1-64 letters, digits, dot, underscore or dash)")
+}
+
+def releaseStoreFile = System.getenv("CHE779_RELEASE_STORE_FILE")
+def releaseStorePassword = System.getenv("CHE779_RELEASE_STORE_PASSWORD")
+def releaseKeyAlias = System.getenv("CHE779_RELEASE_KEY_ALIAS")
+def releaseKeyPassword = System.getenv("CHE779_RELEASE_KEY_PASSWORD")
+def releaseSigningValues = [releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword]
+if (releaseSigningValues.any { it } && !releaseSigningValues.every { it }) {
+    throw new GradleException("Set all CHE779_RELEASE_STORE_FILE/PASSWORD/KEY_ALIAS/KEY_PASSWORD values to sign release builds")
+}
+
 android {
     compileSdk COMPILE_SDK
     ndkVersion NDK_VERSION
     namespace 'ru.playsoftware.j2meloader'
 
     defaultConfig {
-        applicationId (project.findProperty("cloneId") ?: "com.che779.emulator")
+        applicationId cloneId
         minSdk MIN_SDK
         targetSdk TARGET_SDK
-        versionCode 102
-        versionName "0.2.0-base182"
-        resValue 'string', 'app_name', (project.findProperty("cloneName") ?: rootProject.name)
-        buildConfigField 'String', 'DATA_DIR_NAME', '"' + (project.findProperty("cloneDir") ?: "J2ME-Che779") + '"'
+        versionCode 103
+        versionName "0.0.0.2-android"
+        resValue 'string', 'app_name', cloneName
+        buildConfigField 'String', 'DATA_DIR_NAME', '"' + cloneDir + '"'
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         che779test {
-            // KHOA THU NGHIEM, cong khai trong repo. Thay bang khoa rieng truoc khi phat hanh rong rai.
+            // Public test key: intentionally limited to dev/debug builds so users can update test APKs.
             storeFile file('che779-test.keystore')
             storePassword 'che779test'
             keyAlias 'che779'
             keyPassword 'che779test'
+        }
+        if (releaseStoreFile) {
+            releasePrivate {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
         }
     }
 
@@ -35,7 +65,10 @@ android {
         release {
             minifyEnabled true
             shrinkResources true
-            signingConfig signingConfigs.che779test
+            // Never sign a production release with the repository's public test key.
+            if (releaseStoreFile) {
+                signingConfig signingConfigs.releasePrivate
+            }
         }
         debug {
             signingConfig signingConfigs.che779test
@@ -110,7 +143,7 @@ android {
     }
 
     applicationVariants.all {
-        if (buildType.name == 'debug' && flavorName != 'midlet') {
+        if (buildType.name == 'debug' && flavorName != 'midlet' && !project.hasProperty('cloneName')) {
             resValue 'string', 'app_name', 'Che779 Emulator'
         }
         def baseName = flavorName == 'midlet' ? "${midletArchivesBaseName}-" : "${rootProject.name}-"
@@ -126,8 +159,18 @@ android {
 }
 
 static def generateVersionCode() {
-    def result = "git rev-list HEAD --count".execute().text.trim()
-    return result.toInteger()
+    try {
+        def process = new ProcessBuilder("git", "rev-list", "HEAD", "--count")
+                .redirectErrorStream(true).start()
+        def result = process.inputStream.getText("UTF-8").trim()
+        if (process.waitFor() == 0 && result ==~ /\d+/) {
+            return Math.max(1, result.toInteger())
+        }
+    } catch (Exception ignored) {
+        // Source archives may not include the .git directory.
+    }
+    def runNumber = System.getenv("GITHUB_RUN_NUMBER")
+    return runNumber != null && runNumber ==~ /\d+/ ? Math.max(1, runNumber.toInteger()) : 1
 }
 
 def getMidletManifestProperties() {

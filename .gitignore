@@ -32,8 +32,9 @@ captures/
 *.iml
 .idea/
 
-# Keystore files
+# Keystore files (the already-tracked che779-test.keystore is a public dev key only)
 *.jks
+*.keystore
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
