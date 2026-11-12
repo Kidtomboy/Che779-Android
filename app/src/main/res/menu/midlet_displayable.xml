@@ -6,6 +6,9 @@
         android:id="@+id/action_proxy"
         android:title="@string/action_proxy" />
     <item
+        android:id="@+id/action_fix_vk"
+        android:title="@string/action_fix_vk" />
+    <item
         android:id="@+id/action_power"
         android:title="@string/action_power" />
     <item
