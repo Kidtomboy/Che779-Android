@@ -25,6 +25,20 @@ final class KeypadView extends LinearLayout {
 		void close();
 	}
 
+	private static final java.util.Map<String, Integer> ICONS = new java.util.HashMap<>();
+
+	static {
+		ICONS.put("✕", ru.playsoftware.j2meloader.R.drawable.ic_c_close);
+		ICONS.put("↖", ru.playsoftware.j2meloader.R.drawable.ic_c_nw);
+		ICONS.put("↑", ru.playsoftware.j2meloader.R.drawable.ic_c_up);
+		ICONS.put("↗", ru.playsoftware.j2meloader.R.drawable.ic_c_ne);
+		ICONS.put("←", ru.playsoftware.j2meloader.R.drawable.ic_c_back);
+		ICONS.put("→", ru.playsoftware.j2meloader.R.drawable.ic_c_fwd);
+		ICONS.put("↙", ru.playsoftware.j2meloader.R.drawable.ic_c_sw);
+		ICONS.put("↓", ru.playsoftware.j2meloader.R.drawable.ic_c_down);
+		ICONS.put("↘", ru.playsoftware.j2meloader.R.drawable.ic_c_se);
+	}
+
 	private static final int U = Canvas.KEY_UP, D = Canvas.KEY_DOWN, L = Canvas.KEY_LEFT, R = Canvas.KEY_RIGHT;
 
 	KeypadView(Context c, int keyHeightDp, int textSp, Sink sink) {
@@ -52,11 +66,18 @@ final class KeypadView extends LinearLayout {
 			for (int col = 0; col < 6; col++) {
 				final int[] k = codes[r][col];
 				boolean close = r == 0 && col == 4;
-				TextView b = new TextView(c);
-				b.setText(labels[r][col]);
-				b.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSp);
-				b.setGravity(Gravity.CENTER);
-				b.setTextColor(close ? 0xFFB3261E : 0xFF5B5BA8);
+				Integer ic = ICONS.get(labels[r][col]);
+				View b;
+				if (ic != null) {
+					b = Icons.view(c, ic, close ? 0xFFB3261E : 0xFF5B5BA8, (int) (keyHeightDp / 4), null);
+				} else {
+					TextView tv = new TextView(c);
+					tv.setText(labels[r][col]);
+					tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSp);
+					tv.setGravity(Gravity.CENTER);
+					tv.setTextColor(0xFF5B5BA8);
+					b = tv;
+				}
 				GradientDrawable bg = new GradientDrawable();
 				bg.setCornerRadius(10 * dp);
 				bg.setColor(0xFFE4E4E8);
