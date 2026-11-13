@@ -1,4 +1,4 @@
-# Che779 Emulator — Android
+# Che779 Android — Android
 
 Ứng dụng Android chạy game J2ME (`.jar`) trực tiếp trên điện thoại, kế thừa engine J2ME Loader 1.8.2 và bổ sung lớp vỏ Che779: đa phiên/tab, proxy và IP redirect theo tab, chế độ lưới, bộ điều khiển nổi và chẩn đoán.
 
