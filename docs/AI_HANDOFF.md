@@ -2,7 +2,7 @@
 
 ## Project identity
 
-- Source archive: `Che779-Emulator-main.zip`
+- Repository: `Kidtomboy/Che779-Android` (trước đây tên `Che779-Emulator`; tên đó nay là Project 1)
 - Android application: `com.che779.emulator`
 - Base engine: J2ME Loader 1.8.2
 - Current implementation baseline: `0.0.0.2-android`, `versionCode 103`

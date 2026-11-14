@@ -55,14 +55,14 @@ jobs:
       - name: Collect APK
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/dev/debug/*.apk dist/Che779-Emulator.apk
+          cp app/build/outputs/apk/dev/debug/*.apk dist/Che779-Android.apk
           ls -la dist
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Che779-Emulator-APK
-          path: dist/Che779-Emulator.apk
+          name: Che779-Android-APK
+          path: dist/Che779-Android.apk
           if-no-files-found: error
 
       - name: Publish to Releases (tai khong can dang nhap)
@@ -70,8 +70,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --cleanup-tag --yes || true
-          gh release create latest dist/Che779-Emulator.apk \
+          gh release create latest dist/Che779-Android.apk \
             --prerelease \
-            --title "Che779 Emulator - ban moi nhat" \
-            --notes "Ban build tu dong tu commit ${GITHUB_SHA::7}. Tai file Che779-Emulator.apk va cai dat." \
+            --title "Che779 Android - ban moi nhat" \
+            --notes "Ban build tu dong tu commit ${GITHUB_SHA::7}. Tai file Che779-Android.apk va cai dat." \
             --target "$GITHUB_SHA"
