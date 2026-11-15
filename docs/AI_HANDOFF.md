@@ -1,46 +1,24 @@
-# Che779 Emulator Android — AI Handoff
+# Ghi chú bàn giao
 
-## Project identity
+Dành cho người hoặc AI tiếp tục làm việc trên Project 4.
 
-- Repository: `Kidtomboy/Che779-Android` (trước đây tên `Che779-Emulator`; tên đó nay là Project 1)
-- Android application: `com.che779.emulator`
-- Base engine: J2ME Loader 1.8.2
-- Current implementation baseline: `0.0.0.2-android`, `versionCode 103`
-- Main custom layer: `javax.microedition.shell.*`
+## Nhận diện
 
-## Product decisions to preserve
+- Repo: `Kidtomboy/Che779-Android` (trước đây tên `Che779-Emulator`; tên đó nay là Project 1).
+- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản `1.2.0` (`versionCode 120`).
+- Lớp vỏ Che779: `javax.microedition.shell.*`.
 
-- Do not impose a hard limit on the number of tabs.
-- Do not add macros unless a specific game requires one.
-- Defer x6–x12 multi-frame composition until there is a concrete paid use case.
-- Do not automatically reopen a tab after the user closes it.
-- Keep per-tab IP redirect.
-- Do not add a Contact menu to the app.
-- Preserve independent package/data directory behavior for clones.
+## Nguyên tắc
 
-## This implementation pass
+- Chủ dự án: **Cherry**. Viết tài liệu bằng tiếng Việt.
+- Không ghi "đã kiểm tra" khi chưa chạy; CI xanh không thay cho thử trên máy thật.
+- Giữ các quyết định ở [DECISIONS](DECISIONS.md) (không giới hạn tab, không macro, không tự mở lại tab, giữ IP redirect…).
+- Mọi thay đổi phải cập nhật `CHANGELOG.md` (chỉ ghi phiên bản hiện tại) và tài liệu bị ảnh hưởng.
+- 2 lỗi đang gặp **chỉ sửa khi chủ dự án yêu cầu**.
 
-1. Harden clone workflow input handling and Gradle property validation.
-2. Keep the repository test keystore for `devDebug` update continuity, but never apply it to `release`.
-3. Add optional private release signing through four `CHE779_RELEASE_*` environment variables.
-4. Rotate diagnostic logs across current + `.old`, bound entries to 3 MiB, and add per-tab/process thread dump caps.
-5. Add unit tests and developer documentation.
-6. Normalize version naming to `0.0.0.2-android`; increment `versionCode` to 103.
+## Rủi ro
 
-## Known risks / next engineering tasks
-
-- `MicroActivity.java` is still a large Activity (~2,100 lines). Refactor only with lifecycle tests; candidate controllers: tab lifecycle, floating/bubble coordination, power mode.
-- `Session.killThreads()` currently interrupts threads by matching class names in stack traces. This is heuristic and can interrupt a different session if games share class names. Replace only after designing explicit per-session thread ownership and tests.
-- Overlay permission behavior varies by Android OEM. Current UI prompts for permission when the user explicitly taps the bubble action; test MIUI/ColorOS/Samsung/Pixel behavior.
-- Test `Session` isolation for Display/EventQueue/ClassLoader/RMS/FileConnection/network across 2+ simultaneous games.
-- Test lifecycle under rotate/background/foreground/process recreation and close-tab races.
-- Test proxy HTTP/SOCKS5 and IP redirect per tab.
-- Audit dependency licenses and native libraries before public distribution.
-- Keep `LICENSE` and `NOTICE` intact; verify upstream attribution and modified-file notices.
-
-## Verification status for this pass
-
-- Source-level checks and local JVM unit tests for `DiagnosticLogStore`: expected to be run by the local validation script/CI.
-- Android APK build: not run in this environment without Android SDK/NDK.
-- GitHub Actions: not executed from this workspace.
-- Android device/OEM/game compatibility: not tested.
+- `MicroActivity` còn rất lớn (~2.100 dòng): chỉ tách khi đã có test vòng đời.
+- `Session.killThreads()` là heuristic; chỉ thay sau khi thiết kế sở hữu luồng rõ ràng và có test.
+- Quyền hiển thị trên ứng dụng khác thay đổi theo hãng máy.
+- Giữ nguyên `LICENSE`, `NOTICE`; kiểm tra giấy phép thư viện bên thứ ba và native trước khi phát hành rộng.

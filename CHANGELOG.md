@@ -1,18 +1,32 @@
-# Changelog
+# Nhật ký thay đổi
 
-## 0.0.0.2-android — Implementation Pass 1
+Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
-- Thống nhất `versionName` hiển thị với tên phiên bản Android trong README; tăng `versionCode` lên 103.
-- Tách khóa thử nghiệm khỏi cấu hình ký `release`; release chỉ ký khi được cấp đủ thông tin keystore riêng qua environment.
-- Validate package ID, tên ứng dụng và thư mục dữ liệu clone trong Gradle và GitHub Actions.
-- Chạy unit tests trước khi build APK trên cả workflow APK chính và workflow clone.
-- Thay cơ chế xóa trắng log chẩn đoán khi đầy bằng hai thế hệ `che779-diag.txt` và `che779-diag.txt.old`.
-- Giới hạn thread dump ở tối đa 3 lần/tab và 20 lần/process.
-- Bổ sung unit tests cho log rotation/giới hạn UTF-8 và hướng dẫn build dành cho developer.
-- Sửa build number để source archive không có `.git` vẫn cấu hình Gradle được.
+## [1.2.0] — Bản phát hành
 
-### Chưa xác minh
+Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 120`.
 
-- Chưa chạy Android Gradle build trong môi trường hiện tại vì không có Android SDK/NDK cài sẵn.
-- Chưa có kết quả CI GitHub Actions hoặc kiểm thử trên thiết bị Android thật.
-- Chưa refactor `MicroActivity` hoặc thay heuristic tìm luồng của `Session.killThreads()`; đây vẫn là rủi ro cần test đa phiên chuyên sâu.
+### Đã được chủ dự án thử trên máy thật
+- **Đa tab:** mỗi game là một phiên riêng trong cùng một ứng dụng; cấu hình hiển thị và mạng riêng từng tab.
+- **Thanh tab dạng danh sách:** đổi tên tab bằng chạm giữ, nhân bản tab, chọn game.
+- **Chế độ lưới:** xem nhiều game cùng lúc, chuyển qua lại với danh sách.
+- **Bong bóng nổi:** thu game thành bong bóng kéo được; chạm để mở cửa sổ game nổi (đổi cỡ, thu nhỏ).
+- **Treo, ẩn, ngủ màn hình, quản lý bộ nhớ:** Treo (ngừng vẽ), nhiều mức ẩn, ngủ màn hình đen, tự dọn bộ nhớ, cảnh báo RAM thấp.
+- **Proxy theo tab và chuyển hướng IP:** SOCKS5/HTTP, danh sách proxy, gán hàng loạt.
+
+### Có trong bản này, chưa được xác nhận trên máy thật
+- Đồng bộ phím giữa các tab (tick từng tab).
+- Bàn phím ảo kiểu J2ME (chế độ lưới, cửa sổ nổi, thay thế bàn phím gốc khi bị lỗi).
+- Số tab cố định (đóng tab 3 rồi mở lại vẫn là tab 3); dữ liệu tài khoản theo số tab.
+- Thoát hẳn có hỏi *Thoát hết / Đóng tab này*.
+- Đường dẫn `c:/` → `J2ME-Che779/`, dự phòng `fs/c/` rồi `/sdcard/`.
+- Bong bóng: kéo vào ✕ để tắt, chạm đúp mở ứng dụng; ô Cài đặt nhanh; 4 chế độ pin (Bình thường, Tiết kiệm, Siêu tiết kiệm, Headless).
+- Bản clone: workflow tạo thêm bản cài độc lập (tên gói, tên app, thư mục dữ liệu riêng).
+
+### Bảo mật và độ ổn định
+- Workflow clone kiểm tra dữ liệu nhập; khóa ký thử chỉ dùng cho bản thử, bản release chỉ ký khi được cấp đủ 4 biến `CHE779_RELEASE_*`.
+- Nhật ký chẩn đoán xoay vòng (tối đa 3 MiB mỗi thế hệ); giới hạn thread dump 3 lần/tab và 20 lần/tiến trình.
+- Cấu hình mạng từ chối cổng ngoài 1–65535, địa chỉ IPv6 và giao thức lạ.
+
+### Phát hành
+- Mỗi lần gắn thẻ `vX.Y.Z`, GitHub tự kiểm thử, build và tạo `Che779-Android-<phiên bản>.apk` cùng `SHA256SUMS.txt`.

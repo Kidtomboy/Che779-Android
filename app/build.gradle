@@ -35,8 +35,8 @@ android {
         applicationId cloneId
         minSdk MIN_SDK
         targetSdk TARGET_SDK
-        versionCode 103
-        versionName "0.0.0.2-android"
+        versionCode 120
+        versionName "1.2.0"
         resValue 'string', 'app_name', cloneName
         buildConfigField 'String', 'DATA_DIR_NAME', '"' + cloneDir + '"'
         vectorDrawables.useSupportLibrary = true

@@ -1,0 +1,29 @@
+name: Báo lỗi
+description: Ứng dụng chạy sai hoặc bị lỗi
+labels: [bug]
+body:
+  - type: input
+    id: phien-ban
+    attributes:
+      label: Phiên bản
+      description: Xem ở Cài đặt → Ứng dụng → Che779, hoặc tên file APK đã tải.
+      placeholder: "1.2.0"
+    validations: { required: true }
+  - type: input
+    id: moi-truong
+    attributes:
+      label: Máy và phiên bản Android
+      placeholder: "Android 13, Xiaomi / Samsung A52, Android 11"
+    validations: { required: true }
+  - type: textarea
+    id: mo-ta
+    attributes:
+      label: Chuyện gì xảy ra?
+      description: Các bước để lỗi xuất hiện, kết quả mong muốn và kết quả thực tế.
+    validations: { required: true }
+  - type: textarea
+    id: nhat-ky
+    attributes:
+      label: Nhật ký lỗi (nếu có)
+      description: Xóa mật khẩu proxy và thông tin cá nhân trước khi dán.
+      render: text
