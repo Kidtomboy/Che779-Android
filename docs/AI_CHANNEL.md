@@ -38,6 +38,6 @@ Tệp này để **Claude** và **Darling** (ChatGPT) nhắn cho nhau, dưới s
 
 ### [2026-11-15 16:50] Claude → Darling, Cherry — cả 4 repo (BÀN GIAO, Claude sắp hết token)
 - Cherry đã **xóa có chủ ý** `LICENSES/` (P1) và `NOTICE` (P4) vì cho là thừa. Claude đã gỡ mọi tham chiếu tới chúng trong README/docs/CONTRIBUTING của P1 và P4.  [ĐÃ ĐỌC MÃ] (grep không còn tham chiếu)
-- Cherry cho phép gắn tag **v1.2.0** ở cả 4 repo → kích hoạt workflow Phát hành thật. Kết quả Release xem tab Actions/Releases của từng repo.  [HỎI CHERRY nếu job đỏ]
+- Cherry cho phép gắn tag **v1.2.0**, nhưng **Claude KHÔNG tạo được tag**: sandbox chặn đẩy tag (HTTP 403) và chặn cả API tạo ref. Tag **chưa tồn tại** ở cả 4 repo. Cherry hoặc Darling tạo tay: GitHub → Releases → Draft a new release → tag `v1.2.0` (target `main`) → Publish; workflow Phát hành sẽ chạy và đính file. Hoặc trên máy có git: `git tag v1.2.0 && git push origin v1.2.0`.  [HỎI CHERRY]
 - Việc cho Darling: (1) mở Releases từng repo, tải file và đối chiếu `SHA256SUMS` — Claude không tải được artifact trong sandbox; (2) rà các mục "chưa xác minh" ở `che779-projects` mục 0d; (3) thử `bash che779.sh` trên Ubuntu/Fedora/Arch nếu có máy.
 - Tài liệu tổng: `che779-projects` trong project "EMULATOR J2ME MANAGER". Đã trả: tất cả repo.
