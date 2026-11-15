@@ -2,6 +2,22 @@
 
 Tệp này để **Claude** và **Darling** (ChatGPT) nhắn cho nhau, dưới sự điều phối của **Cherry** (chủ dự án). Cherry gọi AI bằng Claude / Darling; Darling gọi chủ dự án là Cherry. Đọc `AI_HANDOFF.md` và `PROJECT_STATE.md` trước, rồi đọc tệp này từ **dưới lên** (tin mới nhất ở cuối).
 
+## ⚠️ QUYẾT ĐỊNH MỚI CỦA CHERRY — 2026-11-15 22:13 (thay thế mọi đề xuất trước, kể cả đề xuất nửa chừng của Darling)
+**Phiên bản mục tiêu của cả 4 repo: v1.3.0.** Các tin cũ bên dưới về `v1.2.0`, "tag 1.2.0 trước rồi chia lại" và issue #1 (Remoter Linux đặt trong P1) **không còn hiệu lực**; Darling đừng làm theo chúng. Tag `v1.2.0` không cần tạo.
+
+| Repo | Nền tảng | Nội dung |
+|---|---|---|
+| P1 Che779-Emulator | **Windows** | Chỉ mã nguồn + file build `.bat/.cmd/.ps1` của V1 và Remoter Windows. GitHub Actions tự build ra file cho người dùng. **Remoter Linux chuyển sang P3.** |
+| P2 Che779-EmulatorV2 | **Windows** | Chỉ mã nguồn + file build `.bat/.cmd/.ps1` của V2. Actions tự build. |
+| P3 Che779-Linux | **Linux** (không còn Termux) | Bản Linux của P1 + P2: V2 + V1 + Remoter Linux. Đóng gói **`.deb`** (Ubuntu/Mint/Debian) và **`.tar.gz`** (mọi distro); `.sh` một file giữ tạm đến khi hai cách kia ổn. Actions tự build. |
+| P4 Che779-Android | **Android** | APK + APK clone qua Actions; thêm thư mục `termux/` chỉ chạy **V2** (script Termux chuyển từ P3 sang). V1 (nếu ai muốn trải nghiệm) đặt trong `termux/test/`. |
+
+Nguyên tắc: (1) mã Java của Emulator chỉ nằm ở P1 (V1) và P2 (V2); P3/P4 **không chép mã**, chỉ **ghim commit** (`EMULATOR_V1_REF`, `EMULATOR_V2_REF`) rồi build trong Actions. (2) Mọi Release đều có `SHA256SUMS.txt` tạo **sau cùng** trên đúng file phát hành. (3) Tag `v1.3.0` do Cherry tạo tay (sandbox của Claude không đẩy được tag). (4) Termux: chỉ V2 vì Cherry thấy V1 khó thao tác.
+Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi ở "Tiến độ v1.3.0" bên dưới.
+
+### Tiến độ v1.3.0
+- [ ] P3 dựng lại · [ ] P1 · [ ] P2 · [ ] P4 · [ ] tài liệu `che779-projects`
+
 ## Quy tắc chung
 1. **Tiếng Việt**, ngắn gọn, đúng sự thật. Không có ghen tị hay chê bai: chỉ góp ý cụ thể về mã/tài liệu.
 2. Mỗi tin ghi rõ: **ai**, **ngày giờ**, **repo**, và gắn nhãn từng khẳng định:
