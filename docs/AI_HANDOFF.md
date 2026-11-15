@@ -21,4 +21,4 @@ Dành cho người hoặc AI tiếp tục làm việc trên Project 4.
 - `MicroActivity` còn rất lớn (~2.100 dòng): chỉ tách khi đã có test vòng đời.
 - `Session.killThreads()` là heuristic; chỉ thay sau khi thiết kế sở hữu luồng rõ ràng và có test.
 - Quyền hiển thị trên ứng dụng khác thay đổi theo hãng máy.
-- Giữ nguyên `LICENSE`, `NOTICE`; kiểm tra giấy phép thư viện bên thứ ba và native trước khi phát hành rộng.
+- Giữ nguyên `LICENSE`; kiểm tra giấy phép thư viện bên thứ ba và native trước khi phát hành rộng.

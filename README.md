@@ -204,7 +204,7 @@ Gắn thẻ `vX.Y.Z` → workflow **Phát hành** kiểm thử, build, tạo `Ch
 
 ```
 Che779-Android/
-├─ README.md  CONTRIBUTING.md  SECURITY.md  LICENSE  NOTICE  CHANGELOG.md  VERSION
+├─ README.md  CONTRIBUTING.md  SECURITY.md  LICENSE  CHANGELOG.md  VERSION
 ├─ app/            Ứng dụng Android (lớp vỏ Che779 ở javax/microedition/shell)
 ├─ dexlib/         Module Gradle phụ (thư viện nội bộ mà app phụ thuộc)
 ├─ gradle/  build.gradle  settings.gradle  gradlew*   ← Gradle bắt buộc nằm ở gốc
@@ -228,7 +228,7 @@ Muốn góp sức? Đọc [`CONTRIBUTING.md`](CONTRIBUTING.md). Tìm thấy lỗ
 
 ## 🙏 Ghi công và giấy phép
 
-Che779 Android kế thừa **[J2ME Loader](https://github.com/nikita36078/J2ME-Loader)** của Nikita Shakarun và các cộng tác viên (Apache License 2.0). Một số ý tưởng giao diện và tính năng đến từ các bản mod cộng đồng: **Hùng Hero** (J2ME Loader v10) và **NST Tiến** (J2ME_NST). Giữ nguyên các thông báo bản quyền khi phân phối lại; xem [`LICENSE`](LICENSE) và [`NOTICE`](NOTICE).
+Che779 Android kế thừa **[J2ME Loader](https://github.com/nikita36078/J2ME-Loader)** của Nikita Shakarun và các cộng tác viên (Apache License 2.0). Một số ý tưởng giao diện và tính năng đến từ các bản mod cộng đồng: **Hùng Hero** (J2ME Loader v10) và **NST Tiến** (J2ME_NST). Giữ nguyên các thông báo bản quyền khi phân phối lại; xem [`LICENSE`](LICENSE).
 
 <div align="center">
 

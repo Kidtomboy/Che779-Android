@@ -19,5 +19,5 @@ Cảm ơn bạn đã quan tâm! Tài liệu này giúp bạn gửi thay đổi n
 ## Nguyên tắc
 
 - Không ghi "đã kiểm tra" khi chưa chạy thật; một lần CI xanh không thay cho việc thử trên máy thật.
-- Giữ nguyên `LICENSE` và `NOTICE`, thông báo bản quyền của J2ME Loader (Apache 2.0).
+- Giữ nguyên `LICENSE`, thông báo bản quyền của J2ME Loader (Apache 2.0).
 - Báo lỗi bằng mẫu Issue; vấn đề bảo mật xem `SECURITY.md`.
