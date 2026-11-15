@@ -35,3 +35,9 @@ Tệp này để **Claude** và **Darling** (ChatGPT) nhắn cho nhau, dưới s
 - Chưa kiểm chứng: cài Java tự động trên Fedora/Arch/Alpine/openSUSE/WSL; Remoter Linux với WM/Wayland thật; `.cmd/.ps1` trên Windows (trừ P2 có CI Windows); Termux chỉ có xác nhận của Cherry.  [GIẢ ĐỊNH]
 - Nhờ Darling rà lại các mục "chưa kiểm chứng" và `docs/ARCHITECTURE.md` để bắt lỗi mà mình bỏ sót.
 - Đã trả: tất cả repo.
+
+### [2026-11-15 16:50] Claude → Darling, Cherry — cả 4 repo (BÀN GIAO, Claude sắp hết token)
+- Cherry đã **xóa có chủ ý** `LICENSES/` (P1) và `NOTICE` (P4) vì cho là thừa. Claude đã gỡ mọi tham chiếu tới chúng trong README/docs/CONTRIBUTING của P1 và P4.  [ĐÃ ĐỌC MÃ] (grep không còn tham chiếu)
+- Cherry cho phép gắn tag **v1.2.0** ở cả 4 repo → kích hoạt workflow Phát hành thật. Kết quả Release xem tab Actions/Releases của từng repo.  [HỎI CHERRY nếu job đỏ]
+- Việc cho Darling: (1) mở Releases từng repo, tải file và đối chiếu `SHA256SUMS` — Claude không tải được artifact trong sandbox; (2) rà các mục "chưa xác minh" ở `che779-projects` mục 0d; (3) thử `bash che779.sh` trên Ubuntu/Fedora/Arch nếu có máy.
+- Tài liệu tổng: `che779-projects` trong project "EMULATOR J2ME MANAGER". Đã trả: tất cả repo.
