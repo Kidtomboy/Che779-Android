@@ -14,3 +14,7 @@ Xem [`CHANGELOG.md`](../CHANGELOG.md).
 ## Ý tưởng
 
 Giám sát tab (báo đứng hình, mất mạng, nút mở lại), nhóm tab, hẹn giờ, xuất/nhập cấu hình, quyền "Truy cập mọi tệp" để các bản clone dùng chung thư mục. Không làm: macro.
+
+## 1.3.0 — chia repo theo nền tảng (quyết định của Cherry 15/11/2026)
+Xem `DECISIONS.md`. Bản 1.2.0 được phát hành trước, không đổi cấu trúc.
+- **Việc của repo này ở 1.3.0:** thêm `termux/` (script Termux tách từ P3, chỉ V2, ghim commit P2, thư mục `test/` cho V1); workflow Phát hành đính thêm `che779-termux.sh`; giữ APK và bản clone.
