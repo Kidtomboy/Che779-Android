@@ -12,3 +12,4 @@
 | [VARIANTS_AND_CLONES](VARIANTS_AND_CLONES.md) | Cách tạo bản clone, các biến thể build |
 | [SOURCE_INVENTORY](SOURCE_INVENTORY.md) | Nguồn gốc mã và giấy phép |
 | [AI_HANDOFF](AI_HANDOFF.md) | Ghi chú bàn giao cho người hoặc AI tiếp tục làm |
+| [AI_CHANNEL](AI_CHANNEL.md) | Kênh trao đổi Claude ↔ Darling |
