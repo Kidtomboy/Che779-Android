@@ -33,3 +33,24 @@ Do Cherry quyết, Claude ghi lại. Áp dụng cho cả 4 repo; Claude và Darl
 5. **Giữ nguyên tên repo** (đổi tên làm hỏng link cũ).
 6. **Thứ tự:** (a) tạo tag `v1.2.0` cho cả 4 repo như hiện có (Cherry tạo tay vì Claude không đẩy được tag); (b) hoàn thiện Remoter Linux ở P1 (Xem lưới; Cherry/Darling thử bản Linux thật); (c) bản **1.3.0** mới chia lại: chuyển Remoter Linux sang P3, thêm `.deb`/`.tar.gz`, tách Termux sang P4 (`termux/`), dọn P1/P3, sửa README/docs/workflow, cập nhật `che779-projects`.
 7. Phiên bản và mọi quy ước 1.2.0 (tiếng Việt, CHANGELOG chỉ ghi bản hiện tại, SHA256SUMS tính sau cùng trên file cuối, ghi rõ đã/chưa thử) vẫn áp dụng.
+
+## Quyết định của Cherry (15/11/2026): chia repo theo nền tảng — áp dụng từ bản 1.3.0
+
+**Câu để nhớ: P1 và P2 = Windows · P3 = Linux · P4 = Android (kèm Termux).**
+
+| Repo | Nền tảng | Chứa | Cách ra file cho người dùng |
+|---|---|---|---|
+| P1 Che779-Emulator | Windows | Mã nguồn V1 + Remoter Windows, file build `.bat/.cmd/.ps1` | GitHub Actions build, đóng zip + `SHA256SUMS.txt` |
+| P2 Che779-EmulatorV2 | Windows | Mã nguồn V2, file build `.bat/.cmd/.ps1` | Như trên |
+| P3 Che779-Linux | Linux (bỏ Termux) | Mã riêng: script, Remoter Linux; V1/V2 build từ P1/P2 | Actions tạo `.deb` + `.tar.gz` (+ `.sh` giữ tạm) + `SHA256SUMS.txt` |
+| P4 Che779-Android | Android | Gradle/APK, bản clone, thư mục `termux/` (chỉ V2) | Actions tạo APK, APK clone, `che779-termux.sh` + `SHA256SUMS.txt` |
+
+1. **Không chép mã Emulator V1/V2 sang repo khác.** P3 và P4 ghim commit của P1/P2 (như `apps/linux/EMULATOR_V2_REF`) rồi build trong Actions.
+2. **Remoter Linux chuyển từ P1 sang P3** (ghim V1 từ P1). P1 chỉ còn Windows.
+3. **Termux chỉ chạy V2**, nằm ở P4 (`termux/`). V1 cho ai muốn thử đặt ở thư mục `test/` (không hỗ trợ chính thức). P3 bỏ Termux.
+4. **Linux đóng gói:** `.deb` (Ubuntu/Mint/Debian, phụ thuộc gói Java chính thức) + `.tar.gz` chạy ngay; `.rpm` để sau; **không** AppImage/Flatpak/Snap. `.sh` một file giữ đến khi hai cách trên ổn.
+5. **`SHA256SUMS.txt` có ở mọi bản phát hành của cả 4 repo**, tính SAU CÙNG trên đúng các file sẽ đăng.
+6. **Thứ tự:** (a) Cherry tạo tag `v1.2.0` cho cả 4 repo như hiện có; (b) hoàn thiện Remoter Linux (Xem lưới) và nhờ chạy thử Linux thật; (c) 1.3.0 mới chia lại. Không đổi tên repo.
+7. Mỗi README bắt đầu bằng dòng "Nền tảng: …" và bảng 4 repo giống nhau; mô tả repo trên GitHub ghi dạng "[Windows] …", "[Linux] …", "[Android] …".
+
+- **Việc của repo này ở 1.3.0:** thêm `termux/` (script Termux tách từ P3, chỉ V2, ghim commit P2, thư mục `test/` cho V1); workflow Phát hành đính thêm `che779-termux.sh`; giữ APK và bản clone.
