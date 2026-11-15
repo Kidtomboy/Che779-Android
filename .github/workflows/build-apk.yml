@@ -72,6 +72,6 @@ jobs:
           gh release delete latest --cleanup-tag --yes || true
           gh release create latest dist/Che779-Android.apk \
             --prerelease \
-            --title "Che779 Android - ban moi nhat" \
-            --notes "Ban build tu dong tu commit ${GITHUB_SHA::7}. Tai file Che779-Android.apk va cai dat." \
+            --title "Che779 Android - ban thu moi nhat (dev, tu dong)" \
+            --notes "Ban THU nghiem tu dong tu commit ${GITHUB_SHA::7}, cap nhat moi lan co thay doi tren main. Muon ban on dinh, tai ban phat hanh dang vX.Y.Z o muc Releases." \
             --target "$GITHUB_SHA"
