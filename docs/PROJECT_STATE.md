@@ -1,6 +1,6 @@
 # Trạng thái dự án — Che779 Android
 
-**Phiên bản:** `1.2.0` (`versionCode 120`). Trạng thái: tạm ổn, đã phát hành thử và đang thu phản hồi.
+**Phiên bản:** `1.3.0` (`versionCode 130`). Trạng thái: tạm ổn, đã phát hành thử và đang thu phản hồi.
 
 ## Tóm tắt
 

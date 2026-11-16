@@ -5,7 +5,7 @@ Dành cho người hoặc AI tiếp tục làm việc trên Project 4.
 ## Nhận diện
 
 - Repo: `Kidtomboy/Che779-Android` (trước đây tên `Che779-Emulator`; tên đó nay là Project 1).
-- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản `1.2.0` (`versionCode 120`).
+- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản `1.3.0` (`versionCode 130`).
 - Lớp vỏ Che779: `javax.microedition.shell.*`.
 
 ## Nguyên tắc
