@@ -42,7 +42,7 @@ jobs:
           set -o pipefail
           ./gradlew testDevDebugUnitTest assembleDevDebug --stacktrace 2>&1 | tee build.log
 
-      - name: Publish build log (de doc loi tu xa)
+      - name: Publish build log (để đọc lỗi từ xa)
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
@@ -50,7 +50,7 @@ jobs:
           { sed -n '/What went wrong/,/Try:/p' build.log | head -80; echo ==== ERRORS; grep -nE "error:|\.java:[0-9]+: |Caused by|Execution failed|ndk-build|clang" build.log | grep -v "^.*\bat org.gradle" | head -150; echo ==== TAIL; tail -n 30 build.log | grep -v "^\s*at "; } > build-tail.log || true
           gh release delete buildlog --cleanup-tag --yes || true
           gh release create buildlog build-tail.log --prerelease \
-            --title "build log" --notes "Log build gan nhat (400 dong cuoi)" --target "$GITHUB_SHA" || true
+            --title "Nhật ký build" --notes "Nhật ký của lần build gần nhất (tối đa 400 dòng cuối)." --target "$GITHUB_SHA" || true
 
       - name: Collect APK
         run: |
@@ -64,14 +64,3 @@ jobs:
           name: Che779-Android-APK
           path: dist/Che779-Android.apk
           if-no-files-found: error
-
-      - name: Publish to Releases (tai khong can dang nhap)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release delete latest --cleanup-tag --yes || true
-          gh release create latest dist/Che779-Android.apk \
-            --prerelease \
-            --title "Che779 Android - ban thu moi nhat (dev, tu dong)" \
-            --notes "Ban THU nghiem tu dong tu commit ${GITHUB_SHA::7}, cap nhat moi lan co thay doi tren main. Muon ban on dinh, tai ban phat hanh dang vX.Y.Z o muc Releases." \
-            --target "$GITHUB_SHA"
