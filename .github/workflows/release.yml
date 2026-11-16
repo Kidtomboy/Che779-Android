@@ -1,6 +1,6 @@
 name: Phát hành
 
-# Gắn thẻ dạng v1.2.0 (hoặc bấm chạy tay) để tự build APK và đưa vào trang Releases.
+# Gắn thẻ dạng v1.3.0 (hoặc bấm chạy tay) để tự build APK và đưa vào trang Releases.
 on:
   push:
     tags: [ 'v*' ]
@@ -31,14 +31,33 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew testDevDebugUnitTest assembleDevDebug --stacktrace
-      - name: Đặt tên file và tạo SHA256SUMS (làm SAU CÙNG, trên đúng file sẽ phát hành)
+      - name: Build bản clone (gói com.che779.emulator2, thư mục dữ liệu J2ME-Che779v2)
         run: |
-          VER=$(cat VERSION)
           mkdir -p out
+          VER=$(cat VERSION)
           cp app/build/outputs/apk/dev/debug/*.apk "out/Che779-Android-$VER.apk"
+          rm -rf app/build/outputs
+          ./gradlew assembleDevDebug "-PcloneId=com.che779.emulator2" "-PcloneName=Che779 2" "-PcloneDir=J2ME-Che779v2" --stacktrace
+          cp app/build/outputs/apk/dev/debug/*.apk "out/Che779-Android-Clone-$VER.apk"
+      - name: Lấy mã V2 đúng commit ghim, build jar và ghép script Termux (V2)
+        run: |
+          bash .github/scripts/fetch-emulator.sh v2
+          bash tests/test-termux.sh build/Che779_EmulatorV2.jar
+          bash termux/build-termux.sh build/Che779_EmulatorV2.jar Che779_EmulatorV2.jar out/che779-termux.sh
+      - name: Ghép script Termux V1 thử nghiệm (chỉ đưa vào artifact, không vào Releases)
+        run: |
+          bash .github/scripts/fetch-emulator.sh v1
+          mkdir -p test-out
+          bash termux/build-termux.sh build/Che779_Emulator.jar Che779_Emulator.jar test-out/che779-termux-v1-test.sh
+      - name: Tạo SHA256SUMS (làm SAU CÙNG, trên đúng file sẽ phát hành)
+        run: |
           cd out
-          sha256sum *.apk > SHA256SUMS.txt
+          sha256sum *.apk che779-termux.sh > SHA256SUMS.txt
           cat SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: termux-v1-test
+          path: test-out/*
       - uses: actions/upload-artifact@v4
         with:
           name: phat-hanh
@@ -51,6 +70,8 @@ jobs:
           files: out/*
           body: |
             ## Che779 Android ${{ github.ref_name }}
+            - `Che779-Android-<ver>.apk`: ứng dụng chính. `Che779-Android-Clone-<ver>.apk`: bản clone (gói khác, dữ liệu `J2ME-Che779v2`) để cài song song.
+            - `che779-termux.sh`: chạy Emulator **V2** trong Termux (`bash che779-termux.sh`).
             Tải file `.apk`, cho phép cài từ nguồn ngoài Play Store rồi cài đặt. Cần Android 5.0 trở lên.
             APK được ký bằng khóa thử nghiệm công khai của dự án để các bản cài đè lên nhau được; đây không phải khóa phát hành riêng.
             Kiểm tra file tải về bằng `SHA256SUMS.txt`. Chi tiết: xem `CHANGELOG.md`.

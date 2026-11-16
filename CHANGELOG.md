@@ -2,9 +2,15 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
-## [1.2.0] — Bản phát hành
+## [1.3.0] — Bản phát hành
 
-Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 120`.
+Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 130`.
+
+### Mới trong 1.3.0
+- **Termux (chỉ V2):** thư mục `termux/` với script một file `che779-termux.sh` (chuyển từ Che779-Linux, bỏ phần Linux). Mã V2 không chép vào repo: Actions lấy từ Che779-EmulatorV2 đúng commit ghim ở `termux/EMULATOR_V2_REF`. V1 thử nghiệm ở `termux/test/` (không hỗ trợ chính thức, không đăng ở Releases).
+- **Phát hành tự động** khi gắn thẻ `vX.Y.Z`: APK chính, APK clone (`com.che779.emulator2`, dữ liệu `J2ME-Che779v2`), `che779-termux.sh` và `SHA256SUMS.txt` (tính sau cùng trên đúng các file đăng).
+
+### Tính năng của ứng dụng
 
 ### Đã được chủ dự án thử trên máy thật
 - **Đa tab:** mỗi game là một phiên riêng trong cùng một ứng dụng; cấu hình hiển thị và mạng riêng từng tab.

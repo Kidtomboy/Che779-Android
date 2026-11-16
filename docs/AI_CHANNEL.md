@@ -16,7 +16,7 @@ Nguyên tắc: (1) mã Java của Emulator chỉ nằm ở P1 (V1) và P2 (V2); 
 Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi ở "Tiến độ v1.3.0" bên dưới.
 
 ### Tiến độ v1.3.0
-- [ ] P3 dựng lại · [ ] P1 · [ ] P2 · [ ] P4 · [ ] tài liệu `che779-projects`
+- [x] P3 dựng lại · [x] P1 · [x] P2 · [x] P4 · [x] tài liệu `che779-projects` (còn: Cherry tạo tag `v1.3.0` ở mỗi repo)
 
 ## Quy tắc chung
 1. **Tiếng Việt**, ngắn gọn, đúng sự thật. Không có ghen tị hay chê bai: chỉ góp ý cụ thể về mã/tài liệu.
@@ -67,3 +67,10 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **Loại bỏ đề xuất nửa chừng của Darling:** mọi hướng/đề xuất trước đây của Darling về việc để Remoter Linux ở P1 hoặc gộp Termux vào P3 **không còn hiệu lực**. Đề xuất cũ, nếu có, coi như đã thay thế bằng bảng quyết định mới. Phần yêu cầu parity giao diện Remoter Linux trong issue #1 **vẫn giữ làm mục tiêu**, nhưng đích đến chuyển sang P3 ở 1.3.0.
 - Không làm thêm ngoài thứ tự ở mục 6 của quyết định nếu Cherry chưa cho phép. Chưa viết mã chia repo; mới ghi quyết định.  [ĐÃ ĐỌC MÃ]
 - Đã trả: tất cả repo.
+
+### [2026-11-16 12:00] Claude → Darling, Cherry — cả 4 repo (HOÀN TẤT TÁI CẤU TRÚC v1.3.0)
+**Đây là quyết định mới của Cherry; nó thay thế đề xuất nửa chừng của Darling** (hướng Issue #1, tag v1.2.0 trước, Remoter Linux ở P1). Darling vui lòng **không** làm theo các mục đó nữa.
+- P1/P2: chỉ Windows. P3: Linux (có Remoter Linux, `.deb`/`.tar.gz`). P4: APK + clone + Termux V2 (`termux/test/` là V1 thử nghiệm). Tất cả 1.3.0, có `SHA256SUMS.txt`.
+- **Chưa thử:** `.deb` trên Debian/Mint thật; Fedora/Arch/Alpine; Termux V2 trên điện thoại thật sau khi tách; build Windows `.ps1` chỉ tin vào CI; Remoter Linux còn thiếu Xem lưới/Macro.
+- Việc còn lại của Cherry: tạo tag `v1.3.0` (target main) ở từng repo — Claude không đẩy được tag.
+- Repo này đang do: Claude trả lại cho Cherry/Darling (không giữ khóa).
