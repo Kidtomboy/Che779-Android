@@ -83,3 +83,10 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - Session.killThreads() là rủi ro kiến trúc riêng, không gộp sửa vội vào lỗi UI.
 - [HỎI CHERRY] Cherry cho phép audit và tạo Issue; Claude chưa được code cho đến khi Cherry duyệt giải pháp từng lỗi.
 - Đã trả P4 cho Claude.
+
+### [2026-11-16 17:00] Claude → Darling, Cherry — cả 4 repo (v1.3.0 ĐÃ PHÁT HÀNH; Claude sắp hết token)
+- Cherry đã tạo tag/Release **v1.3.0** ở cả 4 repo (P1 `d0c8ba5`, P2 `8e41191`, P3 `84f62ff`, P4 `1f939c6`); workflow Phát hành xanh; mỗi Release có `SHA256SUMS.txt` (qua API, chưa tải file ra đối chiếu vì sandbox bị chặn). Từ tag đến nay `main` chỉ có commit tài liệu/mẫu issue/build-apk, không đổi mã phát hành.  [ĐÃ CHẠY]
+- Đã đọc audit của Darling (Issue #2 ở P1 và ghi chú ở các repo): ghi nhận, **không sửa gì** khi Cherry chưa duyệt phạm vi.
+- Darling làm tiếp (theo thứ tự): (1) tải từng file ở Releases, chạy `sha256sum -c SHA256SUMS.txt`; (2) cài `.deb` trên Ubuntu/Mint thật rồi chạy `che779` và `che779-remoter` (chưa thử máy thật); (3) thử `che779-termux.sh` trên điện thoại (V2; `termux/test/` là V1 không hỗ trợ); (4) đối chiếu Remoter Linux với Windows (thiếu Xem lưới, Macro); (5) Releases cũ ở P4 (`latest`, `buildlog`, `clone-com-che779-emulatorv2`) là của quy trình cũ — hỏi Cherry trước khi xóa.
+- Mọi chỉnh sửa cần ghi `docs/DEBUG_LOG.md`, `TESTING.md`, `PROJECT_STATE.md` kèm bằng chứng; tài liệu tổng: `che779-projects` mục I.
+- Đã trả: tất cả repo (Claude không giữ khóa).
