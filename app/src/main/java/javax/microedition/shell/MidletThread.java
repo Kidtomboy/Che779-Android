@@ -83,9 +83,10 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 
 	public static void notifyDestroyed() {
 		Session closing = Session.current();
-		if (closing != null && Session.count() > 1) {
-			// other tabs are alive: close only this one
-			MicroActivity activity = ContextHolder.getActivity();
+		MicroActivity activity = ContextHolder.getActivity();
+		if (closing != null && (Session.count() > 1
+				|| (activity != null && startAfterDestroy == null))) {
+			// Closing a tab (including the final tab) must not be treated as app exit.
 			if (closing.thread != null) {
 				closing.thread.state = DESTROYED;
 			}
@@ -94,12 +95,12 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 			}
 			return;
 		}
+		// Preserve the legacy platformRequest hand-off and explicit process-exit path.
 		Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);
 		MidletThread instance = instance();
 		if (instance != null) {
 			instance.state = DESTROYED;
 		}
-		MicroActivity activity = ContextHolder.getActivity();
 		if (activity != null) {
 			activity.finish();
 		}
