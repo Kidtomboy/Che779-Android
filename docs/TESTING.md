@@ -37,3 +37,5 @@ Một lần CI xanh không thay cho việc thử trên máy thật.
 - Bubble gestures: tap ngắn mở danh sách tab/game; long-press mở menu treo/mức ẩn; long-press không đồng thời kích hoạt tap; kéo/thả vẫn hoạt động.
 - ZIP import: chọn ZIP hợp lệ từ menu chính/danh sách game, nhập đúng và xử lý ZIP lỗi/thiếu JAR/JAD an toàn.
 - Chưa có mục nào trong kế hoạch này được đánh dấu đã chạy cho đến khi có log/thiết bị/emulator và kết quả cụ thể.
+
+- [ĐÃ SỬA MÃ, CHƯA KIỂM THỬ] Nhánh Darling đã tách thao tác đóng tab cuối khỏi đường thoát tiến trình. Workflow build đã cấu hình để chạy trên `darling/**`; cần chờ kết quả `testDevDebugUnitTest` và `assembleDevDebug`, sau đó vẫn phải thử thao tác đóng tab cuối trên Android thật/emulator.
