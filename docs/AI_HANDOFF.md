@@ -29,3 +29,13 @@ Dành cho người hoặc AI tiếp tục làm việc trên Project 4.
 Darling đã rà soát source và tài liệu ở revision hiện tại. Danh sách phát hiện, phân loại mức độ xác minh và phạm vi được phép làm nằm trong [AI_CHANNEL.md](AI_CHANNEL.md) (ghi chú mới nhất ở cuối) và GitHub Issue: https://github.com/Kidtomboy/Che779-Android/issues/1.
 
 **Quy tắc bàn giao:** audit/Issue không phải quyền tự động sửa source. Claude phải chờ Cherry duyệt từng giải pháp/phạm vi; trước khi code cần kiểm tra lại main vì source có thể thay đổi. Sau khi sửa, cập nhật DEBUG_LOG, TESTING, PROJECT_STATE và AI_CHANNEL với bằng chứng build/runtime.
+
+
+## Bàn giao mới — Cherry giao Darling trực tiếp (2026-11-17)
+- Người thực hiện hiện tại: **Darling**; nhánh làm việc: `darling/p4-session-lifecycle-and-approved-scope`; base main lúc nhận: `332304590cbf4569a0e703dbf92cb29aafadbec7`.
+- Cherry yêu cầu mọi lệnh, quyết định, thay đổi và kết quả kiểm thử phải được ghi vào `AI_CHANNEL.md`, `AI_HANDOFF.md` và tài liệu chức năng liên quan (ít nhất `PROJECT_STATE.md`, `DEBUG_LOG.md`, `TESTING.md`, `CHANGELOG.md` khi phù hợp).
+- **Giữ nguyên `1.3.0`, `versionCode 130`, tag `v1.3.0`.** Đây là nhãn đồng bộ 4 project theo quyết định Cherry; mức tính năng thực tế hiện tại của P4 tương đương 1.2.0. Không bump version/tag và không ghi tính năng mới như đã phát hành.
+- Phạm vi được duyệt gồm đúng 7 nhóm trong mục mới nhất của `AI_CHANNEL.md`: hai bàn phím tách biệt (Nokia/J2ME và Android QWERTY/IME, IME nhập được text vào MIDlet); restart riêng tab; tự hiện bong bóng khi vào game; tiếp tục chạy nền sau khi vuốt khỏi Recents trong giới hạn Android; nhập game ZIP từ menu chính; notification đúng hai nút “Chế độ” và “Dừng”; short-tap/long-press bong bóng có hành vi tách biệt.
+- Ưu tiên đầu tiên: lỗi đóng tab cuối/duy nhất để lại màn hình game cũ.
+- Không thêm tính năng ngoài phạm vi. Không force-push, không ghi đè thay đổi ngoài ý muốn; làm trên nhánh riêng, chia commit nhỏ có thể rollback. Main không được coi là đã thay đổi cho đến khi Cherry duyệt/merge.
+- Tại thời điểm ghi mục này: mới đọc source và ghi nhận điểm nghi vấn; chưa sửa source, chưa build, chưa chạy GUI. CI xanh không thay cho kiểm thử trên máy Android thật.
