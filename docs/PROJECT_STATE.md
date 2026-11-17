@@ -28,3 +28,5 @@ Mã nguồn và commit là bằng chứng về cách làm; log CI là bằng ch�
 - Làm trên nhánh `darling/p4-session-lifecycle-and-approved-scope`, base `332304590cbf4569a0e703dbf92cb29aafadbec7`. Main chưa bị sửa.
 - Giữ `1.3.0` / `versionCode 130` / tag `v1.3.0` để đồng bộ 4 project. Cherry xác nhận tính năng thực tế hiện tại tương đương 1.2.0; không nâng version hoặc mô tả tính năng mới như đã phát hành.
 - Tình trạng khi nhận việc: [ĐÃ ĐỌC MÃ] có nghi vấn cleanup thiếu ở nhánh removeSession khi không còn tab; [ĐÃ ĐỌC MÃ] long-press bubble có thể chạy thêm nhánh tap ở ACTION_UP; [ĐÃ ĐỌC MÃ] notification hiện chỉ có nội dung, chưa có action. Chưa sửa, chưa build, chưa chạy GUI.
+
+- [ĐÃ SỬA MÃ, CHƯA KIỂM THỬ] Đã thay đường đóng tab cuối trong `MicroActivity`/`MidletThread`: tab cuối được loại khỏi Session, dọn host, rồi Activity kết thúc để quay về danh sách game; không dùng đường `destroyApp()` vốn hẹn giờ kill process cho thao tác đóng tab. Giữ đường thoát rõ ràng và `startAfterDestroy`. Workflow CI chạy trên nhánh Darling. Chờ CI và kiểm thử trên Android; chưa xác nhận runtime.
