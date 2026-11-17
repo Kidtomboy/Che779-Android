@@ -21,3 +21,9 @@ Chủ dự án quyết định: các lỗi dưới đây **chưa sửa, chờ c�
 - Hai bản clone không dùng chung dữ liệu (cài trùng game sẽ tốn gấp đôi dung lượng).
 - Tùy chọn đổi thư mục dữ liệu chỉ có tác dụng ở chế độ lưu trữ cũ (Android 10 trở xuống).
 - Mã chẩn đoán (`Che779Diag`, log nạp lớp, đếm lớp dex, thread dump) vẫn bật; nên chuyển sang bật bằng cờ trong Cài đặt trước khi phát hành rộng.
+
+
+## Lỗi mới do Cherry báo — 2026-11-17
+| # | Lỗi | Trạng thái |
+|---|---|---|
+| 4 | **Đóng tab cuối cùng/duy nhất nhưng khung game cũ vẫn còn hiển thị và bị treo** | Ưu tiên sửa đầu tiên. [ĐÃ ĐỌC MÃ] Trong `MicroActivity.removeSession()`, đoạn xử lý dọn `host()` nằm trong nhánh `wasActive && neighbour != null`; khi không còn tab kế tiếp, chưa thấy nhánh dọn host tương ứng. Đây mới là điểm nghi vấn từ source, cần kiểm tra toàn bộ lifecycle `MidletThread.destroyApp()` và xác nhận sau sửa. Chưa tái hiện runtime. |
