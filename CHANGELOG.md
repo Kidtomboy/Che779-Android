@@ -34,5 +34,8 @@ Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 130`.
 - Nhật ký chẩn đoán xoay vòng (tối đa 3 MiB mỗi thế hệ); giới hạn thread dump 3 lần/tab và 20 lần/tiến trình.
 - Cấu hình mạng từ chối cổng ngoài 1–65535, địa chỉ IPv6 và giao thức lạ.
 
+### Ghi chú nhánh phát triển (chưa có trong tag/release `v1.3.0`)
+- Đang sửa vòng đời đóng tab cuối để không bị hiểu thành lệnh thoát toàn bộ tiến trình. Thay đổi nằm trên nhánh Darling, chưa được xác nhận build/runtime và **không thuộc APK đã phát hành ở tag `v1.3.0`**.
+
 ### Phát hành
 - Mỗi lần gắn thẻ `vX.Y.Z`, GitHub tự kiểm thử, build và tạo `Che779-Android-<phiên bản>.apk` cùng `SHA256SUMS.txt`.
