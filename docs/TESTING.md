@@ -24,3 +24,16 @@
 - Proxy HTTP/SOCKS5 và chuyển hướng IP khi lỗi hoặc quá hạn.
 
 Một lần CI xanh không thay cho việc thử trên máy thật.
+
+
+## Kế hoạch kiểm thử cho phạm vi Cherry giao (2026-11-17)
+- Đóng tab duy nhất: không còn Displayable/View game cũ; trạng thái tab/session/host nhất quán; Activity hiển thị trạng thái rỗng/menu theo thiết kế.
+- Đóng tab đang chọn khi còn tab khác: tab kế tiếp hoạt động đúng, không ảnh hưởng game khác.
+- Restart tab: chỉ MIDlet/session của tab đã chọn được restart; tab còn lại giữ nguyên trạng thái.
+- Bàn phím Nokia và Android IME: hai nút riêng; IME nhập/xóa/chuyển dòng được trong TextBox/Form MIDlet; không làm mất phím game.
+- Bubble: tự hiện khi vào game khi quyền overlay cho phép; nếu chưa có quyền phải xử lý hướng dẫn/cấp quyền, không tạo service trùng.
+- Nền: vuốt task khỏi Recents không chủ động dừng service/session; nút “Dừng” và nút “Thoát” dừng theo đúng phạm vi; kiểm tra riêng giới hạn Android/OEM.
+- Notification: có đúng hai action “Chế độ” và “Dừng”; action “Chế độ” cập nhật nội dung thể hiện mode hiện tại; “Dừng” dừng thực sự.
+- Bubble gestures: tap ngắn mở danh sách tab/game; long-press mở menu treo/mức ẩn; long-press không đồng thời kích hoạt tap; kéo/thả vẫn hoạt động.
+- ZIP import: chọn ZIP hợp lệ từ menu chính/danh sách game, nhập đúng và xử lý ZIP lỗi/thiếu JAR/JAD an toàn.
+- Chưa có mục nào trong kế hoạch này được đánh dấu đã chạy cho đến khi có log/thiết bị/emulator và kết quả cụ thể.
