@@ -664,13 +664,7 @@ public class MicroActivity extends AppCompatActivity {
 		new AlertDialog.Builder(this)
 				.setTitle(R.string.CONFIRMATION_REQUIRED)
 				.setMessage("Đóng tab " + no + "?")
-				.setPositiveButton(android.R.string.ok, (d, w) -> {
-					if (tabs.size() <= 1) {
-						MidletThread.destroyApp();
-					} else {
-						closeSession(s);
-					}
-				})
+				.setPositiveButton(android.R.string.ok, (d, w) -> closeSession(s))
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 	}
@@ -745,6 +739,16 @@ public class MicroActivity extends AppCompatActivity {
 				host().removeAllViews();
 				ViewHandler.postEvent(new SetCurrentEvent(null, neighbour.current));
 				MidletThread.resumeApp();
+			} else if (wasActive) {
+				// Closing the final tab is not the same as exiting the application.
+				// Remove the stale game surface before returning to the game list.
+				host().removeAllViews();
+				if (binding != null) {
+					binding.overlayView.removeAllLayers();
+				}
+				Session.grid = false;
+				gridMode = false;
+				finish();
 			}
 			refreshTabBar();
 		});
