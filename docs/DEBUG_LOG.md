@@ -27,3 +27,5 @@ Chủ dự án quyết định: các lỗi dưới đây **chưa sửa, chờ c�
 | # | Lỗi | Trạng thái |
 |---|---|---|
 | 4 | **Đóng tab cuối cùng/duy nhất nhưng khung game cũ vẫn còn hiển thị và bị treo** | Ưu tiên sửa đầu tiên. [ĐÃ ĐỌC MÃ] Trong `MicroActivity.removeSession()`, đoạn xử lý dọn `host()` nằm trong nhánh `wasActive && neighbour != null`; khi không còn tab kế tiếp, chưa thấy nhánh dọn host tương ứng. Đây mới là điểm nghi vấn từ source, cần kiểm tra toàn bộ lifecycle `MidletThread.destroyApp()` và xác nhận sau sửa. Chưa tái hiện runtime. |
+
+- [ĐÃ ĐỌC MÃ] Đọc thêm `MidletThread`: `destroyApp()` ở trạng thái chỉ còn một Session đặt timer `Process.killProcess()` sau 1 giây; `notifyDestroyed()` với `Session.count() <= 1` cũng `finish()` Activity và kill process. Đây có thể giải thích trạng thái màn hình treo/đóng không đúng như Cherry quan sát. Phải tách hành vi “đóng tab cuối” khỏi “thoát ứng dụng”; không được chỉ bỏ kill process mà quên cleanup MIDlet, queue, Session và view. Chưa xác nhận runtime.
