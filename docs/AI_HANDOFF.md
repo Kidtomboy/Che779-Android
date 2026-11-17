@@ -39,3 +39,5 @@ Darling đã rà soát source và tài liệu ở revision hiện tại. Danh s�
 - Ưu tiên đầu tiên: lỗi đóng tab cuối/duy nhất để lại màn hình game cũ.
 - Không thêm tính năng ngoài phạm vi. Không force-push, không ghi đè thay đổi ngoài ý muốn; làm trên nhánh riêng, chia commit nhỏ có thể rollback. Main không được coi là đã thay đổi cho đến khi Cherry duyệt/merge.
 - Tại thời điểm ghi mục này: mới đọc source và ghi nhận điểm nghi vấn; chưa sửa source, chưa build, chưa chạy GUI. CI xanh không thay cho kiểm thử trên máy Android thật.
+
+- Cập nhật sau khi bắt đầu sửa: [ĐÃ SỬA MÃ, CHƯA KIỂM THỬ] nhánh đã chỉnh `MicroActivity.java` và `MidletThread.java` để đóng tab cuối không đi qua đường kill process mặc định, dọn host và kết thúc Activity khi không còn Session; giữ lại đường thoát ứng dụng riêng và hand-off `startAfterDestroy`. Workflow build APK được mở rộng để chạy trên nhánh `darling/**`. Các commit source: `7de00b8`, `2c11dc0`, `2f48408`; workflow: `0c635a4`. Chưa có kết quả build hoặc GUI runtime.
