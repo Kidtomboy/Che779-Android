@@ -2,7 +2,7 @@ name: Build Che779 APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'darling/**']
   workflow_dispatch:
 
 permissions:
