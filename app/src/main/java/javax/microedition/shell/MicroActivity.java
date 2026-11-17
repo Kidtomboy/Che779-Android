@@ -716,6 +716,16 @@ public class MicroActivity extends AppCompatActivity {
 				dead.killThreads();
 			}, "Che779-Cleanup").start();
 			saveTabs();
+			if (tabs.isEmpty()) {
+				// Closing the final tab is not the same as exiting the application.
+				// Remove the stale game surface before returning to the game list.
+				host().removeAllViews();
+				Session.grid = false;
+				gridMode = false;
+				refreshTabBar();
+				finish();
+				return;
+			}
 			if (gridMode) {
 				if (!wasActive && s.current != null) {
 					s.current.clearDisplayableView();
@@ -739,17 +749,7 @@ public class MicroActivity extends AppCompatActivity {
 				host().removeAllViews();
 				ViewHandler.postEvent(new SetCurrentEvent(null, neighbour.current));
 				MidletThread.resumeApp();
-			} else if (wasActive) {
-				// Closing the final tab is not the same as exiting the application.
-				// Remove the stale game surface before returning to the game list.
-				host().removeAllViews();
-				if (binding != null) {
-					binding.overlayView.removeAllLayers();
-				}
-				Session.grid = false;
-				gridMode = false;
-				finish();
-			}
+
 			refreshTabBar();
 		});
 	}
