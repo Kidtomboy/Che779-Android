@@ -33,9 +33,9 @@ import ru.playsoftware.j2meloader.config.Config;
  */
 final class MultiDex {
 	/** Jars with at most this many classes use the old single-dex path. */
-	private static final int SINGLE_DEX_MAX_CLASSES = 800;
+	private static final int SINGLE_DEX_MAX_CLASSES = 300;
 	/** Classes per dex file when splitting. */
-	private static final int CLASSES_PER_DEX = 500;
+	private static final int CLASSES_PER_DEX = 150;
 
 	private MultiDex() {
 	}
@@ -95,7 +95,7 @@ final class MultiDex {
 					}
 				}
 			}
-			int threads = Math.max(1, Math.min(Runtime.getRuntime().availableProcessors(), 4));
+			int threads = Math.max(1, Math.min(Runtime.getRuntime().availableProcessors(), 6));
 			ExecutorService pool = Executors.newFixedThreadPool(threads);
 			try {
 				List<Future<?>> jobs = new ArrayList<>();
