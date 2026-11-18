@@ -39,6 +39,14 @@ final class FloatingController {
 		/** Bring the full game screen back. */
 		void onDock();
 
+		void onSyncDialog();
+
+		void onProxy();
+
+		void onRestart();
+
+		void onPickTab();
+
 		/** The "*" button (switches tabs of merged games). */
 		void onStar();
 
@@ -516,27 +524,41 @@ final class FloatingController {
 		bar.setBackgroundColor(0xFF1C222B);
 		bar.addView(iconButton(R.drawable.ic_c_left, v -> cycle(-1)));
 		label = new TextView(ctx);
-		label.setTextColor(0xFF9AA4B2);
+		label.setTextColor(0xFFFFFFFF);
 		label.setGravity(Gravity.CENTER);
 		label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+		label.setBackgroundColor(0x33FFFFFF);
+		label.setOnClickListener(v -> {
+			if (callbacks != null) {
+				callbacks.onPickTab();
+			}
+		});
 		label.setLayoutParams(new LinearLayout.LayoutParams(0, dp(32), 1f));
 		bar.addView(iconButton(R.drawable.ic_c_right, v -> cycle(1)), 0 + 1);
 		bar.addView(label);
-		bar.addView(iconButton(R.drawable.ic_c_swap, v -> {
+		bar.addView(button("*", v -> {
 			if (callbacks != null) {
 				callbacks.onStar();
 			}
 		}));
-		final ImageView syncBtn = iconButton(R.drawable.ic_c_sync, null);
-		syncBtn.setColorFilter(callbacks != null && callbacks.isSync() ? 0xFF4CAF50 : Color.WHITE,
-				android.graphics.PorterDuff.Mode.SRC_IN);
+		bar.addView(iconButton(R.drawable.ic_c_swap, v -> {
+			if (callbacks != null) {
+				callbacks.onProxy();
+			}
+		}));
+		final ImageView syncBtn = iconButton(callbacks != null && callbacks.isSync()
+				? R.drawable.ic_c_checked : R.drawable.ic_c_unchecked, null);
 		syncBtn.setOnClickListener(v -> {
 			if (callbacks != null) {
-				syncBtn.setColorFilter(callbacks.onToggleSync() ? 0xFF4CAF50 : Color.WHITE,
-						android.graphics.PorterDuff.Mode.SRC_IN);
+				callbacks.onSyncDialog();
 			}
 		});
 		bar.addView(syncBtn);
+		bar.addView(iconButton(R.drawable.ic_c_sync, v -> {
+			if (callbacks != null) {
+				callbacks.onRestart();
+			}
+		}));
 		bar.addView(iconButton(R.drawable.ic_c_keyboard, v -> toggleKeypad()));
 		bar.addView(iconButton(R.drawable.ic_c_remove, v -> showBubble()));
 		bar.addView(iconButton(R.drawable.ic_c_full, v -> {

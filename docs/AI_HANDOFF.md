@@ -56,3 +56,8 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - `closeKeypad()` không còn khôi phục VK J2ME (sửa ghost button).
 - Settings mới: pref_power_mode, pref_hide_level (String), pref_bubble_only_hang, pref_bubble_size, pref_bubble_alpha, pref_headless. Áp dụng ở MicroActivity.applyPowerPrefs (một lần/activity) và FloatingController.baseSize/baseAlpha.
 - Chưa làm: tuỳ chọn hành động 1 chạm/2 chạm/giữ lâu và nguồn icon PNG tuỳ chỉnh. Chưa biên dịch/chạy máy thật tại thời điểm ghi.
+
+## Cập nhật 2026-11-18 (3)
+- FloatingController: thêm callbacks onSyncDialog/onProxy/onRestart/onPickTab; nút `*` là chữ; proxy dùng ic_c_swap; sync dùng ic_c_checked/unchecked; restart dùng ic_c_sync.
+- MicroActivity: `dctx()`/`showDlg()` hiển thị hộp thoại dạng overlay (TYPE_APPLICATION_OVERLAY) khi `floating`. Hộp thoại khởi động lại có nút "Đổi proxy".
+- "Lỗi bản ghép": người dùng chưa mô tả lỗi cụ thể, CHƯA sửa. Chưa biên dịch/thử máy thật.

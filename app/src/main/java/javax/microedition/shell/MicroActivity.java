@@ -747,6 +747,24 @@ public class MicroActivity extends AppCompatActivity {
 				.show();
 	}
 
+	private android.content.Context dctx() {
+		return floating ? new androidx.appcompat.view.ContextThemeWrapper(getApplicationContext(),
+				androidx.appcompat.R.style.Theme_AppCompat_Light_Dialog_Alert) : this;
+	}
+
+	/** Shows a dialog; over other apps (overlay window) while the game runs in the floating window. */
+	private void showDlg(AlertDialog.Builder b) {
+		try {
+			AlertDialog d = b.create();
+			if (floating && d.getWindow() != null) {
+				d.getWindow().setType(Build.VERSION.SDK_INT >= 26 ? 2038 : 2003);
+			}
+			d.show();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void showRestartDialog() {
 		final Session act = Session.active();
 		if (act == null || tabs.isEmpty()) {
@@ -755,7 +773,7 @@ public class MicroActivity extends AppCompatActivity {
 		final EditText input = new EditText(this);
 		input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 		input.setHint("Số tab (để trống = tab " + slotOf(act) + ")");
-		new AlertDialog.Builder(this)
+		showDlg(new AlertDialog.Builder(dctx())
 				.setTitle("Khởi động lại tab")
 				.setMessage("Tab cũ thoát hẳn và ngắt mọi kết nối cũ, rồi mới mở lại game ở cùng số tab.")
 				.setView(input)
@@ -776,7 +794,7 @@ public class MicroActivity extends AppCompatActivity {
 						}
 					}
 					if (target == null) {
-						Toast.makeText(this, "Không có tab " + t, Toast.LENGTH_SHORT).show();
+						Toast.makeText(this, "Không có tab " + t, Toast.LENGTH_SHORT));
 						return;
 					}
 					restartSession(target);
@@ -972,7 +990,7 @@ public class MicroActivity extends AppCompatActivity {
 				"Chuyển hướng IP",
 				"Tắt proxy của tab " + no
 		};
-		new AlertDialog.Builder(this)
+		showDlg(new AlertDialog.Builder(dctx())
 				.setTitle("Proxy")
 				.setItems(items, (d, which) -> {
 					if (which == 0) {
@@ -986,7 +1004,7 @@ public class MicroActivity extends AppCompatActivity {
 					} else {
 						setTabProxy(cur, null);
 						Toast.makeText(this, "Đã tắt proxy tab " + no + " (áp dụng cho kết nối mới)",
-								Toast.LENGTH_SHORT).show();
+								Toast.LENGTH_SHORT));
 					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -1004,11 +1022,11 @@ public class MicroActivity extends AppCompatActivity {
 		for (int i = 0; i < names.length; i++) {
 			names[i] = (i + 1) + ". " + list.get(i).label();
 		}
-		new AlertDialog.Builder(this)
+		showDlg(new AlertDialog.Builder(dctx())
 				.setTitle("Chọn proxy cho tab " + slotOf(cur))
 				.setItems(names, (d, which) -> {
 					setTabProxy(cur, list.get(which));
-					Toast.makeText(this, "Đã đặt proxy (áp dụng cho kết nối mới)", Toast.LENGTH_SHORT).show();
+					Toast.makeText(this, "Đã đặt proxy (áp dụng cho kết nối mới)", Toast.LENGTH_SHORT));
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
@@ -1017,13 +1035,13 @@ public class MicroActivity extends AppCompatActivity {
 	private void editProxyList() {
 		final EditText input = multiLine(netPrefs().getString("che779_proxy_list", ""),
 				"Mỗi dòng một proxy:\nsocks5://user:pass@host:port\nhttp://host:port\nhost:port:user:pass");
-		new AlertDialog.Builder(this)
+		showDlg(new AlertDialog.Builder(dctx())
 				.setTitle("Danh sách proxy")
 				.setView(input)
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
 					String text = input.getText().toString();
 					netPrefs().edit().putString("che779_proxy_list", text).apply();
-					Toast.makeText(this, "Đọc được " + proxyList().size() + " proxy hợp lệ", Toast.LENGTH_SHORT).show();
+					Toast.makeText(this, "Đọc được " + proxyList().size() + " proxy hợp lệ", Toast.LENGTH_SHORT));
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
@@ -1045,7 +1063,7 @@ public class MicroActivity extends AppCompatActivity {
 	private void editRedirects() {
 		final EditText input = multiLine(netPrefs().getString("che779_redirects", ""),
 				"Mỗi dòng một luật: ip_cu[:port]=ip_moi[:port]\nVí dụ: game.example.com:19129=10.0.0.5:19129");
-		new AlertDialog.Builder(this)
+		showDlg(new AlertDialog.Builder(dctx())
 				.setTitle("Chuyển hướng IP")
 				.setView(input)
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
@@ -1056,7 +1074,7 @@ public class MicroActivity extends AppCompatActivity {
 					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+				);
 	}
 
 	/** Opening another game costs RAM: tell the user how much is left before the phone struggles. */
@@ -1104,7 +1122,7 @@ public class MicroActivity extends AppCompatActivity {
 		input.setInputType(InputType.TYPE_CLASS_NUMBER);
 		input.setText(String.valueOf(Math.max(2, tabs.size())));
 		input.setSelectAllOnFocus(true);
-		new AlertDialog.Builder(this)
+		showDlg(new AlertDialog.Builder(dctx())
 				.setTitle("Chế độ lưới: nhập số ô (N)")
 				.setMessage("Thiếu ô nào sẽ tự mở thêm bản sao game của tab 1. Mỗi ô tốn thêm RAM.")
 				.setView(input)
@@ -1117,7 +1135,7 @@ public class MicroActivity extends AppCompatActivity {
 					startGrid(Math.max(1, Math.min(n, 36)));
 				})
 				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+				);
 	}
 
 	private void startGrid(int n) {
@@ -1396,6 +1414,44 @@ public class MicroActivity extends AppCompatActivity {
 				}
 
 				@Override
+				public void onSyncDialog() {
+					showSyncDialog();
+				}
+
+				@Override
+				public void onProxy() {
+					showProxyDialog();
+				}
+
+				@Override
+				public void onRestart() {
+					showRestartDialog();
+				}
+
+				@Override
+				public void onPickTab() {
+					final java.util.List<Session> list = new java.util.ArrayList<>(tabs);
+					if (list.isEmpty()) {
+						return;
+					}
+					String[] items = new String[list.size()];
+					for (int i = 0; i < items.length; i++) {
+						Session t = list.get(i);
+						items[i] = "Tab " + slotOf(t) + " — " + (t.appName == null ? "" : t.appName);
+					}
+					showDlg(new AlertDialog.Builder(dctx()).setTitle("Chọn tab")
+							.setItems(items, (d, w) -> {
+								if (gridMode) {
+									focusGrid(list.get(w));
+								} else {
+									activate(list.get(w));
+								}
+								updateFloatLabel();
+							})
+							.setNegativeButton(android.R.string.cancel, null));
+				}
+
+				@Override
 				public void onMinimize() {
 					startFloating(true);
 					if (floating) {
@@ -1565,7 +1621,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void showMidletDialog(String[] names, final String[] classes) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this)
+		AlertDialog.Builder builder = showDlg(new AlertDialog.Builder(dctx())
 				.setTitle(R.string.select_dialog_title)
 				.setItems(names, (d, n) -> {
 					String clazz = classes[n];
@@ -1584,17 +1640,17 @@ public class MicroActivity extends AppCompatActivity {
 					d.dismiss();
 					MidletThread.notifyDestroyed();
 				});
-		builder.show();
+		builder);
 	}
 
 	void showErrorDialog(String message) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this)
+		AlertDialog.Builder builder = showDlg(new AlertDialog.Builder(dctx())
 				.setIcon(android.R.drawable.ic_dialog_alert)
 				.setTitle(R.string.error)
 				.setMessage(message)
 				.setPositiveButton(android.R.string.ok, (d, w) -> MidletThread.notifyDestroyed());
 		builder.setOnCancelListener(dialogInterface -> MidletThread.notifyDestroyed());
-		builder.show();
+		builder);
 	}
 
 	private int getToolBarHeight() {
@@ -1678,7 +1734,7 @@ public class MicroActivity extends AppCompatActivity {
 			String nm = t.label != null && !t.label.isEmpty() ? " · " + t.label : "";
 			items[i] = "Tab " + (i + 1) + nm + " — " + (t.appName == null ? "" : t.appName);
 		}
-		new AlertDialog.Builder(this)
+		showDlg(new AlertDialog.Builder(dctx())
 				.setTitle("Đồng bộ phím: chọn các tab")
 				.setMultiChoiceItems(items, checked, (d, w, on) -> checked[w] = on)
 				.setPositiveButton("Áp dụng", (d, w) -> {
@@ -1694,7 +1750,7 @@ public class MicroActivity extends AppCompatActivity {
 						bottomBar.setSyncOn(Session.syncKeys);
 					}
 					if (n == 1) {
-						Toast.makeText(this, "Cần chọn ít nhất 2 tab để đồng bộ", Toast.LENGTH_SHORT).show();
+						Toast.makeText(this, "Cần chọn ít nhất 2 tab để đồng bộ", Toast.LENGTH_SHORT));
 					}
 				})
 				.setNeutralButton("Tắt đồng bộ", (d, w) -> {
