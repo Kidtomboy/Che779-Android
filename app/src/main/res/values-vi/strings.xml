@@ -217,4 +217,22 @@
     <string name="action_power">Chế độ pin</string>
     <string name="pref_restore_tabs">Tự khôi phục các tab lần chạy trước</string>
     <string name="action_fix_vk">Sửa bàn phím ảo (bị mất / thụt xuống)</string>
+    <string name="pref_cat_treo">Treo Online</string>
+    <string name="pref_power_title">Chế độ tiết kiệm pin</string>
+    <string name="pref_hide_title">Cấp độ ẩn ứng dụng</string>
+    <string name="pref_hide_summary">SOFT giữ icon · STEALTH xoá recents · NINJA ẩn gần hoàn toàn bóng nổi</string>
+    <string name="pref_cat_bubble">Bóng nổi</string>
+    <string name="pref_bubble_only_title">Chỉ hiện khi đang treo</string>
+    <string name="pref_bubble_only_summary">Không hiện bóng khi game đang ở trên màn hình</string>
+    <string name="pref_bubble_size_title">Kích thước (dp)</string>
+    <string name="pref_bubble_size_summary">Kích thước bóng, mặc định 56</string>
+    <string name="pref_bubble_alpha_title">Độ trong (%)</string>
+    <string name="pref_bubble_alpha_summary">Độ trong của bóng, mặc định 85</string>
+    <string name="pref_cat_perf">Tối ưu hiệu năng</string>
+    <string name="pref_headless_title">Headless Mode</string>
+    <string name="pref_headless_summary">Game chạy logic nhưng KHÔNG vẽ lên màn hình. Tiết kiệm GPU/pin khi treo.</string>
+    <string-array name="pref_power_entries"><item>Bình thường</item><item>Tiết kiệm pin</item><item>Siêu tiết kiệm</item></string-array>
+    <string-array name="pref_power_values"><item>0</item><item>1</item><item>2</item></string-array>
+    <string-array name="pref_hide_entries"><item>OFF</item><item>SOFT</item><item>STEALTH</item><item>NINJA</item></string-array>
+    <string-array name="pref_hide_values"><item>0</item><item>1</item><item>2</item><item>3</item></string-array>
 </resources>

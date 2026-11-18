@@ -31,6 +31,52 @@
         android:key="pref_bubble_enabled"
         android:title="@string/pref_bubble_title"
         android:summary="@string/pref_bubble_summary" />
+    <PreferenceCategory android:title="@string/pref_cat_treo">
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/pref_power_entries"
+            android:entryValues="@array/pref_power_values"
+            android:key="pref_power_mode"
+            android:title="@string/pref_power_title"
+            android:summary="%s" />
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/pref_hide_entries"
+            android:entryValues="@array/pref_hide_values"
+            android:key="pref_hide_level"
+            android:title="@string/pref_hide_title"
+            android:summary="@string/pref_hide_summary" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_cat_bubble">
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="pref_bubble_only_hang"
+            android:title="@string/pref_bubble_only_title"
+            android:summary="@string/pref_bubble_only_summary" />
+        <SeekBarPreference
+            android:defaultValue="56"
+            android:key="pref_bubble_size"
+            android:max="96"
+            app:min="32"
+            app:showSeekBarValue="true"
+            android:title="@string/pref_bubble_size_title"
+            android:summary="@string/pref_bubble_size_summary" />
+        <SeekBarPreference
+            android:defaultValue="85"
+            android:key="pref_bubble_alpha"
+            android:max="100"
+            app:min="20"
+            app:showSeekBarValue="true"
+            android:title="@string/pref_bubble_alpha_title"
+            android:summary="@string/pref_bubble_alpha_summary" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_cat_perf">
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="pref_headless"
+            android:title="@string/pref_headless_title"
+            android:summary="@string/pref_headless_summary" />
+    </PreferenceCategory>
     <SwitchPreferenceCompat
         android:defaultValue="false"
         android:icon="@drawable/ic_setting_black_background"

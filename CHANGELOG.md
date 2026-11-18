@@ -7,6 +7,7 @@ Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản 
 Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 130`.
 
 ### Mới trong 1.3.0
+- **Cài đặt mới**: Treo Online (chế độ pin, cấp độ ẩn), Bóng nổi (chỉ hiện khi treo, kích thước, độ trong), Tối ưu hiệu năng (Headless). Sửa lỗi bàn phím J2ME "ma" sau khi đóng bàn phím Nokia (giờ ẩn hẳn).
 - **Bàn phím Nokia và Android** (hai biểu tượng riêng), chọn ở thanh dưới hoặc ngay trên bàn phím.
 - **Thanh icon phía dưới** gom mọi chức năng; thanh tab phía trên chỉ còn số tab.
 - **Khởi động lại tab/nhập số tab** trong menu ba chấm; tab cũ được đóng hẳn cùng các kết nối trước khi mở lại.

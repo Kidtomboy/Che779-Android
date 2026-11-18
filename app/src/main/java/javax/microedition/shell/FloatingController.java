@@ -196,7 +196,7 @@ final class FloatingController {
 		bubble = new ImageView(ctx);
 		bubble.setImageResource(R.drawable.che779_bubble);
 		bubble.setScaleType(ImageView.ScaleType.FIT_CENTER);
-		int size = dp(56);
+		int size = baseSize();
 		bubbleLp = params(size, size, sp.getInt(K_BX, dp(8)), sp.getInt(K_BY, dp(200)));
 		final int slop = dp(8);
 		final Runnable longPress = () -> {
@@ -356,8 +356,20 @@ final class FloatingController {
 
 	static final String[] HIDE_NAMES = {"OFF", "SOFT", "STEALTH", "NINJA"};
 
+	private int baseSize() {
+		return dp(Math.max(32, Math.min(96, sp.getInt("pref_bubble_size", 56))));
+	}
+
+	private float baseAlpha() {
+		return Math.max(0.2f, Math.min(1f, sp.getInt("pref_bubble_alpha", 85) / 100f));
+	}
+
 	int hideLevel() {
-		return sp.getInt("hide_level", 0);
+		try {
+			return Integer.parseInt(sp.getString("pref_hide_level", "0"));
+		} catch (Exception e) {
+			return 0;
+		}
 	}
 
 	/** SOFT: out of recents. STEALTH: small and faint bubble. NINJA: almost invisible bubble. */
@@ -369,8 +381,9 @@ final class FloatingController {
 		if (bubble == null) {
 			return;
 		}
-		int size = level == 2 ? dp(40) : level == 3 ? dp(32) : dp(56);
-		bubble.setAlpha(level == 2 ? 0.4f : level == 3 ? 0.08f : 1f);
+		int bs = baseSize();
+		int size = level == 2 ? bs * 3 / 4 : level == 3 ? bs * 4 / 7 : bs;
+		bubble.setAlpha(level == 2 ? 0.4f : level == 3 ? 0.08f : baseAlpha());
 		bubbleLp.width = size;
 		bubbleLp.height = size;
 		try {
@@ -430,7 +443,7 @@ final class FloatingController {
 			menuItem(col, (Session.treo == i ? "✓ " : "    ") + treoNames[i], () -> Session.setTreo(mode));
 		}
 		menuItem(col, "Mức ẩn: " + HIDE_NAMES[hideLevel()] + " (chạm để đổi)", () -> {
-			sp.edit().putInt("hide_level", (hideLevel() + 1) % 4).apply();
+			sp.edit().putInt("hide_level", (hideLevel() + 1) % 4).putString("pref_hide_level", String.valueOf((hideLevel() + 1) % 4)).apply();
 			applyHide();
 		});
 		col.setOnTouchListener((v, e) -> {

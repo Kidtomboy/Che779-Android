@@ -51,3 +51,8 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - Bàn phím ảo J2ME (VirtualKeyboard) tính vị trí theo màn hình đầy đủ; thanh dưới 40dp có thể che hàng phím thấp nhất ở chế độ danh sách.
 - Mục 4: sau khi activity bị hủy, một số lệnh của game vẫn tham chiếu activity cũ; cần thử trên máy thật.
 - Mục 2: cần thử với game thật dùng socket/HTTP.
+
+## Cập nhật 2026-11-18 (2)
+- `closeKeypad()` không còn khôi phục VK J2ME (sửa ghost button).
+- Settings mới: pref_power_mode, pref_hide_level (String), pref_bubble_only_hang, pref_bubble_size, pref_bubble_alpha, pref_headless. Áp dụng ở MicroActivity.applyPowerPrefs (một lần/activity) và FloatingController.baseSize/baseAlpha.
+- Chưa làm: tuỳ chọn hành động 1 chạm/2 chạm/giữ lâu và nguồn icon PNG tuỳ chỉnh. Chưa biên dịch/chạy máy thật tại thời điểm ghi.
