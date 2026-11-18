@@ -71,3 +71,5 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - FloatingController: DragBar (onInterceptTouchEvent, ngưỡng 10dp) cho kéo cửa sổ từ mọi nút; btnW co theo chiều ngang cửa sổ. Nút `*` giữ=phím nhấn giữ đã có ở commit 9b5670b. Chưa thử máy thật.
 
 - Bản clone: gói `com.che779.emulatorv2`, tên hiển thị "Che779 Emulator 2" (đổi từ com.che779.emulator2 / "Che779 2"); dữ liệu vẫn `J2ME-Che779v2`.
+
+- Lỗi từ video 18:42: IllegalStateException trong SetCurrentEvent khi quay lại từ cửa sổ nổi (view còn gắn ở floating host/grid). Sửa: gỡ cha cũ trước addView; reattachRunningSessions đặt Session.grid=false và clearDisplayableView. CHƯA thử máy thật.
