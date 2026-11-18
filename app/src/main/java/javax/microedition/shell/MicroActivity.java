@@ -794,13 +794,14 @@ public class MicroActivity extends AppCompatActivity {
 						}
 					}
 					if (target == null) {
-						Toast.makeText(this, "Không có tab " + t, Toast.LENGTH_SHORT));
+						Toast.makeText(this, "Không có tab " + t, Toast.LENGTH_SHORT).show();
 						return;
 					}
 					restartSession(target);
 				})
+				.setNeutralButton("Đổi proxy", (d, w) -> showProxyDialog())
 				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+				);
 	}
 
 	/**
@@ -1004,11 +1005,11 @@ public class MicroActivity extends AppCompatActivity {
 					} else {
 						setTabProxy(cur, null);
 						Toast.makeText(this, "Đã tắt proxy tab " + no + " (áp dụng cho kết nối mới)",
-								Toast.LENGTH_SHORT));
+								Toast.LENGTH_SHORT).show();
 					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+				);
 	}
 
 	private void chooseProxy(final Session cur) {
@@ -1026,10 +1027,10 @@ public class MicroActivity extends AppCompatActivity {
 				.setTitle("Chọn proxy cho tab " + slotOf(cur))
 				.setItems(names, (d, which) -> {
 					setTabProxy(cur, list.get(which));
-					Toast.makeText(this, "Đã đặt proxy (áp dụng cho kết nối mới)", Toast.LENGTH_SHORT));
+					Toast.makeText(this, "Đã đặt proxy (áp dụng cho kết nối mới)", Toast.LENGTH_SHORT).show();
 				})
 				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+				);
 	}
 
 	private void editProxyList() {
@@ -1041,10 +1042,10 @@ public class MicroActivity extends AppCompatActivity {
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
 					String text = input.getText().toString();
 					netPrefs().edit().putString("che779_proxy_list", text).apply();
-					Toast.makeText(this, "Đọc được " + proxyList().size() + " proxy hợp lệ", Toast.LENGTH_SHORT));
+					Toast.makeText(this, "Đọc được " + proxyList().size() + " proxy hợp lệ", Toast.LENGTH_SHORT).show();
 				})
 				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+				);
 	}
 
 	private void assignProxies() {
@@ -1122,7 +1123,7 @@ public class MicroActivity extends AppCompatActivity {
 		input.setInputType(InputType.TYPE_CLASS_NUMBER);
 		input.setText(String.valueOf(Math.max(2, tabs.size())));
 		input.setSelectAllOnFocus(true);
-		showDlg(new AlertDialog.Builder(dctx())
+		new AlertDialog.Builder(this)
 				.setTitle("Chế độ lưới: nhập số ô (N)")
 				.setMessage("Thiếu ô nào sẽ tự mở thêm bản sao game của tab 1. Mỗi ô tốn thêm RAM.")
 				.setView(input)
@@ -1135,7 +1136,7 @@ public class MicroActivity extends AppCompatActivity {
 					startGrid(Math.max(1, Math.min(n, 36)));
 				})
 				.setNegativeButton(android.R.string.cancel, null)
-				);
+				.show();
 	}
 
 	private void startGrid(int n) {
@@ -1621,7 +1622,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void showMidletDialog(String[] names, final String[] classes) {
-		AlertDialog.Builder builder = showDlg(new AlertDialog.Builder(dctx())
+		AlertDialog.Builder builder = new AlertDialog.Builder(this)
 				.setTitle(R.string.select_dialog_title)
 				.setItems(names, (d, n) -> {
 					String clazz = classes[n];
@@ -1640,17 +1641,17 @@ public class MicroActivity extends AppCompatActivity {
 					d.dismiss();
 					MidletThread.notifyDestroyed();
 				});
-		builder);
+		builder.show();
 	}
 
 	void showErrorDialog(String message) {
-		AlertDialog.Builder builder = showDlg(new AlertDialog.Builder(dctx())
+		AlertDialog.Builder builder = new AlertDialog.Builder(this)
 				.setIcon(android.R.drawable.ic_dialog_alert)
 				.setTitle(R.string.error)
 				.setMessage(message)
 				.setPositiveButton(android.R.string.ok, (d, w) -> MidletThread.notifyDestroyed());
 		builder.setOnCancelListener(dialogInterface -> MidletThread.notifyDestroyed());
-		builder);
+		builder.show();
 	}
 
 	private int getToolBarHeight() {
@@ -1750,7 +1751,7 @@ public class MicroActivity extends AppCompatActivity {
 						bottomBar.setSyncOn(Session.syncKeys);
 					}
 					if (n == 1) {
-						Toast.makeText(this, "Cần chọn ít nhất 2 tab để đồng bộ", Toast.LENGTH_SHORT));
+						Toast.makeText(this, "Cần chọn ít nhất 2 tab để đồng bộ", Toast.LENGTH_SHORT).show();
 					}
 				})
 				.setNeutralButton("Tắt đồng bộ", (d, w) -> {
@@ -1763,7 +1764,7 @@ public class MicroActivity extends AppCompatActivity {
 					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
-				.show();
+				);
 	}
 
 	// ------------------------------------------------------------ keypad popup (grid mode)
