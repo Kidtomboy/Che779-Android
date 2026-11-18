@@ -5,6 +5,11 @@ on:
   push:
     tags: [ 'v*' ]
   workflow_dispatch:
+    inputs:
+      update_tag:
+        description: 'Cập nhật tệp của bản phát hành đã có (ví dụ v1.3.0), giữ nguyên số phiên bản'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -75,3 +80,14 @@ jobs:
             Tải file `.apk`, cho phép cài từ nguồn ngoài Play Store rồi cài đặt. Cần Android 5.0 trở lên.
             APK được ký bằng khóa thử nghiệm công khai của dự án để các bản cài đè lên nhau được; đây không phải khóa phát hành riêng.
             Kiểm tra file tải về bằng `SHA256SUMS.txt`. Chi tiết: xem `CHANGELOG.md`.
+      - name: Cập nhật bản phát hành đã có (giữ nguyên thẻ và số phiên bản)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.update_tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.update_tag }}
+        run: |
+          set -euo pipefail
+          gh release view "$TAG" > /dev/null
+          # tệp dữ liệu trước, SHA256SUMS.txt đưa lên SAU CÙNG
+          gh release upload "$TAG" out/*.apk out/che779-termux.sh --clobber
+          gh release upload "$TAG" out/SHA256SUMS.txt --clobber
