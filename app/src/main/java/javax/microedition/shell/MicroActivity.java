@@ -574,6 +574,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private boolean prefPowerApplied;
+	private boolean relayoutPending;
 
 	/** Applies the power mode / headless chosen in Settings once per activity. */
 	private void applyPowerPrefs() {
@@ -1558,12 +1559,7 @@ public class MicroActivity extends AppCompatActivity {
 		super.onResume();
 		boolean wasFloating = stopFloating();
 		if (wasFloating && !gridMode) {
-			// system bars / toolbar state changed while away: rebuild the view and re-apply toolbar,
-			// system UI and overlay offsets so the canvas and the J2ME keyboard layer line up again
-			Session act = Session.active();
-			if (act != null && act.current != null) {
-				ViewHandler.postEvent(new SetCurrentEvent(act.current, act.current));
-			}
+			relayoutPending = true; // done once the window has focus and the system bars settled
 		}
 		showInAppBubble();
 		if (powerMode == 3) {
@@ -1601,6 +1597,17 @@ public class MicroActivity extends AppCompatActivity {
 		if (hasFocus && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
 				cur() instanceof Canvas) {
 			hideSystemUI();
+		}
+		if (hasFocus && relayoutPending) {
+			relayoutPending = false;
+			// bars were hidden/shown after onResume: rebuild after they settled, then once more to be sure
+			Runnable r = () -> {
+				Session act = Session.active();
+				if (!floating && !gridMode && act != null && act.current != null && binding != null) {
+					ViewHandler.postEvent(new SetCurrentEvent(act.current, act.current));
+				}
+			};
+			uiHandler.postDelayed(r, 350);
 		}
 	}
 
