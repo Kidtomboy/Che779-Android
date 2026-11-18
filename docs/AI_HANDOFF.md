@@ -65,3 +65,5 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 ## Bản ghép x6 không vào được (2026-11-18)
 - Phân tích file Avatar_ChipMix_Full_build14_NV_fix-menu-x6.jar: 3036 mục, chỉ còn 1788 tên khác nhau khi không phân biệt hoa/thường (obfuscate: a.class/A.class...). MZMOD.MZMOD là launcher, đọc getAppProperty("0".."5") rồi Class.forName các main.AngelChip, b.main.AngelChip,... (lib.MIDlet riêng).
 - Nguyên nhân khả dĩ: MultiDex giải nén class ra thư mục `.tmp/.classes` nằm trong bộ nhớ ngoài (không phân biệt hoa/thường) nên class bị ghi đè/mất. Đã đổi sang ghi mỗi chunk thành file .jar (zip giữ nguyên tên). CHƯA chạy thử trên máy: cần xoá bản đã cài rồi cài lại .jar.
+
+- MultiDex: CLASSES_PER_DEX=150, SINGLE_DEX_MAX_CLASSES=300, tối đa 6 luồng (Cherry xác nhận bản ghép x6 vào được khi chia nhiều dex). Chưa đo hiệu năng/RAM trên máy yếu.
