@@ -484,20 +484,20 @@ final class FloatingController {
 
 	// ---------------------------------------------------------------- window
 
+	interface DragBegin {
+		void down(float rawX, float rawY);
+	}
+
 	/** Width of a bar button; shrinks with the window so a strip of the bar stays free for dragging. */
 	private int btnW = 34 * 3;
 
 	/** Bar that starts dragging the window when a finger moves on any of its buttons. */
 	private final class DragBar extends LinearLayout {
-		interface Begin {
-			void down(float rawX, float rawY);
-		}
-
-		private final Begin begin;
+		private final DragBegin begin;
 		private float dx, dy;
 		private boolean dragging;
 
-		DragBar(Context c, Begin begin) {
+		DragBar(Context c, DragBegin begin) {
 			super(c);
 			this.begin = begin;
 		}
