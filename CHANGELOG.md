@@ -7,6 +7,7 @@ Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản 
 Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 130`.
 
 ### Mới trong 1.3.0
+- **Cửa sổ nổi**: kéo ngón trên bất kỳ nút nào của thanh công cụ là di chuyển được cửa sổ (chạm nhẹ vẫn là bấm nút); nút thu nhỏ theo bề ngang cửa sổ (22–34dp).
 - **Chia dex nhỏ hơn**: mỗi file dex tối đa 150 class (trước 500), tối đa 6 luồng song song; jar trên 300 class mới chia.
 - **Sửa bản ghép x6**: tách dex theo từng file .jar thay vì giải nén ra thư mục (tránh mất class do trùng tên hoa/thường). Cần cài lại bản ghép.
 - **Thanh nút cửa sổ nổi**: `<` `>` + ô số tab (chạm để chọn tab), `*` (bản ghép), proxy ⇄, đồng bộ ô vuông (hộp thoại chọn tab), khởi động lại tab ⟳ (có nút Đổi proxy). Hộp thoại hiện trên cửa sổ nổi.
