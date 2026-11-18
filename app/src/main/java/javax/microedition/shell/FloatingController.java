@@ -536,11 +536,18 @@ final class FloatingController {
 		label.setLayoutParams(new LinearLayout.LayoutParams(0, dp(32), 1f));
 		bar.addView(iconButton(R.drawable.ic_c_right, v -> cycle(1)), 0 + 1);
 		bar.addView(label);
-		bar.addView(button("*", v -> {
-			if (callbacks != null) {
-				callbacks.onStar();
+		TextView star = button("*", null);
+		star.setOnTouchListener((v, ev) -> {
+			// hold = key held down, like the keypad (long press switches merged games)
+			int a = ev.getActionMasked();
+			if (callbacks != null && (a == MotionEvent.ACTION_DOWN || a == MotionEvent.ACTION_UP
+					|| a == MotionEvent.ACTION_CANCEL)) {
+				callbacks.onKeys(new int[]{javax.microedition.lcdui.Canvas.KEY_STAR},
+						a == MotionEvent.ACTION_DOWN);
 			}
-		}));
+			return true;
+		});
+		bar.addView(star);
 		bar.addView(iconButton(R.drawable.ic_c_swap, v -> {
 			if (callbacks != null) {
 				callbacks.onProxy();
