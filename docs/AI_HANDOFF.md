@@ -77,3 +77,5 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - Video 19:00/19:01 của Cherry: lệch bố cục + lớp phím J2ME mini ghost sau khi quay lại từ cửa sổ nổi; video không ẩn thanh công cụ vẫn ổn. onResume: nếu vừa thoát floating và không ở lưới → SetCurrentEvent lại. Giả thuyết, CHƯA thử máy thật; nếu vẫn lỗi thì thử giữ ActionBar luôn hiện khi Canvas.
 
 - Cập nhật: relayout sau thoát floating chuyển sang onWindowFocusChanged (+350ms) để chờ thanh hệ thống ổn định. Vẫn là giả thuyết.
+
+- PermissionWizard (MainActivity.onResume): pref perm_wizard_step 0 overlay,1 thông báo,2 pin; manifest thêm REQUEST_IGNORE_BATTERY_OPTIMIZATIONS. Theo Cherry: KHÔNG thêm cảnh báo "đừng vuốt thoát khỏi đa nhiệm". Lỗi lệch bố cục sau cửa sổ nổi: Cherry xếp mức thấp, cho qua. Chưa thử máy thật.
