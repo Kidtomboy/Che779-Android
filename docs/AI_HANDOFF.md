@@ -73,3 +73,5 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - Bản clone: gói `com.che779.emulatorv2`, tên hiển thị "Che779 Emulator 2" (đổi từ com.che779.emulator2 / "Che779 2"); dữ liệu vẫn `J2ME-Che779v2`.
 
 - Lỗi từ video 18:42: IllegalStateException trong SetCurrentEvent khi quay lại từ cửa sổ nổi (view còn gắn ở floating host/grid). Sửa: gỡ cha cũ trước addView; reattachRunningSessions đặt Session.grid=false và clearDisplayableView. CHƯA thử máy thật.
+
+- Video 19:00/19:01 của Cherry: lệch bố cục + lớp phím J2ME mini ghost sau khi quay lại từ cửa sổ nổi; video không ẩn thanh công cụ vẫn ổn. onResume: nếu vừa thoát floating và không ở lưới → SetCurrentEvent lại. Giả thuyết, CHƯA thử máy thật; nếu vẫn lỗi thì thử giữ ActionBar luôn hiện khi Canvas.
