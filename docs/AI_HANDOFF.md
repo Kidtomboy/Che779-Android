@@ -61,3 +61,7 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - FloatingController: thêm callbacks onSyncDialog/onProxy/onRestart/onPickTab; nút `*` là chữ; proxy dùng ic_c_swap; sync dùng ic_c_checked/unchecked; restart dùng ic_c_sync.
 - MicroActivity: `dctx()`/`showDlg()` hiển thị hộp thoại dạng overlay (TYPE_APPLICATION_OVERLAY) khi `floating`. Hộp thoại khởi động lại có nút "Đổi proxy".
 - "Lỗi bản ghép": người dùng chưa mô tả lỗi cụ thể, CHƯA sửa. Chưa biên dịch/thử máy thật.
+
+## Bản ghép x6 không vào được (2026-11-18)
+- Phân tích file Avatar_ChipMix_Full_build14_NV_fix-menu-x6.jar: 3036 mục, chỉ còn 1788 tên khác nhau khi không phân biệt hoa/thường (obfuscate: a.class/A.class...). MZMOD.MZMOD là launcher, đọc getAppProperty("0".."5") rồi Class.forName các main.AngelChip, b.main.AngelChip,... (lib.MIDlet riêng).
+- Nguyên nhân khả dĩ: MultiDex giải nén class ra thư mục `.tmp/.classes` nằm trong bộ nhớ ngoài (không phân biệt hoa/thường) nên class bị ghi đè/mất. Đã đổi sang ghi mỗi chunk thành file .jar (zip giữ nguyên tên). CHƯA chạy thử trên máy: cần xoá bản đã cài rồi cài lại .jar.
