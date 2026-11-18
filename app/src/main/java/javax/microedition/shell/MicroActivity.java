@@ -566,6 +566,32 @@ public class MicroActivity extends AppCompatActivity {
 		return powerMode;
 	}
 
+	private boolean prefPowerApplied;
+
+	/** Applies the power mode / headless chosen in Settings once per activity. */
+	private void applyPowerPrefs() {
+		if (prefPowerApplied || Session.count() == 0) {
+			return;
+		}
+		prefPowerApplied = true;
+		android.content.SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(this);
+		int m = 0;
+		try {
+			m = Integer.parseInt(p.getString("pref_power_mode", "0"));
+		} catch (NumberFormatException ignored) {
+		}
+		if (p.getBoolean("pref_headless", false)) {
+			m = 3;
+		}
+		if (m > 0) {
+			skipBack = true;
+			applyPowerMode(m);
+			skipBack = false;
+		}
+	}
+
+	private boolean skipBack;
+
 	public void applyPowerMode(int mode) {
 		powerMode = mode;
 		if (mode == 0) {
@@ -590,7 +616,9 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		if (mode == 3) {
 			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-			moveTaskToBack(true);
+			if (!skipBack) {
+				moveTaskToBack(true);
+			}
 		}
 		BubbleService.refresh(getApplicationContext());
 	}
@@ -1382,7 +1410,9 @@ public class MicroActivity extends AppCompatActivity {
 		if (binding == null || floating || tabs.isEmpty() || isFinishing()) {
 			return;
 		}
-		if (!PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_bubble_enabled", true)) {
+		applyPowerPrefs();
+		android.content.SharedPreferences bp = PreferenceManager.getDefaultSharedPreferences(this);
+		if (!bp.getBoolean("pref_bubble_enabled", true) || bp.getBoolean("pref_bubble_only_hang", false)) {
 			return;
 		}
 		if (!FloatingController.canDraw(this)) {
@@ -1706,15 +1736,8 @@ public class MicroActivity extends AppCompatActivity {
 
 	/** Closes the keypad; in list mode the J2ME virtual keyboard comes back. */
 	private void closeKeypad() {
+		// J2ME VK stays hidden after a keypad was used (ghost-button fix)
 		hideKeypad();
-		if (!gridMode && binding != null) {
-			Session s = Session.active();
-			if (s != null && s.vk != null) {
-				s.vk.setView(binding.overlayView);
-				binding.overlayView.addLayer(s.vk);
-				binding.overlayView.setVisibility(true);
-			}
-		}
 	}
 
 	private KeypadView.Sink keypadSink() {

@@ -279,4 +279,22 @@
     <string name="action_power">Power mode</string>
     <string name="pref_restore_tabs">Restore tabs of the last run</string>
     <string name="action_fix_vk">Repair virtual keyboard</string>
+    <string name="pref_cat_treo">Online hanging</string>
+    <string name="pref_power_title">Battery saving mode</string>
+    <string name="pref_hide_title">App hiding level</string>
+    <string name="pref_hide_summary">SOFT keeps the icon · STEALTH clears recents · NINJA hides the bubble almost entirely</string>
+    <string name="pref_cat_bubble">Floating bubble</string>
+    <string name="pref_bubble_only_title">Only show while hanging</string>
+    <string name="pref_bubble_only_summary">Do not show the bubble while a game is on screen</string>
+    <string name="pref_bubble_size_title">Size (dp)</string>
+    <string name="pref_bubble_size_summary">Bubble size, default 56</string>
+    <string name="pref_bubble_alpha_title">Opacity (%)</string>
+    <string name="pref_bubble_alpha_summary">Bubble opacity, default 85</string>
+    <string name="pref_cat_perf">Performance</string>
+    <string name="pref_headless_title">Headless Mode</string>
+    <string name="pref_headless_summary">Games run logic but draw nothing. Saves GPU/battery while hanging.</string>
+    <string-array name="pref_power_entries"><item>Normal</item><item>Battery saver</item><item>Ultra saver</item></string-array>
+    <string-array name="pref_power_values"><item>0</item><item>1</item><item>2</item></string-array>
+    <string-array name="pref_hide_entries"><item>OFF</item><item>SOFT</item><item>STEALTH</item><item>NINJA</item></string-array>
+    <string-array name="pref_hide_values"><item>0</item><item>1</item><item>2</item><item>3</item></string-array>
 </resources>
