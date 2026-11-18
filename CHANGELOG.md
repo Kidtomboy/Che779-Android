@@ -2,11 +2,11 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
-## [1.3.0] — Bản phát hành
+## [1.3.1] — Bản phát hành
 
-Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 130`.
+Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 131`.
 
-### Mới trong 1.3.0
+### Mới trong 1.3.1 (so với 1.3.0)
 - **Xin quyền lần đầu mở app** (từng bước, mỗi quyền hỏi một lần, từ chối không chặn app): bong bóng/hiển thị trên ứng dụng khác → thông báo → bỏ tối ưu pin.
 - Quay lại từ cửa sổ nổi (chế độ danh sách): dựng lại khung game và áp lại thanh công cụ/thanh hệ thống/vị trí lớp phím J2ME để hết lệch/ghost (giả thuyết: thanh tác vụ ẩn/hiện làm lệch bố cục).
 - Sửa lỗi "SetCurrentEvent … child already has a parent" (màn hình ma, không bấm được OK) khi quay lại từ cửa sổ nổi/đa nhiệm: gỡ view khỏi cha cũ trước khi gắn và dựng lại view khi nối lại phiên đang chạy.

@@ -5,7 +5,7 @@ Dành cho người hoặc AI tiếp tục làm việc trên Project 4.
 ## Nhận diện
 
 - Repo: `Kidtomboy/Che779-Android` (trước đây tên `Che779-Emulator`; tên đó nay là Project 1).
-- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản `1.3.0` (`versionCode 130`).
+- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản `1.3.1` (`versionCode 131`).
 - Lớp vỏ Che779: `javax.microedition.shell.*`.
 
 ## Nguyên tắc
@@ -79,3 +79,6 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - Cập nhật: relayout sau thoát floating chuyển sang onWindowFocusChanged (+350ms) để chờ thanh hệ thống ổn định. Vẫn là giả thuyết.
 
 - PermissionWizard (MainActivity.onResume): pref perm_wizard_step 0 overlay,1 thông báo,2 pin; manifest thêm REQUEST_IGNORE_BATTERY_OPTIMIZATIONS. Theo Cherry: KHÔNG thêm cảnh báo "đừng vuốt thoát khỏi đa nhiệm". Lỗi lệch bố cục sau cửa sổ nổi: Cherry xếp mức thấp, cho qua. Chưa thử máy thật.
+
+## Nâng lên 1.3.1 — 2026-11-18
+- Cherry yêu cầu nâng CHỈ Project 4: VERSION 1.3.1, versionCode 131, versionName 1.3.1. Cherry tự tạo tag v1.3.1. Release v1.3.0 đã bị ghi đè nhiều lần trước đó bằng workflow Phát hành (update_tag); từ nay bản mới đi theo thẻ v1.3.1.
