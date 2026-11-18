@@ -59,6 +59,11 @@ jobs:
           cd out
           sha256sum *.apk che779-termux.sh > SHA256SUMS.txt
           cat SHA256SUMS.txt
+      - name: Ghi chú phát hành (từ .github/release-notes.md)
+        run: |
+          VER=$(cat VERSION)
+          TAG="${{ inputs.update_tag != '' && inputs.update_tag || github.ref_name }}"
+          sed "s/@TAG@/$TAG/g; s/@VER@/$VER/g" .github/release-notes.md > out-notes.md
       - uses: actions/upload-artifact@v4
         with:
           name: termux-v1-test
@@ -73,13 +78,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: out/*
-          body: |
-            ## Che779 Android ${{ github.ref_name }}
-            - `Che779-Android-<ver>.apk`: ứng dụng chính. `Che779-Android-Clone-<ver>.apk`: bản clone (gói khác, dữ liệu `J2ME-Che779v2`) để cài song song.
-            - `che779-termux.sh`: chạy Emulator **V2** trong Termux (`bash che779-termux.sh`).
-            Tải file `.apk`, cho phép cài từ nguồn ngoài Play Store rồi cài đặt. Cần Android 5.0 trở lên.
-            APK được ký bằng khóa thử nghiệm công khai của dự án để các bản cài đè lên nhau được; đây không phải khóa phát hành riêng.
-            Kiểm tra file tải về bằng `SHA256SUMS.txt`. Chi tiết: xem `CHANGELOG.md`.
+          name: ${{ github.ref_name }}
+          prerelease: false
+          make_latest: true
+          body_path: out-notes.md
       - name: Cập nhật bản phát hành đã có (giữ nguyên thẻ và số phiên bản)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.update_tag != '' }}
         env:
@@ -91,3 +93,6 @@ jobs:
           # tệp dữ liệu trước, SHA256SUMS.txt đưa lên SAU CÙNG
           gh release upload "$TAG" out/*.apk out/che779-termux.sh --clobber
           gh release upload "$TAG" out/SHA256SUMS.txt --clobber
+          # sửa tên/ghi chú và gỡ tệp nhật ký build lạc vào bản phát hành (nhật ký build có bản riêng, thẻ buildlog)
+          gh release edit "$TAG" --title "$TAG" --prerelease=false --latest --notes-file out-notes.md
+          gh release delete-asset "$TAG" build-tail.log --yes || true

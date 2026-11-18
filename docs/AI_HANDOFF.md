@@ -84,3 +84,5 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - Cherry yêu cầu nâng CHỈ Project 4: VERSION 1.3.1, versionCode 131, versionName 1.3.1. Cherry tự tạo tag v1.3.1. Release v1.3.0 đã bị ghi đè nhiều lần trước đó bằng workflow Phát hành (update_tag); từ nay bản mới đi theo thẻ v1.3.1.
 
 - termux/che779-termux.sh: sửa tên tệp trong trợ giúp/thông báo (che779.sh → che779-termux.sh), --help không in khung ASCII, cảnh báo khi chưa cấp quyền bộ nhớ (dữ liệu lưu tạm). Test tests/test-termux.sh đạt với jar giả; KHÔNG thử trên Termux thật.
+
+- Release: ghi chú lấy từ .github/release-notes.md (@TAG@/@VER@); workflow update_tag cũng sửa tên/pre-release/ghi chú và gỡ build-tail.log. Bản v1.3.1 từng bị đổi tên "Nhật ký build" + pre-release (trùng lúc Cherry tạo thẻ và workflow Build; nguyên nhân chính xác chưa rõ). Sandbox không có quyền sửa release qua API (403), phải qua workflow.
