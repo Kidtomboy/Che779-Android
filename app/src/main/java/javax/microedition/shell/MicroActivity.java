@@ -1527,9 +1527,9 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	/** Back on screen: put the game view back and hide the bubble. */
-	private void stopFloating() {
+	private boolean stopFloating() {
 		if (!floating) {
-			return;
+			return false;
 		}
 		FloatingController fc = FloatingController.get(this);
 		android.view.View content = fc.host().getChildCount() > 0 ? fc.host().getChildAt(0) : null;
@@ -1544,6 +1544,7 @@ public class MicroActivity extends AppCompatActivity {
 		if (gridMode) {
 			rebuildGrid();
 		}
+		return true;
 	}
 
 	@Override
@@ -1555,7 +1556,15 @@ public class MicroActivity extends AppCompatActivity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		stopFloating();
+		boolean wasFloating = stopFloating();
+		if (wasFloating && !gridMode) {
+			// system bars / toolbar state changed while away: rebuild the view and re-apply toolbar,
+			// system UI and overlay offsets so the canvas and the J2ME keyboard layer line up again
+			Session act = Session.active();
+			if (act != null && act.current != null) {
+				ViewHandler.postEvent(new SetCurrentEvent(act.current, act.current));
+			}
+		}
 		showInAppBubble();
 		if (powerMode == 3) {
 			applyPowerMode(0);
