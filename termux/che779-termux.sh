@@ -3,7 +3,7 @@
 # ║       Che779 Emulator — bản chạy cho Termux (Android)        ║
 # ╚══════════════════════════════════════════════════════════════╝
 # Một tệp duy nhất (jar nhúng ở cuối). Dành cho Termux trên Android; Linux dùng repo Che779-Linux.
-#   bash che779.sh [tùy chọn] [đoạn_tên_game]
+#   bash che779-termux.sh [tùy chọn] [đoạn_tên_game]
 #   -r, --ram MB     RAM tối đa cho Java (mặc định 1024)
 #   -g, --game TEXT  tự mở các game trong kho có tên chứa TEXT
 #       --net        kiểm tra kết nối mạng (DNS, HTTP, cổng game) rồi thoát
@@ -11,7 +11,7 @@
 #       --reset      cài lại từ đầu (xóa dấu hiệu "đã cài")
 #   -V, --version    in phiên bản rồi thoát
 #   -h, --help       trợ giúp
-# Kiểu cũ vẫn chạy: bash che779.sh 1024 build11
+# Kiểu cũ vẫn chạy: bash che779-termux.sh 1024 build11
 set -u
 set -o pipefail
 # Hai giá trị này do scripts/build-release.sh điền khi đóng gói (mã băm tính từ đúng jar được nhúng).
@@ -89,7 +89,7 @@ while [ $# -gt 0 ]; do
     -g|--game) FILTER="${2:-}"; shift;;
     --net) MODE_NET=1;; --doctor) MODE_DOC=1;; --reset) RESET=1;;
     -V|--version) echo "Che779 Termux $CHE_VERSION"; exit 0;;
-    -h|--help) sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
+    -h|--help) sed -n '5,14p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
     ''|*[!0-9]*) [ -z "$FILTER" ] && FILTER="$1";;
     *) XMX="$1";;
   esac; shift
@@ -111,7 +111,7 @@ extract_jar(){
   local dest="$1" tmp="$1/.@JAR_NAME@.tmp"
   mkdir -p "$dest" || return 1
   if [ -z "$(sed '1,/^__JAR__$/d' "$0" | head -c 16)" ]; then
-    err "Tệp này là bản nguồn, không chứa jar. Hãy tải che779.sh ở mục Releases."; return 1
+    err "Tệp này là bản nguồn, không chứa jar. Hãy tải che779-termux.sh ở mục Releases."; return 1
   fi
   if ! sed '1,/^__JAR__$/d' "$0" | base64 -d > "$tmp"; then
     rm -f "$tmp"; err "Không giải mã được JAR nhúng (base64 lỗi)."; return 1
@@ -123,7 +123,7 @@ extract_jar(){
   # 2) mã SHA-256 phải khớp giá trị đã ghi lúc đóng gói
   local got; got="$(sha256_of "$tmp")"
   if [ -n "$got" ] && [ "$got" != "$CHE_JAR_SHA256" ]; then
-    rm -f "$tmp"; err "Mã SHA-256 của JAR không khớp (mong đợi ${CHE_JAR_SHA256:0:12}…, thực tế ${got:0:12}…). Hãy tải lại che779.sh."; return 1
+    rm -f "$tmp"; err "Mã SHA-256 của JAR không khớp (mong đợi ${CHE_JAR_SHA256:0:12}…, thực tế ${got:0:12}…). Hãy tải lại che779-termux.sh."; return 1
   fi
   mv -f "$tmp" "$dest/@JAR_NAME@" || { rm -f "$tmp"; return 1; }
 }
@@ -220,6 +220,7 @@ run_termux(){
   kv "Kho game" "Download/Che779Games  ($(ls "$GM"/*.jar 2>/dev/null | wc -l) file .jar)"
   local DATA="$HOME/storage/downloads/Che779Data"
   mkdir -p "$DATA/filesystem/c/AngelChip" "$DATA/filesystem/e" 2>/dev/null || { DATA="$SHARE/data"; mkdir -p "$DATA/filesystem/c/AngelChip" "$DATA/filesystem/e"; }
+  case "$DATA" in "$SHARE"/*) warn "Chưa có quyền bộ nhớ (Download): dữ liệu lưu tạm trong Termux, gỡ Termux sẽ mất. Chạy termux-setup-storage rồi chạy lại.";; esac
   kv "Dữ liệu" "$DATA"
   kv "acc.txt" "…/filesystem/c/AngelChip/acc.txt"
   local OPEN=()
