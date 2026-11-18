@@ -69,3 +69,5 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - MultiDex: CLASSES_PER_DEX=150, SINGLE_DEX_MAX_CLASSES=300, tối đa 6 luồng (Cherry xác nhận bản ghép x6 vào được khi chia nhiều dex). Chưa đo hiệu năng/RAM trên máy yếu.
 
 - FloatingController: DragBar (onInterceptTouchEvent, ngưỡng 10dp) cho kéo cửa sổ từ mọi nút; btnW co theo chiều ngang cửa sổ. Nút `*` giữ=phím nhấn giữ đã có ở commit 9b5670b. Chưa thử máy thật.
+
+- Bản clone: gói `com.che779.emulatorv2`, tên hiển thị "Che779 Emulator 2" (đổi từ com.che779.emulator2 / "Che779 2"); dữ liệu vẫn `J2ME-Che779v2`.

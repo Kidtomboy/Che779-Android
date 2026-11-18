@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       app_id:
-        description: 'Package name of the clone (e.g. com.che779.emulator2)'
+        description: 'Package name of the clone (e.g. com.che779.emulatorv2)'
         required: true
-        default: 'com.che779.emulator2'
+        default: 'com.che779.emulatorv2'
       app_name:
         description: 'App name shown on the phone'
         required: true
-        default: 'Che779 2'
+        default: 'Che779 Emulator 2'
       data_dir:
         description: 'Data folder name on the phone'
         required: true
