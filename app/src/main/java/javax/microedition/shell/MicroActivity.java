@@ -298,6 +298,13 @@ public class MicroActivity extends AppCompatActivity {
 		java.util.Collections.sort(list, (a, b) -> Integer.compare(a.slot, b.slot));
 		Session want = Session.active() != null && list.contains(Session.active()) ? Session.active() : list.get(0);
 		tabs.addAll(list);
+		// views built for the old activity / grid cells / floating host: drop them so fresh ones are made
+		Session.grid = false;
+		for (Session o : list) {
+			if (o.current != null) {
+				o.current.clearDisplayableView();
+			}
+		}
 		Session.setActive(null);
 		activate(want);
 		return true;
@@ -2312,7 +2319,12 @@ public class MicroActivity extends AppCompatActivity {
 			binding.toolbar.setLayoutParams(layoutParams);
 			invalidateOptionsMenu();
 			if (next != null) {
-				host().addView(next.getDisplayableView());
+				android.view.View dv = next.getDisplayableView();
+				// the view may still sit in the floating host or a destroyed activity's container
+				if (dv.getParent() instanceof ViewGroup) {
+					((ViewGroup) dv.getParent()).removeView(dv);
+				}
+				host().addView(dv);
 			}
 		}
 	}
