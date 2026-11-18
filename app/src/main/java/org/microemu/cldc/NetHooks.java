@@ -87,6 +87,15 @@ public final class NetHooks {
 
 	/** Opens a TCP connection for a game (direct, through the proxy, with redirects applied). */
 	public static Socket connect(String host, int port) throws IOException {
+		Socket s = connect0(host, port);
+		Session session = Session.current();
+		if (session != null) {
+			session.track(s);
+		}
+		return s;
+	}
+
+	private static Socket connect0(String host, int port) throws IOException {
 		NetConfig c = cfg();
 		String[] r = redirect(c, host, port);
 		host = r[0];
@@ -214,6 +223,15 @@ public final class NetHooks {
 
 	/** HTTP(S) connection of a game: redirect applied to the URL, proxy set on the connection. */
 	public static URLConnection open(URL url) throws IOException {
+		URLConnection cn = open0(url);
+		Session session = Session.current();
+		if (session != null) {
+			session.track(cn);
+		}
+		return cn;
+	}
+
+	private static URLConnection open0(URL url) throws IOException {
 		NetConfig c = cfg();
 		if (c == null) {
 			return url.openConnection();

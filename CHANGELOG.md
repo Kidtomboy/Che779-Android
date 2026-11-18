@@ -7,6 +7,14 @@ Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản 
 Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 130`.
 
 ### Mới trong 1.3.0
+- **Bàn phím Nokia và Android** (hai biểu tượng riêng), chọn ở thanh dưới hoặc ngay trên bàn phím.
+- **Thanh icon phía dưới** gom mọi chức năng; thanh tab phía trên chỉ còn số tab.
+- **Khởi động lại tab/nhập số tab** trong menu ba chấm; tab cũ được đóng hẳn cùng các kết nối trước khi mở lại.
+- **Bong bóng hiện ngay khi vào game**; nhấn giữ chỉ mở menu, chạm để thu game vào cửa sổ nổi.
+- **Chạy ngầm** kể cả khi xóa khỏi recents; chỉ dừng hẳn bằng "Thoát" ở menu chính hoặc nút "Dừng" ở thông báo.
+- **Thông báo** có nút "Chế độ" và "Dừng", hiện chế độ pin hiện tại.
+- **Nhập game từ file ZIP** ở menu chính.
+- Sửa lỗi treo giao diện khi thoát tab cuối.
 - **Termux (chỉ V2):** thư mục `termux/` với script một file `che779-termux.sh` (chuyển từ Che779-Linux, bỏ phần Linux). Mã V2 không chép vào repo: Actions lấy từ Che779-EmulatorV2 đúng commit ghim ở `termux/EMULATOR_V2_REF`. V1 thử nghiệm ở `termux/test/` (không hỗ trợ chính thức, không đăng ở Releases).
 - **Phát hành tự động** khi gắn thẻ `vX.Y.Z`: APK chính, APK clone (`com.che779.emulator2`, dữ liệu `J2ME-Che779v2`), `che779-termux.sh` và `SHA256SUMS.txt` (tính sau cùng trên đúng các file đăng).
 

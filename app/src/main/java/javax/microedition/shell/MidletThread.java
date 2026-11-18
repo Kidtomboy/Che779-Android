@@ -83,8 +83,8 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 
 	public static void notifyDestroyed() {
 		Session closing = Session.current();
-		if (closing != null && Session.count() > 1) {
-			// other tabs are alive: close only this one
+		if (closing != null && (Session.count() > 1 || closing.restartAfter != null)) {
+			// other tabs are alive (or this tab is being restarted): close only this one
 			MicroActivity activity = ContextHolder.getActivity();
 			if (closing.thread != null) {
 				closing.thread.state = DESTROYED;
@@ -99,6 +99,23 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 		if (instance != null) {
 			instance.state = DESTROYED;
 		}
+		MicroActivity activity = ContextHolder.getActivity();
+		if (activity != null) {
+			activity.finish();
+		}
+		if (startAfterDestroy != null) {
+			Config.startApp(ContextHolder.getActivity(), startAfterDestroy[0], startAfterDestroy[1], false, startAfterDestroy[2]);
+		}
+		Process.killProcess(Process.myPid());
+	}
+
+	/**
+	 * The last tab is gone (its game ended): leave the activity and end the process, exactly like the
+	 * single-tab exit of {@link #notifyDestroyed()}. Used as the rescue when the last tab is removed
+	 * through the multi-tab path, which would otherwise leave an empty window on screen.
+	 */
+	static void finishApp() {
+		Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);
 		MicroActivity activity = ContextHolder.getActivity();
 		if (activity != null) {
 			activity.finish();

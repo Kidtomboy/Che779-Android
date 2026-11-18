@@ -76,6 +76,52 @@ public final class Session {
 	/** Diagnostic thread-dump quota owned by this tab (avoids a process-wide per-tab map). */
 	final java.util.concurrent.atomic.AtomicInteger diagnosticDumps = new java.util.concurrent.atomic.AtomicInteger();
 
+	/** Runs once this tab has been removed (used to open it again: "restart tab"). */
+	volatile Runnable restartAfter;
+	/** Sockets and HTTP connections opened by this tab's game, so a restart can drop all of them. */
+	private final java.util.Set<Object> connections =
+			java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<Object, Boolean>()));
+
+	/** Remembers a connection of this tab (held weakly). */
+	public void track(Object connection) {
+		if (connection != null) {
+			connections.add(connection);
+		}
+	}
+
+	/** Closes every connection this tab opened, so no old socket outlives the tab. */
+	public void closeNet() {
+		Object[] all;
+		synchronized (connections) {
+			all = connections.toArray();
+			connections.clear();
+		}
+		for (Object o : all) {
+			try {
+				if (o instanceof java.net.Socket) {
+					((java.net.Socket) o).close();
+				} else if (o instanceof java.net.HttpURLConnection) {
+					((java.net.HttpURLConnection) o).disconnect();
+				} else if (o instanceof java.io.Closeable) {
+					((java.io.Closeable) o).close();
+				}
+			} catch (Throwable ignored) {
+			}
+		}
+	}
+
+	/** Releases what a closed tab still holds: connections and the resource archive. */
+	void release() {
+		closeNet();
+		try {
+			net.lingala.zip4j.ZipFile z = resZip;
+			if (z != null) {
+				z.close();
+			}
+		} catch (Throwable ignored) {
+		}
+	}
+
 	/** Interrupts every thread that is running code of this tab's game. */
 	public void killThreads() {
 		try {

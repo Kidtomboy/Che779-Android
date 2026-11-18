@@ -55,6 +55,9 @@ final class FloatingController {
 
 		/** Hide level changed (0 OFF, 1 SOFT, 2 STEALTH, 3 NINJA). */
 		void onHideLevel(int level);
+
+		/** The bubble was tapped while the app is still on screen: move the game into the floating window. */
+		void onMinimize();
 	}
 
 	private static FloatingController instance;
@@ -87,6 +90,9 @@ final class FloatingController {
 	private TextView label;
 	private boolean showing;
 	private boolean expanded;
+	/** Bubble shown while the game is on screen (it only offers the menu and the floating window). */
+	private boolean inApp;
+	private boolean longFired;
 
 	private FloatingController(Context c) {
 		ctx = c;
@@ -128,9 +134,13 @@ final class FloatingController {
 	/** Shows the bubble (or the window, when it was open before). */
 	void show(Callbacks cb) {
 		callbacks = cb;
+		if (showing && inApp) {
+			hide();
+		}
 		if (showing) {
 			return;
 		}
+		inApp = false;
 		showing = true;
 		if (expanded) {
 			showWindow();
@@ -140,11 +150,29 @@ final class FloatingController {
 		applyHide();
 	}
 
+	/** Shows only the bubble while the game is on screen; tapping it moves the game to the floating window. */
+	void showInApp(Callbacks cb) {
+		callbacks = cb;
+		if (showing) {
+			return;
+		}
+		inApp = true;
+		showing = true;
+		expanded = false;
+		showBubble();
+		applyHide();
+	}
+
+	boolean isInApp() {
+		return showing && inApp;
+	}
+
 	void hide() {
 		if (!showing) {
 			return;
 		}
 		showing = false;
+		inApp = false;
 		hideMenu();
 		removeBubble();
 		removeWindow();
@@ -171,7 +199,10 @@ final class FloatingController {
 		int size = dp(56);
 		bubbleLp = params(size, size, sp.getInt(K_BX, dp(8)), sp.getInt(K_BY, dp(200)));
 		final int slop = dp(8);
-		final Runnable longPress = this::showMenu;
+		final Runnable longPress = () -> {
+			longFired = true;
+			showMenu();
+		};
 		bubble.setOnTouchListener(new View.OnTouchListener() {
 			float downX, downY;
 			int startX, startY;
@@ -186,6 +217,7 @@ final class FloatingController {
 						startX = bubbleLp.x;
 						startY = bubbleLp.y;
 						moved = false;
+						longFired = false;
 						handler.postDelayed(longPress, 700);
 						return true;
 					case MotionEvent.ACTION_MOVE:
@@ -205,6 +237,11 @@ final class FloatingController {
 						return true;
 					case MotionEvent.ACTION_UP:
 						handler.removeCallbacks(longPress);
+						if (longFired) {
+							// a long press only opens the menu; it must not also count as a tap
+							longFired = false;
+							return true;
+						}
 						if (moved) {
 							boolean drop = overDropTarget();
 							removeDropTarget();
@@ -215,6 +252,11 @@ final class FloatingController {
 								return true;
 							}
 							sp.edit().putInt(K_BX, bubbleLp.x).putInt(K_BY, bubbleLp.y).apply();
+						} else if (inApp) {
+							// the app is already on screen: one tap moves the game into the floating window
+							if (callbacks != null) {
+								callbacks.onMinimize();
+							}
 						} else if (pendingTap != null) {
 							// double tap: bring the full app back
 							handler.removeCallbacks(pendingTap);
@@ -371,6 +413,12 @@ final class FloatingController {
 		LinearLayout col = new LinearLayout(ctx);
 		col.setOrientation(LinearLayout.VERTICAL);
 		col.setBackgroundColor(0xF01C222B);
+		TextView hint = new TextView(ctx);
+		hint.setText(inApp ? "Chạm: thu game vào cửa sổ nổi" : "Chạm: mở cửa sổ nổi · Chạm đúp: mở app");
+		hint.setTextColor(0xFF9AA4B2);
+		hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+		hint.setPadding(dp(14), dp(8), dp(14), dp(4));
+		col.addView(hint);
 		menuItem(col, "Mở lại app", () -> {
 			if (callbacks != null) {
 				callbacks.onDock();
@@ -555,7 +603,7 @@ final class FloatingController {
 	}
 
 	private LinearLayout keypadHolder;
-	private KeypadView keypadView;
+	private View keypadView;
 
 	private void toggleKeypad() {
 		if (keypadHolder == null) {
@@ -566,7 +614,7 @@ final class FloatingController {
 			keypadView = null;
 			return;
 		}
-		keypadView = new KeypadView(ctx, 34, 15, new KeypadView.Sink() {
+		keypadView = KeypadFactory.create(ctx, KeypadFactory.type(ctx), 34, 15, new KeypadView.Sink() {
 			@Override
 			public void key(int[] codes, boolean down) {
 				if (callbacks != null) {
@@ -576,6 +624,12 @@ final class FloatingController {
 
 			@Override
 			public void close() {
+				toggleKeypad();
+			}
+		}, () -> {
+			if (keypadHolder != null && keypadView != null) {
+				keypadHolder.removeView(keypadView);
+				keypadView = null;
 				toggleKeypad();
 			}
 		});
