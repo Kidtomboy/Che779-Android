@@ -7,6 +7,7 @@ Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản 
 Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 130`.
 
 ### Mới trong 1.3.0
+- **Sửa bản ghép x6**: tách dex theo từng file .jar thay vì giải nén ra thư mục (tránh mất class do trùng tên hoa/thường). Cần cài lại bản ghép.
 - **Thanh nút cửa sổ nổi**: `<` `>` + ô số tab (chạm để chọn tab), `*` (bản ghép), proxy ⇄, đồng bộ ô vuông (hộp thoại chọn tab), khởi động lại tab ⟳ (có nút Đổi proxy). Hộp thoại hiện trên cửa sổ nổi.
 - **Cài đặt mới**: Treo Online (chế độ pin, cấp độ ẩn), Bóng nổi (chỉ hiện khi treo, kích thước, độ trong), Tối ưu hiệu năng (Headless). Sửa lỗi bàn phím J2ME "ma" sau khi đóng bàn phím Nokia (giờ ẩn hẳn).
 - **Bàn phím Nokia và Android** (hai biểu tượng riêng), chọn ở thanh dưới hoặc ngay trên bàn phím.

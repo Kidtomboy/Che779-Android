@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import ru.playsoftware.j2meloader.config.Config;
 
@@ -60,30 +61,37 @@ final class MultiDex {
 			throw new IOException("Can't create directory: " + classDir);
 		}
 		try {
-			// One directory per chunk, keeping the original package paths: the instrumenter
-			// requires the class name to match its path inside the input directory.
+			// One jar per chunk. Obfuscated merged games contain class names that differ only by case
+			// (a.class / A.class); extracting them into folders on case-insensitive storage overwrites
+			// classes, so the chunks are written as zip files, where names stay exact.
 			List<File> chunks = new ArrayList<>();
 			try (ZipFile zip = new ZipFile(jar)) {
 				int i = 0;
-				File cur = null;
-				for (String name : names) {
-					if (i % CLASSES_PER_DEX == 0) {
-						cur = new File(classDir, "p" + (i / CLASSES_PER_DEX));
-						chunks.add(cur);
-					}
-					i++;
-					File f = new File(cur, name);
-					File parent = f.getParentFile();
-					if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
-						throw new IOException("Can't create directory: " + parent);
-					}
-					try (InputStream in = zip.getInputStream(zip.getEntry(name));
-						 FileOutputStream out = new FileOutputStream(f)) {
-						byte[] buf = new byte[16384];
-						int n;
-						while ((n = in.read(buf)) > 0) {
-							out.write(buf, 0, n);
+				ZipOutputStream cur = null;
+				try {
+					for (String name : names) {
+						if (i % CLASSES_PER_DEX == 0) {
+							if (cur != null) {
+								cur.close();
+							}
+							File f = new File(classDir, "p" + (i / CLASSES_PER_DEX) + ".jar");
+							chunks.add(f);
+							cur = new ZipOutputStream(new FileOutputStream(f));
 						}
+						i++;
+						cur.putNextEntry(new ZipEntry(name));
+						try (InputStream in = zip.getInputStream(zip.getEntry(name))) {
+							byte[] buf = new byte[16384];
+							int n;
+							while ((n = in.read(buf)) > 0) {
+								cur.write(buf, 0, n);
+							}
+						}
+						cur.closeEntry();
+					}
+				} finally {
+					if (cur != null) {
+						cur.close();
 					}
 				}
 			}
