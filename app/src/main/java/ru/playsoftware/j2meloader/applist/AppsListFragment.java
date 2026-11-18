@@ -108,6 +108,117 @@ public class AppsListFragment extends ListFragment {
 			FileUtils.getFilePicker(),
 			this::onPickFileResult);
 
+	private final ActivityResultLauncher<String[]> zipLauncher = registerForActivityResult(
+			new androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+			this::onZipPicked);
+
+	/** Reads a ZIP of games on a worker thread: only .jar/.jad/.kjx entries are taken, by file name only. */
+	private void onZipPicked(Uri uri) {
+		if (uri == null) {
+			return;
+		}
+		final Context ctx = requireContext().getApplicationContext();
+		final Activity activity = requireActivity();
+		new Thread(() -> {
+			final java.util.ArrayList<java.io.File> found = new java.util.ArrayList<>();
+			String error = null;
+			try {
+				java.io.File dir = new java.io.File(ctx.getCacheDir(), "zipimport");
+				deleteTree(dir);
+				if (!dir.mkdirs()) {
+					throw new java.io.IOException("Can't create " + dir);
+				}
+				try (java.util.zip.ZipInputStream zin = new java.util.zip.ZipInputStream(
+						ctx.getContentResolver().openInputStream(uri))) {
+					java.util.zip.ZipEntry e;
+					byte[] buf = new byte[16384];
+					while ((e = zin.getNextEntry()) != null) {
+						if (e.isDirectory()) {
+							continue;
+						}
+						String name = new java.io.File(e.getName()).getName();
+						String low = name.toLowerCase(java.util.Locale.ROOT);
+						if (!(low.endsWith(".jar") || low.endsWith(".jad") || low.endsWith(".kjx"))) {
+							continue;
+						}
+						java.io.File out = new java.io.File(dir, name);
+						long total = 0;
+						try (java.io.FileOutputStream fo = new java.io.FileOutputStream(out)) {
+							int n;
+							while ((n = zin.read(buf)) > 0) {
+								total += n;
+								if (total > 300L * 1024 * 1024) {
+									throw new java.io.IOException("File too large: " + name);
+								}
+								fo.write(buf, 0, n);
+							}
+						}
+						found.add(out);
+					}
+				}
+			} catch (Exception ex) {
+				error = ex.getMessage();
+			}
+			final String err = error;
+			activity.runOnUiThread(() -> {
+				if (!isAdded()) {
+					return;
+				}
+				if (err != null) {
+					Toast.makeText(activity, getString(R.string.error) + ": " + err, Toast.LENGTH_LONG).show();
+					return;
+				}
+				offerZipGames(found);
+			});
+		}, "Che779-ZipImport").start();
+	}
+
+	private static void deleteTree(java.io.File f) {
+		java.io.File[] kids = f.listFiles();
+		if (kids != null) {
+			for (java.io.File k : kids) {
+				deleteTree(k);
+			}
+		}
+		f.delete();
+	}
+
+	/** Installs the game found in the ZIP; with several games the user picks one. */
+	private void offerZipGames(java.util.List<java.io.File> found) {
+		java.util.ArrayList<java.io.File> games = new java.util.ArrayList<>();
+		for (String ext : new String[]{".jar", ".kjx", ".jad"}) {
+			for (java.io.File f : found) {
+				if (f.getName().toLowerCase(java.util.Locale.ROOT).endsWith(ext)) {
+					games.add(f);
+				}
+			}
+			if (!games.isEmpty()) {
+				break;
+			}
+		}
+		if (games.isEmpty()) {
+			Toast.makeText(requireActivity(), "Không thấy game (.jar, .jad, .kjx) trong file ZIP", Toast.LENGTH_LONG).show();
+			return;
+		}
+		if (games.size() == 1) {
+			installZipGame(games.get(0));
+			return;
+		}
+		final String[] names = new String[games.size()];
+		for (int i = 0; i < names.length; i++) {
+			names[i] = games.get(i).getName();
+		}
+		new AlertDialog.Builder(requireActivity())
+				.setTitle("Chọn game trong ZIP")
+				.setItems(names, (d, which) -> installZipGame(games.get(which)))
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void installZipGame(java.io.File file) {
+		InstallerDialog.newInstance(Uri.fromFile(file)).show(getParentFragmentManager(), "installer");
+	}
+
 	public static AppsListFragment newInstance(Uri data) {
 		AppsListFragment fragment = new AppsListFragment();
 		Bundle args = new Bundle();
@@ -357,7 +468,11 @@ public class AppsListFragment extends ListFragment {
 				e.printStackTrace();
 				Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show();
 			}
+		} else if (itemId == R.id.action_import_zip) {
+			zipLauncher.launch(new String[]{"application/zip", "application/x-zip-compressed", "application/octet-stream"});
 		} else if (itemId == R.id.action_exit_app) {
+			// games keep running in the background until the user quits from here
+			javax.microedition.shell.BubbleService.quitGames(activity.getApplicationContext());
 			activity.finish();
 		} else if (itemId == R.id.action_sort) {
 			showSortDialog();

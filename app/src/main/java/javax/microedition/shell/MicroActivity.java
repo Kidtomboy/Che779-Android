@@ -104,7 +104,7 @@ public class MicroActivity extends AppCompatActivity {
 	private TabBar tabBar;
 	private boolean gridMode;
 	private GridPanel gridPanel;
-	private GridBar gridBar;
+	private BottomBar bottomBar;
 	private boolean gridVkOn = false;
 	private boolean floating;
 	private final android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
@@ -198,21 +198,6 @@ public class MicroActivity extends AppCompatActivity {
 			}
 
 			@Override
-			public void onClose() {
-				confirmCloseActive();
-			}
-
-			@Override
-			public void onClone() {
-				cloneFirstTab();
-			}
-
-			@Override
-			public void onPickGame() {
-				pickGameForNewTab();
-			}
-
-			@Override
 			public void onRename(Session s) {
 				final EditText input = new EditText(MicroActivity.this);
 				input.setSingleLine(true);
@@ -228,12 +213,9 @@ public class MicroActivity extends AppCompatActivity {
 						.setNegativeButton(android.R.string.cancel, null)
 						.show();
 			}
-
-			@Override
-			public void onMenu() {
-				openOptionsMenu();
-			}
-
+		});
+		binding.virtualDisplay.addView(tabBar, 1);
+		bottomBar = new BottomBar(this, new BottomBar.Listener() {
 			@Override
 			public void onBubble() {
 				if (!FloatingController.canDraw(MicroActivity.this)) {
@@ -253,6 +235,21 @@ public class MicroActivity extends AppCompatActivity {
 			}
 
 			@Override
+			public void onClose() {
+				confirmCloseActive();
+			}
+
+			@Override
+			public void onClone() {
+				cloneFirstTab();
+			}
+
+			@Override
+			public void onPickGame() {
+				pickGameForNewTab();
+			}
+
+			@Override
 			public void onGrid() {
 				if (gridMode) {
 					exitGrid();
@@ -260,8 +257,50 @@ public class MicroActivity extends AppCompatActivity {
 					promptGrid();
 				}
 			}
+
+			@Override
+			public void onNokia() {
+				openKeypad(KeypadFactory.NOKIA);
+			}
+
+			@Override
+			public void onAndroid() {
+				openKeypad(KeypadFactory.ANDROID);
+			}
+
+			@Override
+			public void onSync() {
+				showSyncDialog();
+			}
+
+			@Override
+			public void onProxy() {
+				showProxyDialog();
+			}
+
+			@Override
+			public void onMenu() {
+				openOptionsMenu();
+			}
 		});
-		binding.virtualDisplay.addView(tabBar, 1);
+		binding.virtualDisplay.addView(bottomBar);
+	}
+
+	/**
+	 * The app was removed from the recent list but its games kept running in the background:
+	 * show those tabs again instead of failing on the empty launch intent.
+	 */
+	private boolean reattachRunningSessions() {
+		if (Session.count() == 0 || !tabs.isEmpty()) {
+			return false;
+		}
+		java.util.ArrayList<Session> list = new java.util.ArrayList<>(Session.all());
+		java.util.Collections.sort(list, (a, b) -> Integer.compare(a.slot, b.slot));
+		Session want = Session.active() != null && list.contains(Session.active()) ? Session.active() : list.get(0);
+		tabs.addAll(list);
+		Session.setActive(null);
+		activate(want);
+		return true;
 	}
 
 	/** Starts a game described by the intent: first launch, or a new tab when already running. */
@@ -272,6 +311,9 @@ public class MicroActivity extends AppCompatActivity {
 			appName = intent.getStringExtra(KEY_MIDLET_NAME);
 			Uri data = intent.getData();
 			if (data == null) {
+				if (reattachRunningSessions()) {
+					return;
+				}
 				showErrorDialog("Invalid intent: app path is null");
 				return;
 			}
@@ -424,6 +466,7 @@ public class MicroActivity extends AppCompatActivity {
 		if (gridMode) {
 			rebuildGrid();
 		}
+		showInAppBubble();
 		try {
 			loadMIDlet();
 		} catch (Exception e) {
@@ -549,6 +592,7 @@ public class MicroActivity extends AppCompatActivity {
 			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 			moveTaskToBack(true);
 		}
+		BubbleService.refresh(getApplicationContext());
 	}
 
 	/** Used by the Quick Settings tile. */
@@ -607,7 +651,7 @@ public class MicroActivity extends AppCompatActivity {
 		if (tabBar == null) {
 			return 0;
 		}
-		int rows = gridMode ? 2 : 1;
+		int rows = 1;
 		return (int) (36 * rows * getResources().getDisplayMetrics().density + 0.5f);
 	}
 
@@ -675,6 +719,73 @@ public class MicroActivity extends AppCompatActivity {
 				.show();
 	}
 
+	private void showRestartDialog() {
+		final Session act = Session.active();
+		if (act == null || tabs.isEmpty()) {
+			return;
+		}
+		final EditText input = new EditText(this);
+		input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+		input.setHint("Số tab (để trống = tab " + slotOf(act) + ")");
+		new AlertDialog.Builder(this)
+				.setTitle("Khởi động lại tab")
+				.setMessage("Tab cũ thoát hẳn và ngắt mọi kết nối cũ, rồi mới mở lại game ở cùng số tab.")
+				.setView(input)
+				.setPositiveButton("Khởi động lại", (d, w) -> {
+					String t = input.getText().toString().trim();
+					int no = slotOf(act);
+					if (!t.isEmpty()) {
+						try {
+							no = Integer.parseInt(t);
+						} catch (NumberFormatException e) {
+							no = -1;
+						}
+					}
+					Session target = null;
+					for (Session x : tabs) {
+						if (slotOf(x) == no) {
+							target = x;
+						}
+					}
+					if (target == null) {
+						Toast.makeText(this, "Không có tab " + t, Toast.LENGTH_SHORT).show();
+						return;
+					}
+					restartSession(target);
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	/**
+	 * Fully ends a tab, then opens the same game again in the same number. Order: drop the old
+	 * connections, ask the game to exit, remove the tab (event queue and threads stopped), and only
+	 * then start the new session.
+	 */
+	private void restartSession(final Session s) {
+		if (!tabs.contains(s) || s.restartAfter != null) {
+			return;
+		}
+		final String name = s.appName;
+		final String path = s.appPath;
+		final int slotNo = slotOf(s);
+		final String lbl = s.label;
+		s.closeNet();
+		s.restartAfter = () -> {
+			pendingSlot = slotNo;
+			pendingLabel = lbl;
+			addSession(name, path, null);
+		};
+		Toast.makeText(this, "Đang khởi động lại tab " + slotNo + "…", Toast.LENGTH_SHORT).show();
+		closeSession(s);
+		// a game that ignores the exit request is removed anyway
+		uiHandler.postDelayed(() -> {
+			if (tabs.contains(s)) {
+				removeSession(s);
+			}
+		}, 3500);
+	}
+
 	/** Asks the game of a tab to exit; the tab disappears when it does. */
 	private void closeSession(Session s) {
 		MidletThread t = s.thread;
@@ -714,14 +825,29 @@ public class MicroActivity extends AppCompatActivity {
 				s.thread.quitSession();
 			}
 			final Session dead = s;
+			final Runnable again = s.restartAfter;
+			s.restartAfter = null;
 			new Thread(() -> {
 				try {
 					Thread.sleep(800);
 				} catch (InterruptedException ignored) {
 				}
 				dead.killThreads();
+				dead.release();
 			}, "Che779-Cleanup").start();
+			if (again != null) {
+				// the old tab is fully gone (threads interrupted, connections closed): open the new one
+				uiHandler.postDelayed(again, 1200);
+			}
 			saveTabs();
+			if (tabs.isEmpty() && again == null) {
+				// last tab closed through the multi-tab path: no neighbour to show, so leave cleanly
+				// instead of keeping an empty frame on screen
+				hideKeypad();
+				host().removeAllViews();
+				MidletThread.finishApp();
+				return;
+			}
 			if (gridMode) {
 				if (!wasActive && s.current != null) {
 					s.current.clearDisplayableView();
@@ -987,28 +1113,7 @@ public class MicroActivity extends AppCompatActivity {
 		Session.grid = true;
 		host().removeAllViews();
 		gridPanel = new GridPanel(this, this::focusGrid);
-		gridBar = new GridBar(this, Session.syncKeys, new GridBar.Listener() {
-			@Override
-			public void onSyncDialog() {
-				showSyncDialog();
-			}
-
-			@Override
-			public void onProxy() {
-				showProxyDialog();
-			}
-
-			@Override
-			public void onKeyboard() {
-				toggleKeypad();
-			}
-
-			@Override
-			public void onBackToList() {
-				exitGrid();
-			}
-		});
-		binding.virtualDisplay.addView(gridBar, 2);
+		bottomBar.setGridMode(true, Session.syncKeys);
 		host().addView(gridPanel, new android.widget.FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 		LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) binding.toolbar.getLayoutParams();
@@ -1071,11 +1176,8 @@ public class MicroActivity extends AppCompatActivity {
 			gridPanel.detachAll();
 		}
 		host().removeAllViews();
-		if (gridBar != null) {
-			binding.virtualDisplay.removeView(gridBar);
-		}
 		gridPanel = null;
-		gridBar = null;
+		bottomBar.setGridMode(false, false);
 		for (Session o : tabs) {
 			if (o != act) {
 				if (o.current != null) {
@@ -1183,6 +1285,122 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
+	private FloatingController.Callbacks floatCallbacks() {
+		return new FloatingController.Callbacks() {
+				@Override
+				public void onDock() {
+					Intent i = new Intent(getApplicationContext(), MicroActivity.class);
+					i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					startActivity(i);
+				}
+	
+				@Override
+				public boolean isSync() {
+					return Session.syncKeys;
+				}
+	
+				@Override
+				public boolean onToggleSync() {
+					if (Session.syncKeys) {
+						Session.syncKeys = false;
+						return false;
+					}
+					Session a = Session.active();
+					int n = 0;
+					for (Session t : tabs) {
+						if (t.sync) {
+							n++;
+						}
+					}
+					if (n < 2 && a != null) {
+						n = 0;
+						for (Session t : tabs) {
+							t.sync = t.appPath.equals(a.appPath);
+							if (t.sync) {
+								n++;
+							}
+						}
+					}
+					Session.syncKeys = n >= 2;
+					return Session.syncKeys;
+				}
+	
+				@Override
+				public void onKeys(int[] codes, boolean down) {
+					sendKeys(codes, down);
+				}
+	
+				@Override
+				public void onStar() {
+					Session a = Session.active();
+					if (a != null && a.current instanceof Canvas) {
+						final Canvas c = (Canvas) a.current;
+						c.postKeyPressed(Canvas.KEY_STAR);
+						ViewHandler.postDelayed(() -> c.postKeyReleased(Canvas.KEY_STAR), 80);
+					}
+				}
+	
+				@Override
+				public void onHideLevel(int level) {
+					try {
+						android.app.ActivityManager am =
+								(android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+						for (android.app.ActivityManager.AppTask t : am.getAppTasks()) {
+							t.setExcludeFromRecents(level >= 1);
+						}
+					} catch (Exception ignored) {
+					}
+				}
+	
+				@Override
+				public void onCycle(int delta) {
+					if (tabs.size() < 2) {
+						return;
+					}
+					int idx = tabs.indexOf(Session.active());
+					Session next = tabs.get((idx + delta + tabs.size()) % tabs.size());
+					if (gridMode) {
+						focusGrid(next);
+					} else {
+						activate(next);
+					}
+					updateFloatLabel();
+				}
+
+				@Override
+				public void onMinimize() {
+					startFloating(true);
+					if (floating) {
+						moveTaskToBack(true);
+					}
+				}
+			};
+	}
+
+	/** Bubble visible while the game is on screen (tap it to move the game into the floating window). */
+	private void showInAppBubble() {
+		if (binding == null || floating || tabs.isEmpty() || isFinishing()) {
+			return;
+		}
+		if (!PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_bubble_enabled", true)) {
+			return;
+		}
+		if (!FloatingController.canDraw(this)) {
+			if (!bubblePermissionHinted) {
+				bubblePermissionHinted = true;
+				Toast.makeText(this, "Cấp quyền \"Hiển thị trên ứng dụng khác\" để hiện bong bóng khi vào game",
+						Toast.LENGTH_LONG).show();
+			}
+			return;
+		}
+		FloatingController fc = FloatingController.get(this);
+		if (!fc.isShowing()) {
+			fc.showInApp(floatCallbacks());
+		}
+	}
+
+	private boolean bubblePermissionHinted;
+
 	/** Activity left the screen: games keep running in the bubble. */
 	private void startFloating(boolean force) {
 		boolean ok = force ? !isFinishing() && !tabs.isEmpty() && FloatingController.canDraw(this)
@@ -1210,87 +1428,7 @@ public class MicroActivity extends AppCompatActivity {
 			fc.host().addView(content, new android.widget.FrameLayout.LayoutParams(
 					ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 		}
-		fc.show(new FloatingController.Callbacks() {
-			@Override
-			public void onDock() {
-				Intent i = new Intent(getApplicationContext(), MicroActivity.class);
-				i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				startActivity(i);
-			}
-
-			@Override
-			public boolean isSync() {
-				return Session.syncKeys;
-			}
-
-			@Override
-			public boolean onToggleSync() {
-				if (Session.syncKeys) {
-					Session.syncKeys = false;
-					return false;
-				}
-				Session a = Session.active();
-				int n = 0;
-				for (Session t : tabs) {
-					if (t.sync) {
-						n++;
-					}
-				}
-				if (n < 2 && a != null) {
-					n = 0;
-					for (Session t : tabs) {
-						t.sync = t.appPath.equals(a.appPath);
-						if (t.sync) {
-							n++;
-						}
-					}
-				}
-				Session.syncKeys = n >= 2;
-				return Session.syncKeys;
-			}
-
-			@Override
-			public void onKeys(int[] codes, boolean down) {
-				sendKeys(codes, down);
-			}
-
-			@Override
-			public void onStar() {
-				Session a = Session.active();
-				if (a != null && a.current instanceof Canvas) {
-					final Canvas c = (Canvas) a.current;
-					c.postKeyPressed(Canvas.KEY_STAR);
-					ViewHandler.postDelayed(() -> c.postKeyReleased(Canvas.KEY_STAR), 80);
-				}
-			}
-
-			@Override
-			public void onHideLevel(int level) {
-				try {
-					android.app.ActivityManager am =
-							(android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
-					for (android.app.ActivityManager.AppTask t : am.getAppTasks()) {
-						t.setExcludeFromRecents(level >= 1);
-					}
-				} catch (Exception ignored) {
-				}
-			}
-
-			@Override
-			public void onCycle(int delta) {
-				if (tabs.size() < 2) {
-					return;
-				}
-				int idx = tabs.indexOf(Session.active());
-				Session next = tabs.get((idx + delta + tabs.size()) % tabs.size());
-				if (gridMode) {
-					focusGrid(next);
-				} else {
-					activate(next);
-				}
-				updateFloatLabel();
-			}
-		});
+		fc.show(floatCallbacks());
 		updateFloatLabel();
 	}
 
@@ -1324,6 +1462,7 @@ public class MicroActivity extends AppCompatActivity {
 	public void onResume() {
 		super.onResume();
 		stopFloating();
+		showInAppBubble();
 		if (powerMode == 3) {
 			applyPowerMode(0);
 			if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PREF_KEEP_SCREEN, false)) {
@@ -1521,8 +1660,8 @@ public class MicroActivity extends AppCompatActivity {
 						}
 					}
 					Session.syncKeys = n >= 2;
-					if (gridBar != null) {
-						gridBar.setSyncOn(Session.syncKeys);
+					if (bottomBar != null) {
+						bottomBar.setSyncOn(Session.syncKeys);
 					}
 					if (n == 1) {
 						Toast.makeText(this, "Cần chọn ít nhất 2 tab để đồng bộ", Toast.LENGTH_SHORT).show();
@@ -1533,8 +1672,8 @@ public class MicroActivity extends AppCompatActivity {
 					for (Session t : list) {
 						t.sync = false;
 					}
-					if (gridBar != null) {
-						gridBar.setSyncOn(false);
+					if (bottomBar != null) {
+						bottomBar.setSyncOn(false);
 					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
@@ -1543,7 +1682,54 @@ public class MicroActivity extends AppCompatActivity {
 
 	// ------------------------------------------------------------ keypad popup (grid mode)
 
-	private KeypadView keypad;
+	private View keypad;
+	private int keypadType;
+
+	private void rebuildKeypad() {
+		hideKeypad();
+		if (gridMode) {
+			showKeypad();
+		} else {
+			showListKeypad();
+		}
+	}
+
+	/** Bottom-bar icon: opens the Nokia or Android keypad, or closes it when it is already open. */
+	private void openKeypad(int type) {
+		if (keypad != null && keypadType == type) {
+			closeKeypad();
+			return;
+		}
+		KeypadFactory.setType(this, type);
+		rebuildKeypad();
+	}
+
+	/** Closes the keypad; in list mode the J2ME virtual keyboard comes back. */
+	private void closeKeypad() {
+		hideKeypad();
+		if (!gridMode && binding != null) {
+			Session s = Session.active();
+			if (s != null && s.vk != null) {
+				s.vk.setView(binding.overlayView);
+				binding.overlayView.addLayer(s.vk);
+				binding.overlayView.setVisibility(true);
+			}
+		}
+	}
+
+	private KeypadView.Sink keypadSink() {
+		return new KeypadView.Sink() {
+			@Override
+			public void key(int[] codes, boolean down) {
+				sendKeys(codes, down);
+			}
+
+			@Override
+			public void close() {
+				closeKeypad();
+			}
+		};
+	}
 
 	/** List mode: our keypad is drawn over the (broken or missing) J2ME virtual keyboard. */
 	private void showListKeypad() {
@@ -1555,33 +1741,15 @@ public class MicroActivity extends AppCompatActivity {
 		if (a.vk != null) {
 			binding.overlayView.removeLayer(a.vk);
 		}
-		keypad = new KeypadView(this, 50, 22, new KeypadView.Sink() {
-			@Override
-			public void key(int[] codes, boolean down) {
-				sendKeys(codes, down);
-			}
-
-			@Override
-			public void close() {
-				hideKeypad();
-				Session s = Session.active();
-				if (s != null && s.vk != null) {
-					s.vk.setView(binding.overlayView);
-					binding.overlayView.addLayer(s.vk);
-					binding.overlayView.setVisibility(true);
-				}
-			}
-		});
-		((ViewGroup) binding.getRoot()).addView(keypad, new android.widget.FrameLayout.LayoutParams(
+		keypadType = KeypadFactory.type(this);
+		keypad = KeypadFactory.create(this, keypadType, 50, 22, keypadSink(), this::rebuildKeypad);
+		android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-				android.view.Gravity.BOTTOM));
-	}
-
-	private void toggleKeypad() {
-		if (keypad != null) {
-			hideKeypad();
-		} else {
-			showKeypad();
+				android.view.Gravity.BOTTOM);
+		lp.bottomMargin = BottomBar.heightPx(this);
+		((ViewGroup) binding.getRoot()).addView(keypad, lp);
+		if (bottomBar != null) {
+			bottomBar.setKeypad(keypadType, true);
 		}
 	}
 
@@ -1594,6 +1762,9 @@ public class MicroActivity extends AppCompatActivity {
 			} catch (Exception ignored) {
 			}
 			keypad = null;
+		}
+		if (bottomBar != null) {
+			bottomBar.setKeypad(keypadType, false);
 		}
 	}
 
@@ -1630,20 +1801,14 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void showKeypad() {
-		keypad = new KeypadView(this, 40, 20, new KeypadView.Sink() {
-			@Override
-			public void key(int[] codes, boolean down) {
-				sendKeys(codes, down);
-			}
-
-			@Override
-			public void close() {
-				hideKeypad();
-			}
-		});
-		// docked under the grid: the grid shrinks instead of being covered
-		binding.virtualDisplay.addView(keypad, new LinearLayout.LayoutParams(
-				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		keypadType = KeypadFactory.type(this);
+		keypad = KeypadFactory.create(this, keypadType, 40, 20, keypadSink(), this::rebuildKeypad);
+		// docked above the bottom bar: the grid shrinks instead of being covered
+		binding.virtualDisplay.addView(keypad, Math.max(0, binding.virtualDisplay.getChildCount() - 1),
+				new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		if (bottomBar != null) {
+			bottomBar.setKeypad(keypadType, true);
+		}
 	}
 
 	// ------------------------------------------------------------ exit
@@ -1653,6 +1818,7 @@ public class MicroActivity extends AppCompatActivity {
 	/** Closes every tab and ends the process (no battery use afterwards). */
 	public void exitAll() {
 		exiting = true;
+		FloatingController.get(this).hide();
 		hideSoftInput();
 		hideKeypad();
 		try {
@@ -1809,6 +1975,8 @@ public class MicroActivity extends AppCompatActivity {
 		int id = item.getItemId();
 		if (id == R.id.action_exit_midlet) {
 			showExitConfirmation();
+		} else if (id == R.id.action_restart_tab) {
+			showRestartDialog();
 		} else if (id == R.id.action_proxy) {
 			showProxyDialog();
 		} else if (id == R.id.action_fix_vk) {
@@ -2075,11 +2243,19 @@ public class MicroActivity extends AppCompatActivity {
 			memoryGuard.stop();
 		}
 		uiHandler.removeCallbacks(sleepRunnable);
+		// Removed from the recent list while games still run: keep them (and their bubble and
+		// notification) alive. Only the user's explicit exit (main menu / notification "Dừng") stops them.
+		boolean keepAlive = !exiting && !isChangingConfigurations() && Session.count() > 0;
+		if (keepAlive) {
+			super.onDestroy();
+			return;
+		}
+		FloatingController fcd = FloatingController.get(this);
 		if (floating) {
-			FloatingController.get(this).host().removeAllViews();
-			FloatingController.get(this).hide();
+			fcd.host().removeAllViews();
 			floating = false;
 		}
+		fcd.hide();
 		try {
 			stopService(new Intent(this, BubbleService.class));
 		} catch (Exception ignored) {

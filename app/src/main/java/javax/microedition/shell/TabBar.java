@@ -1,5 +1,5 @@
 /*
- *  Che779 Emulator - tab bar (numbered tabs, -, +, game picker).
+ *  Che779 Emulator - tab bar (numbered tabs only; the function icons live in the bottom BottomBar).
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  *  Layout idea: J2ME_NST (NST Tien).
  */
@@ -7,36 +7,19 @@ package javax.microedition.shell;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.List;
 
-import ru.playsoftware.j2meloader.R;
-
-/** Compact bar: [1][2][3] ... [-] [+] [pad]. */
+/** Top bar: only the tab numbers [1][2][3]. Tap selects, long press renames. */
 final class TabBar extends LinearLayout {
 	interface Listener {
 		void onSelect(Session s);
-
-		void onClose();
-
-		void onClone();
-
-		void onPickGame();
-
-		void onGrid();
-
-		void onBubble();
-
-		void onMenu();
 
 		void onRename(Session s);
 	}
@@ -62,42 +45,10 @@ final class TabBar extends LinearLayout {
 		tabs.setOrientation(HORIZONTAL);
 		scroll.addView(tabs);
 		addView(scroll, new LayoutParams(0, dp(36), 1f));
-		FrameLayout bubbleCell = new FrameLayout(context);
-		ImageView bubbleBtn = new ImageView(context);
-		bubbleBtn.setImageResource(R.drawable.che779_bubble);
-		bubbleBtn.setOnClickListener(v -> listener.onBubble());
-		bubbleCell.addView(bubbleBtn, new FrameLayout.LayoutParams(dp(30), dp(30), Gravity.CENTER));
-		addView(bubbleCell, new LayoutParams(0, dp(36), 0.5f));
-		addView(Icons.view(context, R.drawable.ic_c_remove, Color.WHITE, 8, v -> listener.onClose()), new LayoutParams(dp(40), dp(36)));
-		ImageView plus = Icons.view(context, R.drawable.ic_c_add, Color.WHITE, 8, v -> listener.onClone());
-		plus.setOnLongClickListener(v -> {
-			listener.onPickGame();
-			return true;
-		});
-		addView(plus, new LayoutParams(dp(40), dp(36)));
-		addView(Icons.view(context, R.drawable.ic_c_grid, Color.WHITE, 8, v -> listener.onGrid()), new LayoutParams(dp(40), dp(36)));
-		ImageView pad = new ImageView(context);
-		pad.setImageResource(R.drawable.ic_che779_gamepad);
-		pad.setPadding(dp(10), dp(8), dp(10), dp(8));
-		pad.setOnClickListener(v -> listener.onPickGame());
-		addView(pad, new LayoutParams(dp(44), dp(36)));
-		addView(Icons.view(context, R.drawable.ic_c_more, Color.WHITE, 8, v -> listener.onMenu()), new LayoutParams(dp(40), dp(36)));
 	}
 
 	private int dp(int v) {
 		return (int) (v * density + 0.5f);
-	}
-
-	private TextView button(Context context, String text, OnClickListener click) {
-		TextView t = new TextView(context);
-		t.setText(text);
-		t.setGravity(Gravity.CENTER);
-		t.setTextColor(Color.WHITE);
-		t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
-		t.setTypeface(Typeface.DEFAULT_BOLD);
-		t.setOnClickListener(click);
-		t.setLayoutParams(new LayoutParams(dp(40), dp(36)));
-		return t;
 	}
 
 	void update(List<Session> order, Session active) {

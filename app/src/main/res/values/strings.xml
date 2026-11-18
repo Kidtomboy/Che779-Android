@@ -274,6 +274,8 @@
     <string name="pref_mem_interval_title">Check interval (seconds)</string>
     <string name="pref_auto_sleep_title">Auto black screen</string>
     <string name="action_proxy">Proxy and IP redirect</string>
+    <string name="action_restart_tab">Restart tab / enter tab number</string>
+    <string name="action_import_zip">Import game from ZIP</string>
     <string name="action_power">Power mode</string>
     <string name="pref_restore_tabs">Restore tabs of the last run</string>
     <string name="action_fix_vk">Repair virtual keyboard</string>

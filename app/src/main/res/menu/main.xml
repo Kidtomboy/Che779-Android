@@ -16,6 +16,10 @@
         android:orderInCategory="0">
     </item>
     <item
+        android:id="@+id/action_import_zip"
+        android:title="@string/action_import_zip"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_about"
         android:title="@string/about"
         app:showAsAction="never" />
