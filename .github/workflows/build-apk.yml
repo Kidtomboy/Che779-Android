@@ -49,7 +49,7 @@ jobs:
         run: |
           { sed -n '/What went wrong/,/Try:/p' build.log | head -80; echo ==== ERRORS; grep -nE "error:|\.java:[0-9]+: |Caused by|Execution failed|ndk-build|clang" build.log | grep -v "^.*\bat org.gradle" | head -150; echo ==== TAIL; tail -n 30 build.log | grep -v "^\s*at "; } > build-tail.log || true
           gh release delete buildlog --cleanup-tag --yes || true
-          gh release create buildlog build-tail.log --prerelease \
+          gh release create buildlog build-tail.log --prerelease --latest=false \
             --title "Nhật ký build" --notes "Nhật ký của lần build gần nhất (tối đa 400 dòng cuối)." --target "$GITHUB_SHA" || true
 
       - name: Collect APK
