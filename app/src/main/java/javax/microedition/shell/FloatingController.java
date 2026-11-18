@@ -484,9 +484,43 @@ final class FloatingController {
 
 	// ---------------------------------------------------------------- window
 
+	/** Width of a bar button; shrinks with the window so a strip of the bar stays free for dragging. */
+	private int btnW = 34 * 3;
+
+	/** Bar that starts dragging the window when a finger moves on any of its buttons. */
+	private final class DragBar extends LinearLayout {
+		interface Begin {
+			void down(float rawX, float rawY);
+		}
+
+		private final Begin begin;
+		private float dx, dy;
+		private boolean dragging;
+
+		DragBar(Context c, Begin begin) {
+			super(c);
+			this.begin = begin;
+		}
+
+		@Override
+		public boolean onInterceptTouchEvent(MotionEvent e) {
+			int a = e.getActionMasked();
+			if (a == MotionEvent.ACTION_DOWN) {
+				dx = e.getRawX();
+				dy = e.getRawY();
+				dragging = false;
+				begin.down(dx, dy);
+			} else if (a == MotionEvent.ACTION_MOVE && !dragging
+					&& Math.abs(e.getRawX() - dx) + Math.abs(e.getRawY() - dy) > dp(10)) {
+				dragging = true;
+			}
+			return dragging;
+		}
+	}
+
 	private ImageView iconButton(int res, View.OnClickListener l) {
 		ImageView v = Icons.view(ctx, res, Color.WHITE, 6, l);
-		v.setLayoutParams(new LinearLayout.LayoutParams(dp(34), dp(32)));
+		v.setLayoutParams(new LinearLayout.LayoutParams(btnW, dp(32)));
 		return v;
 	}
 
@@ -518,7 +552,14 @@ final class FloatingController {
 
 		LinearLayout column = new LinearLayout(ctx);
 		column.setOrientation(LinearLayout.VERTICAL);
-		LinearLayout bar = new LinearLayout(ctx);
+		btnW = Math.max(dp(22), Math.min(dp(34), (int) (w * 0.78f) / 8));
+		final float[] st = new float[4];
+		LinearLayout bar = new DragBar(ctx, (x, y) -> {
+			st[0] = x;
+			st[1] = y;
+			st[2] = windowLp.x;
+			st[3] = windowLp.y;
+		});
 		bar.setOrientation(LinearLayout.HORIZONTAL);
 		bar.setGravity(Gravity.CENTER_VERTICAL);
 		bar.setBackgroundColor(0xFF1C222B);
@@ -588,26 +629,21 @@ final class FloatingController {
 		grip.setGravity(Gravity.CENTER);
 		window.addView(grip, new FrameLayout.LayoutParams(dp(28), dp(28), Gravity.BOTTOM | Gravity.END));
 
-		bar.setOnTouchListener(new View.OnTouchListener() {
-			float downX, downY;
-			int startX, startY;
-
-			@Override
-			public boolean onTouch(View v, MotionEvent e) {
-				if (e.getActionMasked() == MotionEvent.ACTION_DOWN) {
-					downX = e.getRawX();
-					downY = e.getRawY();
-					startX = windowLp.x;
-					startY = windowLp.y;
-				} else if (e.getActionMasked() == MotionEvent.ACTION_MOVE) {
-					windowLp.x = startX + (int) (e.getRawX() - downX);
-					windowLp.y = startY + (int) (e.getRawY() - downY);
-					wm.updateViewLayout(window, windowLp);
-				} else if (e.getActionMasked() == MotionEvent.ACTION_UP) {
-					sp.edit().putInt(K_X, windowLp.x).putInt(K_Y, windowLp.y).apply();
-				}
-				return true;
+		bar.setOnTouchListener((v, e) -> {
+			int act = e.getActionMasked();
+			if (act == MotionEvent.ACTION_DOWN) {
+				st[0] = e.getRawX();
+				st[1] = e.getRawY();
+				st[2] = windowLp.x;
+				st[3] = windowLp.y;
+			} else if (act == MotionEvent.ACTION_MOVE) {
+				windowLp.x = (int) (st[2] + e.getRawX() - st[0]);
+				windowLp.y = (int) (st[3] + e.getRawY() - st[1]);
+				wm.updateViewLayout(window, windowLp);
+			} else if (act == MotionEvent.ACTION_UP) {
+				sp.edit().putInt(K_X, windowLp.x).putInt(K_Y, windowLp.y).apply();
 			}
+			return true;
 		});
 		grip.setOnTouchListener(new View.OnTouchListener() {
 			float downX, downY;

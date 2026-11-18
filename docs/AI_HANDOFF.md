@@ -67,3 +67,5 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - Nguyên nhân khả dĩ: MultiDex giải nén class ra thư mục `.tmp/.classes` nằm trong bộ nhớ ngoài (không phân biệt hoa/thường) nên class bị ghi đè/mất. Đã đổi sang ghi mỗi chunk thành file .jar (zip giữ nguyên tên). CHƯA chạy thử trên máy: cần xoá bản đã cài rồi cài lại .jar.
 
 - MultiDex: CLASSES_PER_DEX=150, SINGLE_DEX_MAX_CLASSES=300, tối đa 6 luồng (Cherry xác nhận bản ghép x6 vào được khi chia nhiều dex). Chưa đo hiệu năng/RAM trên máy yếu.
+
+- FloatingController: DragBar (onInterceptTouchEvent, ngưỡng 10dp) cho kéo cửa sổ từ mọi nút; btnW co theo chiều ngang cửa sổ. Nút `*` giữ=phím nhấn giữ đã có ở commit 9b5670b. Chưa thử máy thật.
