@@ -7,7 +7,28 @@ package javax.microedition.shell;
 
 /** Proxy and redirect rules of one tab. */
 public final class NetConfig {
-	public static final int NONE = 0, HTTP = 1, SOCKS5 = 2;
+	public static final int NONE = 0, HTTP = 1, SOCKS5 = 2, SOCKS4 = 3;
+
+	public static String scheme(int type) {
+		return type == SOCKS5 ? "socks5" : type == SOCKS4 ? "socks4" : "http";
+	}
+
+	/** Protocol word -> type, or -1 when the word is not a protocol. */
+	public static int typeOf(String w) {
+		if (w == null) {
+			return -1;
+		}
+		switch (w.trim().toLowerCase(java.util.Locale.ROOT)) {
+			case "http": case "https":
+				return HTTP;
+			case "socks4": case "socks4a":
+				return SOCKS4;
+			case "socks": case "socks5": case "socks5h":
+				return SOCKS5;
+			default:
+				return -1;
+		}
+	}
 
 	public volatile int type;
 	public volatile String host;
@@ -25,7 +46,7 @@ public final class NetConfig {
 		if (!hasProxy()) {
 			return "Không dùng proxy";
 		}
-		return (type == SOCKS5 ? "socks5://" : "http://") + host + ":" + port
+		return scheme(type) + "://" + host + ":" + port
 				+ (user != null && !user.isEmpty() ? " (" + user + ")" : "");
 	}
 
@@ -34,7 +55,7 @@ public final class NetConfig {
 		if (!hasProxy()) {
 			return "";
 		}
-		return (type == SOCKS5 ? "socks5://" : "http://")
+		return scheme(type) + "://"
 				+ (user != null && !user.isEmpty() ? user + ":" + (pass == null ? "" : pass) + "@" : "")
 				+ host + ":" + port;
 	}
@@ -56,13 +77,11 @@ public final class NetConfig {
 		int i = line.indexOf("://");
 		if (i > 0) {
 			String scheme = line.substring(0, i).toLowerCase(java.util.Locale.ROOT);
-			if ("socks".equals(scheme) || "socks5".equals(scheme) || "socks5h".equals(scheme)) {
-				c.type = SOCKS5;
-			} else if ("http".equals(scheme) || "https".equals(scheme)) {
-				c.type = HTTP;
-			} else {
+			int t = typeOf(scheme);
+			if (t < 0) {
 				return null;
 			}
+			c.type = t;
 			line = line.substring(i + 3);
 		}
 		try {
@@ -75,6 +94,11 @@ public final class NetConfig {
 				line = line.substring(at + 1);
 			}
 			String[] p = line.split(":");
+			if ((p.length == 3 || p.length == 5) && typeOf(p[p.length - 1]) >= 0) {
+				// host:port:giao_thức  /  host:port:user:pass:giao_thức
+				c.type = typeOf(p[p.length - 1]);
+				p = java.util.Arrays.copyOf(p, p.length - 1);
+			}
 			if (p.length == 2) {
 				c.host = p[0];
 				c.port = Integer.parseInt(p[1].trim());

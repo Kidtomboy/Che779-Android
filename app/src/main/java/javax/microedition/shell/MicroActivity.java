@@ -939,41 +939,8 @@ public class MicroActivity extends AppCompatActivity {
 
 	private void loadNet(Session s, int tabNo) {
 		SharedPreferences sp = netPrefs();
-		NetConfig parsed = NetConfig.parse(sp.getString("che779_tab_proxy_" + tabNo, ""));
-		if (parsed != null) {
-			copyProxy(parsed, s.net);
-		}
+		ProxyStore.applyTo(sp, tabNo, s);
 		s.net.redirects = sp.getString("che779_redirects", "");
-	}
-
-	private static void copyProxy(NetConfig from, NetConfig to) {
-		to.type = from.type;
-		to.host = from.host;
-		to.port = from.port;
-		to.user = from.user;
-		to.pass = from.pass;
-	}
-
-	private java.util.List<NetConfig> proxyList() {
-		java.util.ArrayList<NetConfig> out = new java.util.ArrayList<>();
-		for (String line : netPrefs().getString("che779_proxy_list", "").split("\n")) {
-			NetConfig c = NetConfig.parse(line);
-			if (c != null) {
-				out.add(c);
-			}
-		}
-		return out;
-	}
-
-	private void setTabProxy(Session s, NetConfig c) {
-		int no = slotOf(s);
-		if (c == null) {
-			s.net.type = NetConfig.NONE;
-			netPrefs().edit().remove("che779_tab_proxy_" + no).apply();
-		} else {
-			copyProxy(c, s.net);
-			netPrefs().edit().putString("che779_tab_proxy_" + no, c.serialize()).apply();
-		}
 	}
 
 	private EditText multiLine(String text, String hint) {
@@ -986,87 +953,91 @@ public class MicroActivity extends AppCompatActivity {
 		return e;
 	}
 
+	private static final int REQ_PROXY_FILE = 7791;
+	private java.util.function.Consumer<String> proxyFileCb;
+
+	private ProxyUi.Host proxyHost() {
+		return new ProxyUi.Host() {
+			@Override
+			public android.content.Context ctx() {
+				return dctx();
+			}
+
+			@Override
+			public AlertDialog show(AlertDialog.Builder b) {
+				try {
+					AlertDialog d = b.create();
+					if (floating && d.getWindow() != null) {
+						d.getWindow().setType(Build.VERSION.SDK_INT >= 26 ? 2038 : 2003);
+					}
+					d.show();
+					return d;
+				} catch (Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+
+			@Override
+			public void pickFile(java.util.function.Consumer<String> onText) {
+				proxyFileCb = onText;
+				try {
+					Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+					i.addCategory(Intent.CATEGORY_OPENABLE);
+					i.setType("*/*");
+					i.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"text/*", "application/json", "text/csv",
+							"application/csv", "application/octet-stream"});
+					startActivityForResult(i, REQ_PROXY_FILE);
+				} catch (Exception e) {
+					Toast.makeText(MicroActivity.this,
+							"Không mở được trình chọn file ở chế độ này, hãy dùng \"Dán văn bản\"",
+							Toast.LENGTH_LONG).show();
+				}
+			}
+
+			@Override
+			public java.util.List<Session> tabs() {
+				return tabs;
+			}
+
+			@Override
+			public int slotOf(Session s) {
+				return MicroActivity.this.slotOf(s);
+			}
+
+			@Override
+			public Session active() {
+				return Session.active();
+			}
+
+			@Override
+			public SharedPreferences prefs() {
+				return netPrefs();
+			}
+
+			@Override
+			public void toast(String msg) {
+				Toast.makeText(MicroActivity.this, msg, Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void redirect() {
+				editRedirects();
+			}
+		};
+	}
+
+	/** Proxy: single form in list mode; per-tab table in grid mode and in the floating window. */
 	private void showProxyDialog() {
 		final Session cur = Session.active();
 		if (cur == null) {
 			return;
 		}
-		final int no = slotOf(cur);
-		String[] items = {
-				"Chọn proxy cho tab " + no + " (đang: " + cur.net.label() + ")",
-				"Nhập / sửa danh sách proxy",
-				"Gán lần lượt mỗi tab một proxy",
-				"Chuyển hướng IP",
-				"Tắt proxy của tab " + no
-		};
-		showDlg(new AlertDialog.Builder(dctx())
-				.setTitle("Proxy")
-				.setItems(items, (d, which) -> {
-					if (which == 0) {
-						chooseProxy(cur);
-					} else if (which == 1) {
-						editProxyList();
-					} else if (which == 2) {
-						assignProxies();
-					} else if (which == 3) {
-						editRedirects();
-					} else {
-						setTabProxy(cur, null);
-						Toast.makeText(this, "Đã tắt proxy tab " + no + " (áp dụng cho kết nối mới)",
-								Toast.LENGTH_SHORT).show();
-					}
-				})
-				.setNegativeButton(android.R.string.cancel, null)
-				);
-	}
-
-	private void chooseProxy(final Session cur) {
-		final java.util.List<NetConfig> list = proxyList();
-		if (list.isEmpty()) {
-			Toast.makeText(this, "Danh sách proxy đang trống, hãy nhập danh sách trước", Toast.LENGTH_LONG).show();
-			editProxyList();
-			return;
+		if (gridMode || floating) {
+			ProxyUi.showTable(proxyHost());
+		} else {
+			ProxyUi.showForm(proxyHost(), cur, null);
 		}
-		String[] names = new String[list.size()];
-		for (int i = 0; i < names.length; i++) {
-			names[i] = (i + 1) + ". " + list.get(i).label();
-		}
-		showDlg(new AlertDialog.Builder(dctx())
-				.setTitle("Chọn proxy cho tab " + slotOf(cur))
-				.setItems(names, (d, which) -> {
-					setTabProxy(cur, list.get(which));
-					Toast.makeText(this, "Đã đặt proxy (áp dụng cho kết nối mới)", Toast.LENGTH_SHORT).show();
-				})
-				.setNegativeButton(android.R.string.cancel, null)
-				);
-	}
-
-	private void editProxyList() {
-		final EditText input = multiLine(netPrefs().getString("che779_proxy_list", ""),
-				"Mỗi dòng một proxy:\nsocks5://user:pass@host:port\nhttp://host:port\nhost:port:user:pass");
-		showDlg(new AlertDialog.Builder(dctx())
-				.setTitle("Danh sách proxy")
-				.setView(input)
-				.setPositiveButton(android.R.string.ok, (d, w) -> {
-					String text = input.getText().toString();
-					netPrefs().edit().putString("che779_proxy_list", text).apply();
-					Toast.makeText(this, "Đọc được " + proxyList().size() + " proxy hợp lệ", Toast.LENGTH_SHORT).show();
-				})
-				.setNegativeButton(android.R.string.cancel, null)
-				);
-	}
-
-	private void assignProxies() {
-		java.util.List<NetConfig> list = proxyList();
-		if (list.isEmpty()) {
-			Toast.makeText(this, "Danh sách proxy đang trống", Toast.LENGTH_LONG).show();
-			return;
-		}
-		for (int i = 0; i < tabs.size(); i++) {
-			setTabProxy(tabs.get(i), list.get(i % list.size()));
-		}
-		Toast.makeText(this, "Đã gán proxy cho " + tabs.size() + " tab (áp dụng cho kết nối mới)",
-				Toast.LENGTH_LONG).show();
 	}
 
 	private void editRedirects() {
@@ -2087,6 +2058,8 @@ public class MicroActivity extends AppCompatActivity {
 			showRestartDialog();
 		} else if (id == R.id.action_proxy) {
 			showProxyDialog();
+		} else if (id == R.id.action_redirect) {
+			editRedirects();
 		} else if (id == R.id.action_fix_vk) {
 			repairVk();
 		} else if (id == R.id.action_power) {
@@ -2280,6 +2253,36 @@ public class MicroActivity extends AppCompatActivity {
 
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == REQ_PROXY_FILE) {
+			final java.util.function.Consumer<String> cb = proxyFileCb;
+			proxyFileCb = null;
+			if (resultCode == RESULT_OK && data != null && data.getData() != null && cb != null) {
+				final android.net.Uri uri = data.getData();
+				new Thread(() -> {
+					String text = null;
+					try (java.io.InputStream in = getContentResolver().openInputStream(uri)) {
+						java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+						byte[] buf = new byte[8192];
+						int n;
+						while (in != null && (n = in.read(buf)) > 0 && bo.size() < (2 << 20)) {
+							bo.write(buf, 0, n);
+						}
+						text = bo.toString("UTF-8");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					final String t = text;
+					runOnUiThread(() -> {
+						if (t == null) {
+							Toast.makeText(this, "Không đọc được file", Toast.LENGTH_SHORT).show();
+						} else {
+							cb.accept(t);
+						}
+					});
+				}, "proxy-import").start();
+			}
+			return;
+		}
 		ContextHolder.notifyOnActivityResult(requestCode, resultCode, data);
 	}
 
