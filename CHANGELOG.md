@@ -2,6 +2,11 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
+## [Chưa phát hành]
+- Sửa: rời dạng lưới tự tắt đồng bộ tab (tránh thao tác lan sang tab khác); thu nhỏ vùng thả X của bóng nổi.
+- Proxy mới: tách khỏi "Chuyển hướng IP"; form Host/Port/User/Pass + HTTP/SOCKS4/SOCKS5 (danh sách); bảng theo tab (lưới/cửa sổ nổi) có chọn, sửa, xoá, tích bật/tắt; nhập TXT/JSON/CSV hoặc dán; nút Kiểm tra; dữ liệu dùng chung.
+- Thông báo: bộ đếm thời gian chạy; chu kỳ cập nhật chọn trong Cài đặt (mặc định 5 phút).
+
 ## [1.3.1] — Bản phát hành
 
 Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 131`.
