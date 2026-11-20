@@ -348,7 +348,7 @@ final class FloatingController {
 		DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
 		int cx = bubbleLp.x + bubbleLp.width / 2, cy = bubbleLp.y + bubbleLp.height / 2;
 		int tx = dm.widthPixels / 2, ty = dm.heightPixels - dp(48) - dp(32);
-		int r = dp(64);
+		int r = dp(40); // vùng thả nhỏ hơn để vuốt gần đáy không vô tình tắt bong bóng
 		return (cx - tx) * (cx - tx) + (cy - ty) * (cy - ty) < r * r;
 	}
 
