@@ -1226,6 +1226,11 @@ public class MicroActivity extends AppCompatActivity {
 		hideKeypad();
 		gridMode = false;
 		Session.grid = false;
+		if (Session.syncKeys) {
+			// rời lưới: tắt đồng bộ để thao tác ở một tab không lan sang tab khác (vd. mua hàng)
+			Session.syncKeys = false;
+			Toast.makeText(this, "Đã tắt đồng bộ tab khi rời dạng lưới", Toast.LENGTH_SHORT).show();
+		}
 		Session act = Session.active();
 		if (gridPanel != null) {
 			gridPanel.detachAll();
