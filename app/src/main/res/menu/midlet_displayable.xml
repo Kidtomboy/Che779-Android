@@ -9,6 +9,9 @@
         android:id="@+id/action_proxy"
         android:title="@string/action_proxy" />
     <item
+        android:id="@+id/action_redirect"
+        android:title="@string/action_redirect" />
+    <item
         android:id="@+id/action_fix_vk"
         android:title="@string/action_fix_vk" />
     <item

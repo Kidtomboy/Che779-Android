@@ -109,6 +109,8 @@ public final class NetHooks {
 			s.setSoTimeout(CONNECT_TIMEOUT);
 			if (c.type == NetConfig.SOCKS5) {
 				socks5(s, host, port, c);
+			} else if (c.type == NetConfig.SOCKS4) {
+				socks4(s, host, port, c);
 			} else {
 				httpConnect(s, host, port, c);
 			}
@@ -132,6 +134,66 @@ public final class NetHooks {
 			}
 			n += k;
 		}
+	}
+
+	/** SOCKS4a: the host name is sent to the proxy (IPv4 literals are sent as addresses). */
+	private static void socks4(Socket s, String host, int port, NetConfig c) throws IOException {
+		OutputStream out = s.getOutputStream();
+		InputStream in = s.getInputStream();
+		byte[] uid = (c.user == null ? "" : c.user).getBytes(StandardCharsets.UTF_8);
+		byte[] h = host.getBytes(StandardCharsets.UTF_8);
+		boolean ip4 = host.matches("\\d{1,3}(\\.\\d{1,3}){3}");
+		java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();
+		b.write(4);
+		b.write(1);
+		b.write(port >> 8);
+		b.write(port);
+		if (ip4) {
+			for (String o : host.split("\\.")) {
+				b.write(Integer.parseInt(o));
+			}
+		} else {
+			b.write(0);
+			b.write(0);
+			b.write(0);
+			b.write(1);
+		}
+		b.write(uid);
+		b.write(0);
+		if (!ip4) {
+			b.write(h);
+			b.write(0);
+		}
+		out.write(b.toByteArray());
+		out.flush();
+		byte[] resp = new byte[8];
+		readFully(in, resp);
+		if (resp[1] != 90) {
+			throw new IOException("SOCKS4 connect failed (code " + resp[1] + ")");
+		}
+	}
+
+	/** Proxy check for the UI: opens a connection to host:port through {@code c}. Returns elapsed ms. */
+	public static long testProxy(NetConfig c, String host, int port) throws IOException {
+		long t0 = System.currentTimeMillis();
+		Socket s = new Socket();
+		try {
+			s.connect(new InetSocketAddress(c.host, c.port), 8000);
+			s.setSoTimeout(8000);
+			if (c.type == NetConfig.SOCKS5) {
+				socks5(s, host, port, c);
+			} else if (c.type == NetConfig.SOCKS4) {
+				socks4(s, host, port, c);
+			} else {
+				httpConnect(s, host, port, c);
+			}
+		} finally {
+			try {
+				s.close();
+			} catch (IOException ignored) {
+			}
+		}
+		return System.currentTimeMillis() - t0;
 	}
 
 	private static void socks5(Socket s, String host, int port, NetConfig c) throws IOException {
@@ -244,7 +306,7 @@ public final class NetHooks {
 		if (!c.hasProxy()) {
 			return url.openConnection();
 		}
-		Proxy proxy = new Proxy(c.type == NetConfig.SOCKS5 ? Proxy.Type.SOCKS : Proxy.Type.HTTP,
+		Proxy proxy = new Proxy(c.type == NetConfig.HTTP ? Proxy.Type.HTTP : Proxy.Type.SOCKS,
 				InetSocketAddress.createUnresolved(c.host, c.port));
 		URLConnection cn = url.openConnection(proxy);
 		if (c.type == NetConfig.HTTP && c.user != null && !c.user.isEmpty()) {

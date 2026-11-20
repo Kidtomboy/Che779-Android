@@ -211,7 +211,8 @@
     <string name="pref_mem_threshold_summary">Dọn khi RAM trống thấp hơn mức này</string>
     <string name="pref_mem_interval_title">Chu kỳ kiểm tra (giây)</string>
     <string name="pref_auto_sleep_title">Tự ngủ màn hình đen</string>
-    <string name="action_proxy">Proxy và chuyển hướng IP</string>
+    <string name="action_proxy">Proxy</string>
+    <string name="action_redirect">Chuyển hướng IP</string>
     <string name="action_restart_tab">Khởi động lại tab/nhập số tab</string>
     <string name="action_import_zip">Nhập game từ file ZIP</string>
     <string name="action_power">Chế độ pin</string>
