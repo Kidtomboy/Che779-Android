@@ -456,6 +456,9 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		insertSorted(session);
 		microLoader.applyConfiguration();
+		if (!gridMode && tabs.size() == 1 && !restoring) {
+			uiHandler.post(this::enterGrid); // giao diện lưới ô kiểu Hùng Hero ngay khi vào game
+		}
 		VirtualKeyboard vk = ContextHolder.getVk();
 		int orientation = microLoader.getOrientation();
 		if (vk != null) {
@@ -1138,7 +1141,33 @@ public class MicroActivity extends AppCompatActivity {
 		gridMode = true;
 		Session.grid = true;
 		host().removeAllViews();
-		gridPanel = new GridPanel(this, this::focusGrid);
+		gridPanel = new GridPanel(this, new GridPanel.Listener() {
+			@Override
+			public void onFocus(Session s) {
+				focusGrid(s);
+			}
+
+			@Override
+			public void onClose(Session s) {
+				closeSession(s);
+			}
+
+			@Override
+			public void onFullscreen(Session s) {
+				focusGrid(s);
+				exitGrid();
+			}
+
+			@Override
+			public void onProxy() {
+				showProxyDialog();
+			}
+
+			@Override
+			public void onAdd() {
+				pickGameForNewTab();
+			}
+		});
 		bottomBar.setGridMode(true, Session.syncKeys);
 		host().addView(gridPanel, new android.widget.FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));

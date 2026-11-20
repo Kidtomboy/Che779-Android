@@ -6,11 +6,16 @@
 package javax.microedition.shell;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +28,14 @@ import javax.microedition.lcdui.Displayable;
 final class GridPanel extends LinearLayout {
 	interface Listener {
 		void onFocus(Session s);
+
+		void onClose(Session s);
+
+		void onFullscreen(Session s);
+
+		void onProxy();
+
+		void onAdd();
 	}
 
 	private static final int ACTIVE = 0xFF1565D8;
@@ -40,13 +53,68 @@ final class GridPanel extends LinearLayout {
 		setBackgroundColor(IDLE);
 	}
 
+	private int dp(int v) {
+		return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics());
+	}
+
+	private GradientDrawable card() {
+		GradientDrawable g = new GradientDrawable();
+		g.setColor(0xFF1E1E1E);
+		g.setCornerRadius(dp(10));
+		return g;
+	}
+
+	private TextView glyph(Context c, String t, int color, View.OnClickListener l) {
+		TextView v = new TextView(c);
+		v.setText(t);
+		v.setTextColor(color);
+		v.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+		v.setGravity(Gravity.CENTER);
+		v.setOnClickListener(l);
+		v.setLayoutParams(new LinearLayout.LayoutParams(dp(40), dp(34)));
+		return v;
+	}
+
+	/** Cell in the style of Hùng Hero: title + close on top, proxy / stop / full screen below. */
 	private final class Cell extends FrameLayout {
 		final Session session;
+		final FrameLayout content;
 
 		Cell(Context c, Session s) {
 			super(c);
 			session = s;
 			setPadding(border, border, border, border);
+			LinearLayout col = new LinearLayout(c);
+			col.setOrientation(VERTICAL);
+			col.setBackground(card());
+			LinearLayout head = new LinearLayout(c);
+			head.setGravity(Gravity.CENTER_VERTICAL);
+			TextView title = new TextView(c);
+			String t = s.label != null && !s.label.isEmpty() ? s.label : s.appName;
+			title.setText(t == null ? "Tab" : t);
+			title.setTextColor(Color.WHITE);
+			title.setTypeface(null, android.graphics.Typeface.BOLD);
+			title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+			title.setSingleLine(true);
+			title.setPadding(dp(10), 0, 0, 0);
+			title.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+			head.addView(title);
+			head.addView(glyph(c, "\u2715", 0xFFBBBBBB, v -> listener.onClose(session)));
+			col.addView(head, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(34)));
+			content = new FrameLayout(c);
+			col.addView(content, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+			LinearLayout foot = new LinearLayout(c);
+			foot.setGravity(Gravity.CENTER_VERTICAL);
+			foot.setBackgroundColor(0xFF2A2A2A);
+			foot.addView(glyph(c, "\uD83C\uDF10", Color.WHITE, v -> listener.onProxy()));
+			View sp = new View(c);
+			sp.setLayoutParams(new LinearLayout.LayoutParams(0, 1, 1f));
+			foot.addView(sp);
+			foot.addView(glyph(c, "\u25A0", 0xFFE53935, v -> listener.onClose(session)));
+			foot.addView(glyph(c, "\u26F6", 0xFF42A5F5, v -> listener.onFullscreen(session)));
+			col.addView(foot, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(34)));
+			addView(col, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+					ViewGroup.LayoutParams.MATCH_PARENT));
 		}
 
 		@Override
@@ -56,6 +124,31 @@ final class GridPanel extends LinearLayout {
 			}
 			return super.dispatchTouchEvent(ev);
 		}
+	}
+
+	private View addCell() {
+		FrameLayout f = new FrameLayout(getContext());
+		f.setPadding(border, border, border, border);
+		LinearLayout col = new LinearLayout(getContext());
+		col.setOrientation(VERTICAL);
+		col.setGravity(Gravity.CENTER);
+		col.setBackground(card());
+		TextView plus = new TextView(getContext());
+		plus.setText("+");
+		plus.setTextColor(Color.WHITE);
+		plus.setTextSize(TypedValue.COMPLEX_UNIT_SP, 40);
+		plus.setGravity(Gravity.CENTER);
+		TextView lab = new TextView(getContext());
+		lab.setText("Thêm tab");
+		lab.setTextColor(0xFF9E9E9E);
+		lab.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+		lab.setGravity(Gravity.CENTER);
+		col.addView(plus);
+		col.addView(lab);
+		col.setOnClickListener(v -> listener.onAdd());
+		f.addView(col, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.MATCH_PARENT));
+		return f;
 	}
 
 	/** Columns for n tabs so that cells stay as square as the panel shape allows. */
@@ -84,10 +177,11 @@ final class GridPanel extends LinearLayout {
 		}
 		removeAllViews();
 		cells.clear();
-		int n = sessions.size();
-		if (n == 0) {
+		int count = sessions.size();
+		if (count == 0) {
 			return;
 		}
+		int n = count + 1; // the last cell is "+ Thêm tab"
 		int cols = columnsFor(n, w, h);
 		int rows = (n + cols - 1) / cols;
 		int i = 0;
@@ -96,7 +190,10 @@ final class GridPanel extends LinearLayout {
 			row.setOrientation(HORIZONTAL);
 			addView(row, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 			for (int c = 0; c < cols; c++) {
-				if (i < n) {
+				if (i == count) {
+					i++;
+					row.addView(addCell(), new LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
+				} else if (i < n) {
 					Session s = sessions.get(i++);
 					Cell cell = new Cell(getContext(), s);
 					cells.put(s, cell);
@@ -116,7 +213,7 @@ final class GridPanel extends LinearLayout {
 		if (cell == null) {
 			return;
 		}
-		cell.removeAllViews();
+		cell.content.removeAllViews();
 		Displayable d = s.current;
 		if (d == null || d instanceof Alert) {
 			return;
@@ -130,7 +227,7 @@ final class GridPanel extends LinearLayout {
 		content.setBackgroundColor(d instanceof javax.microedition.lcdui.Canvas ? 0xFF000000 : 0xFFFAFAFA);
 		content.addView(v, new FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-		cell.addView(content, new FrameLayout.LayoutParams(
+		cell.content.addView(content, new FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 	}
 
