@@ -298,4 +298,7 @@
     <string-array name="pref_power_values"><item>0</item><item>1</item><item>2</item></string-array>
     <string-array name="pref_hide_entries"><item>OFF</item><item>SOFT</item><item>STEALTH</item><item>NINJA</item></string-array>
     <string-array name="pref_hide_values"><item>0</item><item>1</item><item>2</item><item>3</item></string-array>
+    <string name="pref_notif_title">Notification timer refresh</string>
+    <string-array name="pref_notif_entries"><item>1 minute</item><item>5 minutes</item><item>10 minutes</item><item>30 minutes</item><item>60 minutes</item></string-array>
+    <string-array name="pref_notif_values"><item>1</item><item>5</item><item>10</item><item>30</item><item>60</item></string-array>
 </resources>

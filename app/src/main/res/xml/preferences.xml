@@ -46,6 +46,13 @@
             android:key="pref_hide_level"
             android:title="@string/pref_hide_title"
             android:summary="@string/pref_hide_summary" />
+        <ListPreference
+            android:defaultValue="5"
+            android:entries="@array/pref_notif_entries"
+            android:entryValues="@array/pref_notif_values"
+            android:key="pref_notif_interval"
+            android:title="@string/pref_notif_title"
+            android:summary="%s" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_cat_bubble">
         <SwitchPreferenceCompat
