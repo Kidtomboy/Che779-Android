@@ -473,9 +473,9 @@ public class AppsListFragment extends ListFragment {
 			zipLauncher.launch(new String[]{"application/zip", "application/x-zip-compressed", "application/octet-stream"});
 		} else if (itemId == R.id.action_game_ui) {
 			Config.startEmptyUi(activity);
-		} else if (itemId == R.id.action_power) {
+		} else if (itemId == R.id.action_quit_all) {
 			new AlertDialog.Builder(activity)
-					.setTitle(R.string.action_power)
+					.setTitle(R.string.action_quit_all)
 					.setMessage(R.string.power_confirm)
 					.setPositiveButton(android.R.string.ok, (d, w) -> {
 						javax.microedition.shell.BubbleService.quitGames(activity.getApplicationContext());

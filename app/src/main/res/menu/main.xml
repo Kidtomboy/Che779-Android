@@ -14,8 +14,8 @@
         android:icon="@drawable/ic_game_ui"
         app:showAsAction="always" />
     <item
-        android:id="@+id/action_power"
-        android:title="@string/action_power"
+        android:id="@+id/action_quit_all"
+        android:title="@string/action_quit_all"
         android:icon="@drawable/ic_power"
         app:showAsAction="always" />
     <item
