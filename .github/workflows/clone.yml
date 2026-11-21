@@ -96,19 +96,22 @@ jobs:
           CLONE_NAME: ${{ inputs.app_name }}
         run: |
           set -euo pipefail
-          TAG="clone-$(printf '%s' "$CLONE_ID" | tr -c 'A-Za-z0-9' '-')"
+          TAG_SLUG="$(printf '%s' "$CLONE_ID" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g')"
+          TAG_HASH="$(printf '%s' "$CLONE_ID" | sha256sum | cut -c1-8)"
+          TAG="clone-${TAG_SLUG}-${TAG_HASH}"
           NOTES="Clone package: $CLONE_ID
           Display name: $CLONE_NAME
           Source commit: $GITHUB_SHA
           Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "Clone $CLONE_ID" --notes "$NOTES" --prerelease --latest=false
+            gh release upload "$TAG" dist/Che779-clone.apk dist/SHA256SUMS.txt --clobber
           else
-            gh release create "$TAG" --prerelease --latest=false --target "$GITHUB_SHA" --title "Clone $CLONE_ID" --notes "$NOTES"
+            gh release create "$TAG" dist/Che779-clone.apk dist/SHA256SUMS.txt --prerelease --latest=false --target "$GITHUB_SHA" --title "Clone $CLONE_ID" --notes "$NOTES"
           fi
-          gh release upload "$TAG" dist/Che779-clone.apk dist/SHA256SUMS.txt --clobber
           mkdir -p verify
           gh release download "$TAG" --pattern 'Che779-clone.apk' --dir verify
           gh release download "$TAG" --pattern 'SHA256SUMS.txt' --dir verify
           cmp dist/Che779-clone.apk verify/Che779-clone.apk
           cmp dist/SHA256SUMS.txt verify/SHA256SUMS.txt
+          (cd verify && sha256sum -c SHA256SUMS.txt)
+          gh release edit "$TAG" --title "Clone $CLONE_ID" --notes "$NOTES" --prerelease --latest=false
