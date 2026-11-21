@@ -1,0 +1,51 @@
+name: Chuyển APK V2 sang dev-2.0.0
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lấy workflow và công cụ GitHub CLI
+        uses: actions/checkout@v4
+        with:
+          ref: build-v2
+          fetch-depth: 0
+
+      - name: Tải và kiểm tra nguyên APK hiện có
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          gh release download build-v2 --pattern 'Che779-AndroidV2-2.0.0.apk' --dir out
+          gh release download build-v2 --pattern 'SHA256SUMS.txt' --dir out
+          test -s out/Che779-AndroidV2-2.0.0.apk
+          test -s out/SHA256SUMS.txt
+          (cd out && sha256sum -c SHA256SUMS.txt)
+
+      - name: Chuyển asset sang Release dev-2.0.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view dev-2.0.0 >/dev/null
+          gh release upload dev-2.0.0 out/Che779-AndroidV2-2.0.0.apk out/SHA256SUMS.txt --clobber
+          mkdir -p verify
+          gh release download dev-2.0.0 --pattern 'Che779-AndroidV2-2.0.0.apk' --dir verify
+          gh release download dev-2.0.0 --pattern 'SHA256SUMS.txt' --dir verify
+          cmp out/Che779-AndroidV2-2.0.0.apk verify/Che779-AndroidV2-2.0.0.apk
+          cmp out/SHA256SUMS.txt verify/SHA256SUMS.txt
+          echo "APK và SHA256SUMS tại dev-2.0.0 đã khớp byte-for-byte với bản nguồn."
+
+      - name: Xóa Release cuốn chiếu build-v2
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release delete build-v2 --yes --cleanup-tag
+          echo "Đã xóa Release build-v2 và tag build-v2 sau khi xác minh bản đích."
