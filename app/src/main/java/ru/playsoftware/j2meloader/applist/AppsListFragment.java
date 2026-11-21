@@ -251,6 +251,7 @@ public class AppsListFragment extends ListFragment {
 		super.onViewCreated(view, savedInstanceState);
 		registerForContextMenu(getListView());
 		setHasOptionsMenu(true);
+		adapter.setOnDelete(this::alertDelete);
 		setListAdapter(adapter);
 		binding.floatingActionButton.setOnClickListener(v -> {
 			String path = preferences.getString(PREF_LAST_PATH, null);
@@ -470,6 +471,18 @@ public class AppsListFragment extends ListFragment {
 			}
 		} else if (itemId == R.id.action_import_zip) {
 			zipLauncher.launch(new String[]{"application/zip", "application/x-zip-compressed", "application/octet-stream"});
+		} else if (itemId == R.id.action_game_ui) {
+			Config.startEmptyUi(activity);
+		} else if (itemId == R.id.action_power) {
+			new AlertDialog.Builder(activity)
+					.setTitle(R.string.action_power)
+					.setMessage(R.string.power_confirm)
+					.setPositiveButton(android.R.string.ok, (d, w) -> {
+						javax.microedition.shell.BubbleService.quitGames(activity.getApplicationContext());
+						activity.finish();
+					})
+					.setNegativeButton(android.R.string.cancel, null)
+					.show();
 		} else if (itemId == R.id.action_exit_app) {
 			// games keep running in the background until the user quits from here
 			javax.microedition.shell.BubbleService.quitGames(activity.getApplicationContext());

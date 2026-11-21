@@ -120,6 +120,13 @@ public class Config {
 		}
 	}
 
+	/** Opens the game interface (tab grid) without starting a game; the first tab is empty. */
+	public static void startEmptyUi(Context context) {
+		Intent intent = new Intent(context, MicroActivity.class);
+		intent.putExtra(KEY_EMPTY_UI, true);
+		context.startActivity(intent);
+	}
+
 	public static void startApp(Context context, String name, String path, boolean showSettings) {
 		startApp(context, name, path, showSettings, null);
 	}

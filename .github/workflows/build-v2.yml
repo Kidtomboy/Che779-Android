@@ -1,0 +1,44 @@
+name: Build V2 APK
+
+# Nhánh build-v2: bản "Che779 Emulator V2" (gói com.che779.emulatorv2, thư mục J2ME-Che779v2).
+# Chỉ chạy khi push nhánh test hoặc chạy tay; không dùng tag v*, không đụng release chính.
+on:
+  push:
+    branches: [build-v2]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      - name: Build
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew assembleDevDebug "-PcloneId=com.che779.emulatorv2" "-PcloneName=Che779 Emulator V2" "-PcloneDir=J2ME-Che779v2"
+      - name: Publish (pre-release, không phải bản chính)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          APK=(app/build/outputs/apk/dev/debug/*.apk)
+          test -f "${APK[0]}"
+          cp "${APK[0]}" Che779-Emulator-V2.apk
+          $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/aapt2 dump badging Che779-Emulator-V2.apk | grep -E "^package|application-label:" | tee badging.txt
+          grep -q "name='com.che779.emulatorv2'" badging.txt
+          gh release delete build-v2 --yes --cleanup-tag || true
+          gh release create build-v2 Che779-Emulator-V2.apk --prerelease --latest=false --target "$GITHUB_SHA" \
+            --title "Che779 Emulator dev-v2.0.0" \
+            --notes "dev-v2.0.0 (bản thử, pre-release): gói com.che779.emulatorv2, thư mục J2ME-Che779v2. Tách biệt với bản chính v1.3.1."

@@ -181,7 +181,7 @@ public class MicroActivity extends AppCompatActivity {
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 		setIntent(intent);
-		if (binding != null && intent.getData() != null) {
+		if (binding != null && (intent.getData() != null || intent.getBooleanExtra(KEY_EMPTY_UI, false))) {
 			handleLaunchIntent(intent, true);
 		}
 	}
@@ -317,8 +317,12 @@ public class MicroActivity extends AppCompatActivity {
 		if (BuildConfig.FULL_EMULATOR) {
 			appName = intent.getStringExtra(KEY_MIDLET_NAME);
 			Uri data = intent.getData();
+			boolean emptyUi = intent.getBooleanExtra(KEY_EMPTY_UI, false);
 			if (data == null) {
-				if (reattachRunningSessions()) {
+				if (reattachRunningSessions() || emptyUi) {
+					if (emptyUi && !gridMode) {
+						enterGrid(); // giao diện game: tab đầu trống, chọn game bằng "+ Thêm tab"
+					}
 					return;
 				}
 				showErrorDialog("Invalid intent: app path is null");
@@ -708,7 +712,37 @@ public class MicroActivity extends AppCompatActivity {
 		addSession(first.appName, first.appPath, null);
 	}
 
+	/** "0" = chọn game thủ công mỗi lần, "1" = tự thêm bản sao game của tab đang chọn. */
+	private String addMode() {
+		return PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("che779_add_mode", "0");
+	}
+
+	private void showAddModeDialog(final Runnable then) {
+		final int[] pick = {"1".equals(addMode()) ? 1 : 0};
+		new AlertDialog.Builder(this)
+				.setTitle("Chế độ thêm game")
+				.setSingleChoiceItems(new String[]{
+						"Thủ công: mỗi lần thêm tab sẽ hiện danh sách để chọn game",
+						"Tự động: thêm ngay bản sao game của tab đang chọn, không hỏi"}, pick[0],
+						(d, w) -> pick[0] = w)
+				.setPositiveButton("Lưu", (d, w) -> {
+					PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit()
+							.putString("che779_add_mode", String.valueOf(pick[0])).commit();
+					Toast.makeText(this, pick[0] == 1 ? "Đã chọn: tự động" : "Đã chọn: thủ công", Toast.LENGTH_SHORT).show();
+					if (then != null) {
+						then.run();
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
 	private void pickGameForNewTab() {
+		Session cur = Session.active();
+		if ("1".equals(addMode()) && cur != null && tabs.contains(cur)) {
+			addSession(cur.appName, cur.appPath, null);
+			return;
+		}
 		final java.util.ArrayList<String> names = new java.util.ArrayList<>();
 		final java.util.ArrayList<String> paths = new java.util.ArrayList<>();
 		File appsDir = new File(Config.getAppDir());
@@ -734,6 +768,7 @@ public class MicroActivity extends AppCompatActivity {
 				.setTitle("Chọn game mở ở tab mới")
 				.setItems(names.toArray(new String[0]), (d, which) ->
 						addSession(names.get(which), paths.get(which), null))
+				.setNeutralButton("Chế độ thêm game", (d, w) -> showAddModeDialog(this::pickGameForNewTab))
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 	}
@@ -749,7 +784,7 @@ public class MicroActivity extends AppCompatActivity {
 				.setMessage("Đóng tab " + no + "?")
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
 					if (tabs.size() <= 1) {
-						MidletThread.destroyApp();
+						Toast.makeText(this, "Không được xoá tab cuối cùng", Toast.LENGTH_SHORT).show();
 					} else {
 						closeSession(s);
 					}
@@ -1149,7 +1184,16 @@ public class MicroActivity extends AppCompatActivity {
 
 			@Override
 			public void onClose(Session s) {
-				closeSession(s);
+				if (tabs.size() <= 1) {
+					Toast.makeText(MicroActivity.this, "Không được xoá tab cuối cùng", Toast.LENGTH_SHORT).show();
+				} else {
+					closeSession(s);
+				}
+			}
+
+			@Override
+			public void onAddMode() {
+				showAddModeDialog(null);
 			}
 
 			@Override
@@ -1221,6 +1265,10 @@ public class MicroActivity extends AppCompatActivity {
 
 	private void exitGrid() {
 		if (!gridMode) {
+			return;
+		}
+		if (tabs.isEmpty()) {
+			finish();
 			return;
 		}
 		hideKeypad();
@@ -2041,6 +2089,9 @@ public class MicroActivity extends AppCompatActivity {
 	@Override
 	public void onBackPressed() {
 		// Intentionally overridden by empty due to support for back-key remapping.
+		if (tabs.isEmpty()) {
+			finish(); // giao diện trống: quay về danh sách game
+		}
 	}
 
 	@Override

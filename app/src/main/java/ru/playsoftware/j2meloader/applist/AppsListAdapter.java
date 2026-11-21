@@ -38,6 +38,11 @@ public class AppsListAdapter extends BaseAdapter implements Filterable {
 	private List<AppItem> filteredList = new ArrayList<>();
 	private final AppFilter appFilter = new AppFilter();
 	private CharSequence filterConstraint;
+	private java.util.function.Consumer<AppItem> onDelete;
+
+	public void setOnDelete(java.util.function.Consumer<AppItem> l) {
+		onDelete = l;
+	}
 
 	@Override
 	public int getCount() {
@@ -78,6 +83,11 @@ public class AppsListAdapter extends BaseAdapter implements Filterable {
 		holder.binding.name.setText(item.getTitle());
 		holder.binding.author.setText(item.getAuthor());
 		holder.binding.appVersion.setText(item.getVersion());
+		holder.binding.btnDelete.setOnClickListener(v -> {
+			if (onDelete != null) {
+				onDelete.accept(item);
+			}
+		});
 
 		return view;
 	}

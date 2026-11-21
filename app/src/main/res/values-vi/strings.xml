@@ -239,4 +239,8 @@
     <string name="pref_notif_title">Chu kỳ cập nhật bộ đếm thời gian trong thông báo</string>
     <string-array name="pref_notif_entries"><item>1 phút</item><item>5 phút</item><item>10 phút</item><item>30 phút</item><item>60 phút</item></string-array>
     <string-array name="pref_notif_values"><item>1</item><item>5</item><item>10</item><item>30</item><item>60</item></string-array>
+    <string name="action_game_ui">Giao diện game</string>
+    <string name="action_power">Thoát hẳn</string>
+    <string name="delete_game">Xoá game</string>
+    <string name="power_confirm">Thoát hẳn và dừng tất cả game?</string>
 </resources>

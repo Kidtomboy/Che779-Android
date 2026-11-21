@@ -9,12 +9,19 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_game_ui"
+        android:title="@string/action_game_ui"
+        android:icon="@drawable/ic_game_ui"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_power"
+        android:title="@string/action_power"
+        android:icon="@drawable/ic_power"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_sort"
         android:title="@string/pref_app_sort_title"
-        android:icon="@drawable/ic_setting_sort"
-        app:showAsAction="ifRoom"
-        android:orderInCategory="0">
-    </item>
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_import_zip"
         android:title="@string/action_import_zip"

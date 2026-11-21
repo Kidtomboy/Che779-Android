@@ -36,6 +36,8 @@ final class GridPanel extends LinearLayout {
 		void onProxy();
 
 		void onAdd();
+
+		void onAddMode();
 	}
 
 	private static final int ACTIVE = 0xFF1565D8;
@@ -146,6 +148,10 @@ final class GridPanel extends LinearLayout {
 		col.addView(plus);
 		col.addView(lab);
 		col.setOnClickListener(v -> listener.onAdd());
+		col.setOnLongClickListener(v -> {
+			listener.onAddMode();
+			return true;
+		});
 		f.addView(col, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
 				ViewGroup.LayoutParams.MATCH_PARENT));
 		return f;
@@ -178,9 +184,6 @@ final class GridPanel extends LinearLayout {
 		removeAllViews();
 		cells.clear();
 		int count = sessions.size();
-		if (count == 0) {
-			return;
-		}
 		int n = count + 1; // the last cell is "+ Thêm tab"
 		int cols = columnsFor(n, w, h);
 		int rows = (n + cols - 1) / cols;
