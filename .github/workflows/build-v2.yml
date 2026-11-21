@@ -1,7 +1,7 @@
 name: Build V2 APK
 
 # Nhánh build-v2: bản "Che779 Emulator V2" (gói com.che779.emulatorv2, thư mục J2ME-Che779v2).
-# Chỉ chạy khi push nhánh test hoặc chạy tay; không dùng tag v*, không đụng release chính.
+# Chạy khi push nhánh build-v2, push tag dev-*, hoặc chạy tay; không dùng tag v*, không đụng release chính.
 on:
   push:
     branches: [build-v2]
@@ -42,22 +42,30 @@ jobs:
           set -euo pipefail
           APK=(app/build/outputs/apk/dev/debug/*.apk)
           test -f "${APK[0]}"
-          cp "${APK[0]}" Che779-Emulator-V2.apk
-          $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/aapt2 dump badging Che779-Emulator-V2.apk | grep -E "^package|application-label:" | tee badging.txt
+          $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/aapt2 dump badging "${APK[0]}" | grep -E "^package|application-label:" | tee badging.txt
           grep -q "name='com.che779.emulatorv2'" badging.txt
-          sha256sum Che779-Emulator-V2.apk > SHA256SUMS.txt
-          cat SHA256SUMS.txt
           TAG="$INPUT_TAG"
           if [ -z "$TAG" ] && [ "${GITHUB_REF_TYPE}" = "tag" ]; then TAG="$GITHUB_REF_NAME"; fi
-          NOTES="Che779 Emulator dev-v2.0.0 (bản thử): gói com.che779.emulatorv2, thư mục J2ME-Che779v2. Tách biệt với bản chính v1.3.1. Kiểm tra: sha256sum -c SHA256SUMS.txt"
+          VER="${TAG#dev-}"
+          [ -n "$VER" ] || VER="2.0.0"
+          mkdir -p out
+          NAME="Che779-AndroidV2-${VER}.apk"
+          cp "${APK[0]}" "out/$NAME"
+          (cd out && sha256sum "$NAME" > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          sed "s/@TAG@/${TAG:-dev-$VER}/g; s/@VER@/$VER/g" .github/release-notes-v2.md > out-notes.md
           if [ -n "$TAG" ]; then
-            gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --latest=false \
-              --title "Che779 Emulator dev-v2.0.0" --notes "$NOTES"
-            gh release upload "$TAG" Che779-Emulator-V2.apk --clobber
-            gh release upload "$TAG" SHA256SUMS.txt --clobber
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              gh release edit "$TAG" --prerelease --latest=false --title "Che779 Android V2 $TAG" --notes-file out-notes.md
+            else
+              gh release create "$TAG" --prerelease --latest=false --target "$GITHUB_SHA" \
+                --title "Che779 Android V2 $TAG" --notes-file out-notes.md
+            fi
+            gh release upload "$TAG" "out/$NAME" --clobber
+            gh release upload "$TAG" out/SHA256SUMS.txt --clobber
+            gh release delete build-v2 --yes --cleanup-tag || true
           else
             gh release delete build-v2 --yes --cleanup-tag || true
-            gh release create build-v2 Che779-Emulator-V2.apk --prerelease --latest=false --target "$GITHUB_SHA" \
-              --title "Che779 Emulator dev-v2.0.0 (bản dựng mới nhất)" --notes "$NOTES"
-            gh release upload build-v2 SHA256SUMS.txt --clobber
+            gh release create build-v2 "out/$NAME" --prerelease --latest=false --target "$GITHUB_SHA" \
+              --title "Che779 Android V2 (bản dựng mới nhất)" --notes-file out-notes.md
+            gh release upload build-v2 out/SHA256SUMS.txt --clobber
           fi
