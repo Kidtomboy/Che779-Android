@@ -1,6 +1,11 @@
 name: Chuyển APK V2 sang dev-2.0.0
 
 on:
+  # Tự chạy khi workflow được cập nhật trên main; không cần Cherry/Claude bấm Run.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/migrate-v2-release.yml'
   workflow_dispatch:
 
 permissions:
@@ -40,7 +45,7 @@ jobs:
           gh release download dev-2.0.0 --pattern 'SHA256SUMS.txt' --dir verify
           cmp out/Che779-AndroidV2-2.0.0.apk verify/Che779-AndroidV2-2.0.0.apk
           cmp out/SHA256SUMS.txt verify/SHA256SUMS.txt
-          echo "APK và SHA256SUMS tại dev-2.0.0 đã khớp byte-for-byte với bản nguồn."
+          echo "Đã xác minh APK và SHA256SUMS tại dev-2.0.0 khớp byte-for-byte với bản nguồn."
 
       - name: Xóa Release cuốn chiếu build-v2
         env:
