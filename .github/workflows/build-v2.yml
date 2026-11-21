@@ -1,4 +1,4 @@
-name: Build V2 APK
+name: Phát hành bản V2
 
 # Nhánh build-v2: bản "Che779 Emulator V2" (gói com.che779.emulatorv2, thư mục J2ME-Che779v2).
 # Chạy khi push nhánh build-v2, push tag dev-*, hoặc chạy tay; không dùng tag v*, không đụng release chính.
