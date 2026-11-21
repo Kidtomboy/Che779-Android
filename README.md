@@ -29,6 +29,7 @@ Vào mục **[Releases](../../releases/latest)** và tải file:
 |---|---|
 | `Che779-Android-<phiên bản>.apk` | Cài ứng dụng lên điện thoại Android |
 | `Che779-Android-Clone-<phiên bản>.apk` | Bản clone (gói khác, dữ liệu `J2ME-Che779Clone`) để cài song song với bản chính |
+| `Che779-Emulator-V2.apk` | Bản **dev-v2.0.0** (Che779 Emulator V2, gói `com.che779.emulatorv2`, dữ liệu `J2ME-Che779v2`): giao diện lưới ô kiểu Hùng Hero, nút nguồn, tab trống, chế độ thêm game. Nằm ở tag [`dev-2.0.0`](../../releases/tag/dev-2.0.0), kèm `SHA256SUMS.txt` riêng |
 | `che779-termux.sh` | Chạy Emulator **V2** trong Termux (xem [mục Termux](#-termux-emulator-v2)) |
 | `SHA256SUMS.txt` | Mã SHA-256 của các file trên (tính sau cùng, trên đúng file đăng). Kiểm tra: `sha256sum -c SHA256SUMS.txt` |
 
