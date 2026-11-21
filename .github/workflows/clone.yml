@@ -47,8 +47,8 @@ jobs:
         run: |
           set -euo pipefail
           [[ -n "$CLONE_ID" && -n "$CLONE_NAME" && -n "$CLONE_DIR" ]] || { echo "::error::All clone inputs are required."; exit 2; }
-          [[ "$CLONE_ID" =~ ^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$ ]] || { echo "::error::Invalid application ID."; exit 2; }
-          [[ "$CLONE_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._\\ \\(\\)-]{0,39}$ ]] || { echo "::error::App name must be 1-40 safe ASCII characters."; exit 2; }
+          [[ "$CLONE_ID" =~ ^[A-Za-z][A-Za-z0-9_]*([.][A-Za-z][A-Za-z0-9_]*)+$ ]] || { echo "::error::Invalid application ID."; exit 2; }
+          [[ "$CLONE_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._ ()-]{0,39}$ ]] || { echo "::error::App name must be 1-40 safe ASCII characters."; exit 2; }
           [[ "$CLONE_DIR" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ && "$CLONE_DIR" != *..* ]] || { echo "::error::Invalid data directory name."; exit 2; }
 
       - name: Accept Android SDK licenses
