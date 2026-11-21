@@ -1,7 +1,6 @@
-name: Chuyển APK V2 sang dev-2.0.0
+name: Khôi phục APK V2 vào dev-2.0.0
 
 on:
-  # Tự chạy khi workflow được cập nhật trên main; không cần Cherry/Claude bấm Run.
   push:
     branches: [main]
     paths:
@@ -12,28 +11,40 @@ permissions:
   contents: write
 
 jobs:
-  migrate:
+  restore-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Lấy workflow và công cụ GitHub CLI
+      - name: Checkout đúng mã nguồn đã tạo APK V2 trước đó
         uses: actions/checkout@v4
         with:
-          ref: build-v2
+          ref: 36b28699868c2e37d9a2a657b328c11134f835c3
           fetch-depth: 0
 
-      - name: Tải và kiểm tra nguyên APK hiện có
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Thiết lập Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Chấp nhận Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - name: Build V2 từ source commit 36b2869
         run: |
           set -euo pipefail
+          chmod +x gradlew
+          ./gradlew assembleDevDebug "-PcloneId=com.che779.emulatorv2" "-PcloneName=Che779 Emulator V2" "-PcloneDir=J2ME-Che779v2"
+          APK=(app/build/outputs/apk/dev/debug/*.apk)
+          test -f "${APK[0]}"
           mkdir -p out
-          gh release download build-v2 --pattern 'Che779-AndroidV2-2.0.0.apk' --dir out
-          gh release download build-v2 --pattern 'SHA256SUMS.txt' --dir out
-          test -s out/Che779-AndroidV2-2.0.0.apk
-          test -s out/SHA256SUMS.txt
-          (cd out && sha256sum -c SHA256SUMS.txt)
+          cp "${APK[0]}" out/Che779-AndroidV2-2.0.0.apk
+          "$ANDROID_HOME"/build-tools/$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)/aapt2 dump badging out/Che779-AndroidV2-2.0.0.apk | tee out/badging.txt
+          grep -q "name='com.che779.emulatorv2'" out/badging.txt
+          grep -q "versionName='2.0.0-dev-102'" out/badging.txt
+          (cd out && sha256sum Che779-AndroidV2-2.0.0.apk > SHA256SUMS.txt)
+          cat out/SHA256SUMS.txt
 
-      - name: Chuyển asset sang Release dev-2.0.0
+      - name: Đưa APK và SHA256SUMS vào Release dev-2.0.0
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -45,12 +56,14 @@ jobs:
           gh release download dev-2.0.0 --pattern 'SHA256SUMS.txt' --dir verify
           cmp out/Che779-AndroidV2-2.0.0.apk verify/Che779-AndroidV2-2.0.0.apk
           cmp out/SHA256SUMS.txt verify/SHA256SUMS.txt
-          echo "Đã xác minh APK và SHA256SUMS tại dev-2.0.0 khớp byte-for-byte với bản nguồn."
+          echo "Verified: assets match the build from source commit 36b2869."
 
-      - name: Xóa Release cuốn chiếu build-v2
+      - name: Dọn Release build-v2 nếu còn tồn tại
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release delete build-v2 --yes --cleanup-tag
-          echo "Đã xóa Release build-v2 và tag build-v2 sau khi xác minh bản đích."
+          if gh release view build-v2 >/dev/null 2>&1; then
+            gh release delete build-v2 --yes
+          fi
+          echo "Release build-v2 đã được dọn nếu tồn tại; giữ nguyên Git tag build-v2 và dev-2.0.0.";
