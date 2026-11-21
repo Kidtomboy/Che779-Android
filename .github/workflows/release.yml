@@ -1,4 +1,4 @@
-name: Phát hành
+name: Phát hành bản chính (v*)
 
 on:
   push:
