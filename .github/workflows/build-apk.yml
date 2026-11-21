@@ -1,4 +1,4 @@
-name: Build Che779 APK
+name: Build bản dev (tự động)
 
 on:
   push:
