@@ -1,15 +1,22 @@
 name: Phát hành bản V2
 
-# Nhánh build-v2: bản "Che779 Emulator V2" (gói com.che779.emulatorv2, thư mục J2ME-Che779v2).
-# Chạy khi push nhánh build-v2, push tag dev-*, hoặc chạy tay; không dùng tag v*, không đụng release chính.
+# Chỉ phát hành theo tag dev-* hoặc thao tác thủ công có chủ đích.
+# Không tạo Release cuốn chiếu build-v2 khi push nhánh.
 on:
   push:
-    branches: [build-v2]
     tags: ['dev-*']
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'build = dựng từ tag dev-*; migrate = chuyển APK hiện có từ build-v2 sang dev-2.0.0'
+        type: choice
+        options:
+          - build
+          - migrate
+        required: true
+        default: build
       tag:
-        description: 'Đăng APK vào tag này (vd. dev-2.0.0); để trống = pre-release build-v2'
+        description: 'Tag đích khi build thủ công (vd. dev-2.0.0); không dùng trong mode migrate'
         required: false
         default: ''
 
@@ -23,56 +30,113 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-java@v4
+
+      - name: Xác định chế độ
+        id: mode
+        env:
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          MODE="${INPUT_MODE:-build}"
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          if [ "$MODE" = "migrate" ]; then
+            echo "Thực hiện chuyển nguyên APK hiện có; không build lại."
+            exit 0
+          fi
+
+          TAG="$INPUT_TAG"
+          if [ -z "$TAG" ] && [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+            TAG="$GITHUB_REF_NAME"
+          fi
+          case "$TAG" in
+            dev-*) ;;
+            *) echo "::error::Phải chỉ định tag dev-*; workflow không còn tạo Release build-v2."; exit 1 ;;
+          esac
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG không tồn tại."; exit 1
+          fi
+          TAG_SHA="$(git rev-parse "$TAG^{commit}")"
+          if [ "$TAG_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::Commit đang chạy ($GITHUB_SHA) không trùng commit của $TAG ($TAG_SHA). Từ chối ghi đè hoặc di chuyển tag."; exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#dev-}" >> "$GITHUB_OUTPUT"
+
+      - name: Tải APK hiện có từ build-v2
+        if: steps.mode.outputs.mode == 'migrate'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          gh release download build-v2 --pattern 'Che779-AndroidV2-2.0.0.apk' --dir out
+          gh release download build-v2 --pattern 'SHA256SUMS.txt' --dir out
+          test -s out/Che779-AndroidV2-2.0.0.apk
+          test -s out/SHA256SUMS.txt
+          (cd out && sha256sum -c SHA256SUMS.txt)
+
+      - name: Chuyển APK và SHA256SUMS sang dev-2.0.0
+        if: steps.mode.outputs.mode == 'migrate'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view dev-2.0.0 >/dev/null
+          gh release upload dev-2.0.0 out/Che779-AndroidV2-2.0.0.apk out/SHA256SUMS.txt --clobber
+          gh release download dev-2.0.0 --pattern 'Che779-AndroidV2-2.0.0.apk' --dir verify
+          gh release download dev-2.0.0 --pattern 'SHA256SUMS.txt' --dir verify
+          cmp out/Che779-AndroidV2-2.0.0.apk verify/Che779-AndroidV2-2.0.0.apk
+          cmp out/SHA256SUMS.txt verify/SHA256SUMS.txt
+          echo "Đã xác minh hai asset ở dev-2.0.0 khớp byte-for-byte với bản nguồn."
+
+      - name: Xóa Release cuốn chiếu build-v2
+        if: steps.mode.outputs.mode == 'migrate'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release delete build-v2 --yes --cleanup-tag
+          echo "Đã xóa Release build-v2 và tag build-v2; không đụng các release/tag khác."
+
+      - name: Cài Java và chuẩn bị Android SDK
+        if: steps.mode.outputs.mode == 'build'
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
+
       - name: Accept Android SDK licenses
+        if: steps.mode.outputs.mode == 'build'
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
       - name: Build
+        if: steps.mode.outputs.mode == 'build'
         run: |
           set -euo pipefail
           chmod +x gradlew
           ./gradlew assembleDevDebug "-PcloneId=com.che779.emulatorv2" "-PcloneName=Che779 Emulator V2" "-PcloneDir=J2ME-Che779v2"
-      - name: Đăng bản V2 + SHA256SUMS
+
+      - name: Đăng bản V2 vào tag đã chọn
+        if: steps.mode.outputs.mode == 'build'
         env:
           GH_TOKEN: ${{ github.token }}
-          INPUT_TAG: ${{ inputs.tag }}
+          TAG: ${{ steps.mode.outputs.tag }}
+          VER: ${{ steps.mode.outputs.version }}
         run: |
           set -euo pipefail
           APK=(app/build/outputs/apk/dev/debug/*.apk)
           test -f "${APK[0]}"
           $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/aapt2 dump badging "${APK[0]}" | grep -E "^package|application-label:" | tee badging.txt
           grep -q "name='com.che779.emulatorv2'" badging.txt
-          TAG="$INPUT_TAG"
-          if [ -z "$TAG" ] && [ "${GITHUB_REF_TYPE}" = "tag" ]; then TAG="$GITHUB_REF_NAME"; fi
-          VER="${TAG#dev-}"
-          [ -n "$VER" ] || VER="2.0.0"
           mkdir -p out
           NAME="Che779-AndroidV2-${VER}.apk"
           cp "${APK[0]}" "out/$NAME"
-          (cd out && sha256sum "$NAME" > SHA256SUMS.txt && cat SHA256SUMS.txt)
-          sed "s/@TAG@/${TAG:-dev-$VER}/g; s/@VER@/$VER/g" .github/release-notes-v2.md > out-notes.md
-          if [ -n "$TAG" ]; then
-            # tag phải trỏ đúng commit vừa build; nếu tag có sẵn nhưng trỏ commit khác thì tạo lại
-            if gh release view "$TAG" >/dev/null 2>&1 || git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-              if [ "$(git rev-parse "$TAG^{commit}")" != "$GITHUB_SHA" ]; then
-                gh release delete "$TAG" --yes --cleanup-tag || true
-              fi
-            fi
-            if gh release view "$TAG" >/dev/null 2>&1; then
-              gh release edit "$TAG" --prerelease --latest=false --title "Che779 Android V2 $TAG" --notes-file out-notes.md
-            else
-              gh release create "$TAG" --prerelease --latest=false --target "$GITHUB_SHA" \
-                --title "Che779 Android V2 $TAG" --notes-file out-notes.md
-            fi
-            gh release upload "$TAG" "out/$NAME" --clobber
-            gh release upload "$TAG" out/SHA256SUMS.txt --clobber
-            gh release delete build-v2 --yes --cleanup-tag || true
-            gh release edit v1.3.1 --latest || true
+          (cd out && sha256sum "$NAME" > SHA256SUMS.txt)
+          sed "s/@TAG@/$TAG/g; s/@VER@/$VER/g" .github/release-notes-v2.md > out-notes.md
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --prerelease --latest=false --title "Che779 Android V2 $TAG" --notes-file out-notes.md
           else
-            gh release delete build-v2 --yes --cleanup-tag || true
-            gh release create build-v2 "out/$NAME" --prerelease --latest=false --target "$GITHUB_SHA" \
-              --title "Che779 Android V2 (bản dựng mới nhất)" --notes-file out-notes.md
-            gh release upload build-v2 out/SHA256SUMS.txt --clobber
+            gh release create "$TAG" --prerelease --latest=false --target "$GITHUB_SHA" --title "Che779 Android V2 $TAG" --notes-file out-notes.md
           fi
+          gh release upload "$TAG" "out/$NAME" out/SHA256SUMS.txt --clobber
