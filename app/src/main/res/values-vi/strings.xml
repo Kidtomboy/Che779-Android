@@ -239,4 +239,9 @@
     <string name="pref_notif_title">Chu kỳ cập nhật bộ đếm thời gian trong thông báo</string>
     <string-array name="pref_notif_entries"><item>1 phút</item><item>5 phút</item><item>10 phút</item><item>30 phút</item><item>60 phút</item></string-array>
     <string-array name="pref_notif_values"><item>1</item><item>5</item><item>10</item><item>30</item><item>60</item></string-array>
+    <string name="pref_cat_fill">Lưới và cửa sổ nổi</string>
+    <string name="pref_fill_grid_title">Lấp đầy ô lưới</string>
+    <string name="pref_fill_grid_summary">Tự chọn 2 cột, hoặc 3 cột khi cần (tối đa 3 cột, quá 12 tab thì vuốt xuống); ô theo hình dạng game nên không còn khoảng trống thừa</string>
+    <string name="pref_fill_float_title">Lấp đầy cửa sổ nổi</string>
+    <string name="pref_fill_float_summary">Cửa sổ nổi tự co theo hình dạng game (không còn vạch xám hai bên)</string>
 </resources>

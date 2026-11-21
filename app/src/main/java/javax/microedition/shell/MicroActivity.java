@@ -1169,12 +1169,40 @@ public class MicroActivity extends AppCompatActivity {
 		MidletThread.resumeApp();
 	}
 
+	/** Preference written by the settings screen (another process): reload the file when it changed. */
+	@SuppressWarnings("deprecation")
+	private boolean boolPref(String key, int defRes) {
+		return getSharedPreferences(getPackageName() + "_preferences", MODE_MULTI_PROCESS)
+				.getBoolean(key, getResources().getBoolean(defRes));
+	}
+
+	/** Width / height of the first tab that shows a game screen (0.75 when unknown). */
+	private float aspectOf() {
+		for (Session t : tabs) {
+			try {
+				javax.microedition.lcdui.Displayable d = t.current;
+				if (d instanceof javax.microedition.lcdui.Canvas) {
+					int cw = d.getWidth(), ch = d.getHeight();
+					if (cw > 0 && ch > 0) {
+						return cw / (float) ch;
+					}
+				}
+				if (t.dc.virtualWidth > 0 && t.dc.virtualHeight > 0) {
+					return t.dc.virtualWidth / (float) t.dc.virtualHeight;
+				}
+			} catch (Exception ignored) {
+			}
+		}
+		return 0.75f;
+	}
+
 	private void rebuildGrid() {
 		host().post(() -> {
 			if (!gridMode || gridPanel == null) {
 				return;
 			}
 			ViewGroup h = host();
+			gridPanel.setFill(boolPref("pref_fill_grid", R.bool.default_fill_grid), aspectOf());
 			gridPanel.rebuild(tabs, Session.active(), h.getWidth(), h.getHeight());
 		});
 	}
@@ -1408,6 +1436,16 @@ public class MicroActivity extends AppCompatActivity {
 						activate(next);
 					}
 					updateFloatLabel();
+				}
+
+				@Override
+				public float aspect() {
+					return aspectOf();
+				}
+
+				@Override
+				public boolean fillFloat() {
+					return boolPref("pref_fill_float", R.bool.default_fill_float);
 				}
 
 				@Override
@@ -1714,6 +1752,9 @@ public class MicroActivity extends AppCompatActivity {
 				}
 				if (gridPanel != null) {
 					gridPanel.show(fs);
+					if (gridPanel.needsRelayout(aspectOf())) {
+						rebuildGrid();
+					}
 				}
 			});
 		} else if (s == Session.active()) {
