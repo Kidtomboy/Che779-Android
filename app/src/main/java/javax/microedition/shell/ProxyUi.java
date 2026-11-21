@@ -212,7 +212,7 @@ final class ProxyUi {
 			for (int i = 0; i < names.length; i++) {
 				names[i] = (i + 1) + ". " + l.get(i).label();
 			}
-			h.show(new AlertDialog.Builder(c).setTitle("Chọn proxy để điền vào form")
+			h.show(new DialogGate.Builder(c).setTitle("Chọn proxy để điền vào form")
 					.setItems(names, (d, w) -> {
 						src[0] = l.get(w);
 						editKey[0] = src[0].serialize();
@@ -221,7 +221,7 @@ final class ProxyUi {
 		});
 		bImp.setOnClickListener(v -> showImport(h, () -> h.toast("Đã cập nhật danh sách proxy")));
 
-		AlertDialog d = h.show(new AlertDialog.Builder(c)
+		AlertDialog d = h.show(new DialogGate.Builder(c)
 				.setTitle("Proxy tab " + no)
 				.setView(sv)
 				.setPositiveButton("Lưu", null)
@@ -319,7 +319,7 @@ final class ProxyUi {
 		root.addView(dim(c, "Nhập được: host:port · host:port:user:pass · user:pass@host:port · "
 				+ "giao_thức://… (http, socks4, socks5) · TXT/CSV/JSON. Bấm \"Nhập file/dán\" để xem đầy đủ."));
 
-		h.show(new AlertDialog.Builder(c)
+		h.show(new DialogGate.Builder(c)
 				.setTitle("Proxy các tab")
 				.setView(root)
 				.setPositiveButton("Đóng", null));
@@ -366,7 +366,7 @@ final class ProxyUi {
 					h.toast("Tab " + no + " chưa chọn proxy");
 					return;
 				}
-				h.show(new AlertDialog.Builder(c).setTitle("Xoá proxy khỏi danh sách?")
+				h.show(new DialogGate.Builder(c).setTitle("Xoá proxy khỏi danh sách?")
 						.setMessage(cur.label() + "\nCác tab đang dùng proxy này cũng sẽ bị bỏ.")
 						.setPositiveButton("Xoá", (d, w) -> {
 							String key = cur.serialize();
@@ -442,7 +442,7 @@ final class ProxyUi {
 			items[i + 1] = (i + 1) + ". " + l.get(i).label();
 		}
 		items[items.length - 1] = "＋ Thêm proxy mới…";
-		h.show(new AlertDialog.Builder(c).setTitle("Proxy cho tab " + h.slotOf(s))
+		h.show(new DialogGate.Builder(c).setTitle("Proxy cho tab " + h.slotOf(s))
 				.setItems(items, (d, w) -> {
 					int no = h.slotOf(s);
 					if (w == 0) {
@@ -485,14 +485,14 @@ final class ProxyUi {
 		box.addView(help);
 		ScrollView sv = new ScrollView(c);
 		sv.addView(box);
-		h.show(new AlertDialog.Builder(c).setTitle("Nhập danh sách proxy").setView(sv)
+		h.show(new DialogGate.Builder(c).setTitle("Nhập danh sách proxy").setView(sv)
 				.setPositiveButton("Chọn file", (d, w) -> h.pickFile(done))
 				.setNeutralButton("Dán văn bản", (d, w) -> {
 					final EditText in = new EditText(c);
 					in.setMinLines(6);
 					in.setGravity(Gravity.TOP);
 					in.setHint("Mỗi dòng một proxy, hoặc dán nội dung JSON/CSV");
-					h.show(new AlertDialog.Builder(c).setTitle("Dán danh sách").setView(in)
+					h.show(new DialogGate.Builder(c).setTitle("Dán danh sách").setView(in)
 							.setPositiveButton("Nhập", (d2, w2) -> done.accept(in.getText().toString()))
 							.setNegativeButton("Hủy", null));
 				})
