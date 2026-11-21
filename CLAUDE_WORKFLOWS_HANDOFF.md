@@ -233,3 +233,38 @@ Commit đã ghi nhận:
 **Bất biến V2:** không chạy migration hoặc build lại V2 đã khôi phục. SHA-256 kỳ vọng của APK trong Release `dev-2.0.0` vẫn là `38b0a8ba7d67a5a02bb6a95af4b1d01fe9f9954e73287c518fb2208ac51391a8`; cần xác minh Release asset sau khi hoàn tất kiểm tra CI, không được thay asset nếu chưa được phép.
 
 Bản ghi này chỉ phản ánh thay đổi đã commit; không được ghi “hoàn tất” cho đến khi lint và runtime CI được xác minh bằng kết quả GitHub Actions thực tế.
+
+
+## 10. Kiểm tra bổ sung của Darling — 2026-11-22
+
+Đã rà soát trạng thái thực tế trên GitHub và thực hiện thêm hai chỉnh sửa sau:
+
+- Branch `main`, `.github/workflows/clone.yml`, commit `debcd08f55cf83464baa3647bb9b485ff1380368`:
+  - Tag Release clone có thêm hậu tố hash SHA-256 rút gọn từ package ID, tránh hai package ID khác nhau bị chuẩn hóa thành cùng một tag.
+  - Với Release đã tồn tại, upload asset trước, tải về đối chiếu APK/checksum và chạy `sha256sum -c`; chỉ sau khi xác minh mới cập nhật title/notes.
+  - Với Release mới, tạo Release kèm assets, xác minh rồi mới cập nhật notes cuối cùng.
+- Branch `build-v2`, `.github/workflows/build-v2.yml`, commit `6d410e946a3662b07b5c3b0beda44507e68492b5`:
+  - Chuyển việc cập nhật title/notes tới sau khi upload, tải ngược, đối chiếu APK/checksum và xác minh SHA-256.
+  - Không thay đổi tag `dev-2.0.0` hoặc asset V2 đã khôi phục.
+
+### Bằng chứng kiểm tra GitHub Actions
+
+- Dev build run `44939475547`, commit `f5c42e6135e8a40f6082220b859e1823369ae3da`: **success**. Unit tests + assemble APK thành công; log artifact và APK artifact đã upload; bước cập nhật Release `buildlog` đã tải ngược và `cmp` thành công.
+- Dev build run `44939572788`, commit `9e3e6460ca31139475cf02b9e0f6faceac11613f`: **success**. `testDevDebugUnitTest` và `assembleDevDebug` thành công; build log artifact, cập nhật Release `buildlog`, thu thập APK và upload APK artifact đều hoàn thành.
+- Dev build run `44939772150`, commit `debcd08f55cf83464baa3647bb9b485ff1380368`: được kích hoạt sau chỉnh sửa clone workflow; trạng thái đang chạy tại thời điểm ghi mục này. Chưa được đánh dấu pass.
+- Release run `44933719985`: success nhưng chạy trên commit cũ `2d4b40efb25a7c30be785f1acd3a23e0d313fba1`, trước các chỉnh sửa workflow mới; không tính là kiểm thử runtime cho phiên bản workflow hiện tại.
+- V2 run `44935230900`: success nhưng chạy trên commit cũ `36b28699868c2e37d9a2a657b328c11134f835c3`, trước chỉnh sửa workflow V2 mới; không tính là kiểm thử runtime cho phiên bản workflow hiện tại.
+- Chưa tìm thấy run của workflow clone trong lịch sử 100 run gần nhất.
+
+### Giới hạn thực thi cần ghi rõ
+
+Kết nối GitHub hiện có cho phép đọc workflow/run/log/artifact và cập nhật file, nhưng không cung cấp thao tác `workflow_dispatch` hoặc endpoint ghi Actions dispatch. Vì vậy không thể khởi chạy trực tiếp workflow clone, release và V2 bằng kết nối hiện tại. Không tạo tag/release thử nghiệm hoặc sửa trigger tạm thời để né giới hạn vì có nguy cơ tạo/xóa nhầm Release thật. Các workflow này chưa được xác nhận runtime trên commit mới; không được báo tất cả workflow đã chạy lại thành công.
+
+### Trạng thái Release sau khi kiểm tra
+
+Các Release vẫn tồn tại: `dev-2.0.0`, `buildlog`, `v1.3.1`, `v1.3.0`, `v1.2.0`.
+
+Asset V2 `Che779-AndroidV2-2.0.0.apk` vẫn có kích thước 16,398,975 bytes và SHA-256:
+`38b0a8ba7d67a5a02bb6a95af4b1d01fe9f9954e73287c518fb2208ac51391a8`.
+
+Không thay đổi version, tag phiên bản hoặc asset V2.
