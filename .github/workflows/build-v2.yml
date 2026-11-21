@@ -43,7 +43,7 @@ jobs:
           else
             TAG="$INPUT_TAG"
           fi
-          [[ "$TAG" =~ ^dev-[0-9]+\\.[0-9]+\\.[0-9]+$ ]] || { echo "::error::Tag must match dev-X.Y.Z."; exit 1; }
+          [[ "$TAG" =~ ^dev-[0-9]+[.][0-9]+[.][0-9]+$ ]] || { echo "::error::Tag must match dev-X.Y.Z."; exit 1; }
           [[ "$TAG" != "dev-2.0.0" ]] || { echo "::error::dev-2.0.0 is protected; this workflow must never rebuild or overwrite its restored assets."; exit 1; }
           git rev-parse -q --verify "refs/tags/$TAG^{commit}" >/dev/null || { echo "::error::Tag does not exist."; exit 1; }
           TAG_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
