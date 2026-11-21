@@ -28,8 +28,8 @@ Vào mục **[Releases](../../releases/latest)** và tải file:
 | File | Dùng để |
 |---|---|
 | `Che779-Android-<phiên bản>.apk` | Cài ứng dụng lên điện thoại Android |
-| `Che779-Android-Clone-<phiên bản>.apk` | Bản clone (gói khác, dữ liệu `J2ME-Che779Clone`) để cài song song với bản chính |
-| `Che779-Emulator-V2.apk` | Bản **dev-v2.0.0** (Che779 Emulator V2, gói `com.che779.emulatorv2`, dữ liệu `J2ME-Che779v2`): giao diện lưới ô kiểu Hùng Hero, nút nguồn, tab trống, chế độ thêm game. Nằm ở tag [`dev-2.0.0`](../../releases/tag/dev-2.0.0), kèm `SHA256SUMS.txt` riêng |
+| `Che779-Android-Clone-<phiên bản>.apk` | Bản clone (gói `com.che779.emulator2`, dữ liệu `J2ME-Che779Clone`) để cài song song với bản chính |
+| `Che779-AndroidV2-<phiên bản>.apk` | Bản **V2** (dev-2.0.0): tên *Che779 Emulator V2*, gói `com.che779.emulatorv2`, dữ liệu `J2ME-Che779v2`; cài song song được với bản chính và bản clone. Nằm ở tag [`dev-2.0.0`](../../releases/tag/dev-2.0.0), kèm `SHA256SUMS.txt` riêng (bản thử, chưa phải bản ổn định) |
 | `che779-termux.sh` | Chạy Emulator **V2** trong Termux (xem [mục Termux](#-termux-emulator-v2)) |
 | `SHA256SUMS.txt` | Mã SHA-256 của các file trên (tính sau cùng, trên đúng file đăng). Kiểm tra: `sha256sum -c SHA256SUMS.txt` |
 
@@ -64,11 +64,13 @@ Che779 gồm 4 dự án, mỗi dự án một repo. Bạn đang xem **Project 4*
 | 💬 | **Bong bóng nổi** | Thu game thành bong bóng kéo được; chạm để mở cửa sổ nổi (đổi cỡ, thu nhỏ); kéo vào ✕ để tắt, chạm đúp để mở ứng dụng |
 | ⌨️ | **Bàn phím ảo kiểu J2ME** | Bàn phím 12 phím dạng điện thoại, dùng ở chế độ lưới và trong cửa sổ nổi |
 | 🔁 | **Đồng bộ phím** | Chọn các tab cùng nhận một phím bấm (tick từng tab) |
-| 🌐 | **Proxy theo tab** | HTTP / SOCKS5 riêng từng tab, gán hàng loạt từ danh sách |
-| 🔀 | **Chuyển hướng IP** | Chuyển hướng địa chỉ máy chủ theo từng tab |
+| 🌐 | **Proxy theo tab** | HTTP / SOCKS4 / SOCKS5 riêng từng tab. Dạng danh sách: form Host/Port/User/Pass + nút Kiểm tra; dạng lưới và cửa sổ nổi: bảng theo tab (chọn, sửa, xoá, tích bật/tắt, gán lần lượt). Nhập từ TXT/JSON/CSV hoặc dán; dữ liệu dùng chung giữa các dạng |
+| 🔀 | **Chuyển hướng IP** | Chuyển hướng địa chỉ máy chủ theo từng tab (mục riêng, tách khỏi Proxy) |
 | 🔋 | **Tiết kiệm pin** | 4 chế độ: Bình thường, Tiết kiệm, Siêu tiết kiệm, Headless; ô Cài đặt nhanh để đổi |
+| ⏱️ | **Bộ đếm thời gian** | Thông báo hiện thời gian đã chạy (phút / giờ + phút / ngày + giờ), nút ⏱ giữa nút Chế độ và Dừng; chu kỳ cập nhật chọn trong Cài đặt (mặc định 5 phút) |
 | 🧹 | **Quản lý bộ nhớ** | Treo (ngừng vẽ), ngủ màn hình, tự dọn khi RAM thấp, cảnh báo |
 | 🧬 | **Bản clone** | Tạo thêm bản cài độc lập với tên gói, tên app và thư mục dữ liệu riêng |
+| 🆕 | **Bản V2 (dev-2.0.0)** | Bản cài riêng (*Che779 Emulator V2*): danh sách game có nút **nguồn** (thoát hẳn) và nút **xoá** từng game (giữ vào game vẫn hiện công cụ J2ME); nút **Giao diện game** mở lưới ô với tab đầu trống; mỗi ô có tiêu đề, ✕, proxy, dừng, phóng to; không cho xoá tab cuối cùng; **chế độ thêm game** thủ công hoặc tự động (nhớ cả khi thoát app) |
 
 > Các tính năng chính (đa tab, lưới, bong bóng, treo/ẩn/ngủ, proxy theo tab, chuyển hướng IP) đã được chủ dự án thử trên máy thật. Những tính năng còn lại chưa có xác nhận — xem danh sách ở [`CHANGELOG.md`](CHANGELOG.md).
 >
@@ -100,7 +102,7 @@ Che779 gồm 4 dự án, mỗi dự án một repo. Bạn đang xem **Project 4*
 2. **Thêm tab:** bấm **＋** (nhân bản tab 1; chạm giữ để chọn game khác). Chạm giữ vào tên tab để đổi tên.
 3. **Xem lưới:** đổi sang chế độ lưới để thấy nhiều game cùng lúc; chạm một ô để chọn tab.
 4. **Bong bóng:** bật bong bóng nổi để vừa chơi vừa dùng ứng dụng khác. Một số hãng máy giấu mục cấp quyền "hiển thị trên ứng dụng khác" khá sâu trong Cài đặt.
-5. **Proxy / IP:** vào menu để gán proxy hoặc chuyển hướng IP cho từng tab hoặc cả nhóm.
+5. **Proxy / IP:** menu có hai mục riêng. **Proxy**: ở dạng danh sách nhập Host, Port, User, Pass và chọn HTTP/SOCKS4/SOCKS5 (có nút Kiểm tra); ở dạng lưới hoặc cửa sổ nổi dùng bảng theo tab, có nhập file TXT/JSON/CSV. **Chuyển hướng IP**: giữ nguyên như cũ. Thay đổi áp dụng cho kết nối mới.
 6. **Tiết kiệm pin:** đổi chế độ pin ở menu hoặc ô Cài đặt nhanh.
 7. **Thoát:** chọn *Thoát hết* hoặc *Đóng tab này*.
 
@@ -137,7 +139,7 @@ Muốn có thêm một bản cài độc lập (tên gói, tên ứng dụng và
 | Ô | Quy tắc | Ví dụ |
 |---|---|---|
 | `app_id` | Tên gói nhiều đoạn, mỗi đoạn bắt đầu bằng chữ | `com.che779.emulator2` |
-| `app_name` | 1–40 ký tự: chữ, số, dấu cách, `._()-` | `Che779 Emulator V2` |
+| `app_name` | 1–40 ký tự: chữ, số, dấu cách, `._()-` | `Che779 Emulator 2` |
 | `data_dir` | 1–64 ký tự chữ/số/`.`/`_`/`-`, không chứa `..` | `J2ME-Che779Clone` |
 
 Bản clone ra ở mục Releases với thẻ `clone-<tên gói>`. Mỗi bản clone có dữ liệu riêng nên cài trùng game ở hai bản sẽ tốn dung lượng gấp đôi.
@@ -166,16 +168,22 @@ Phần lõi J2ME Loader lo các API MIDP/CLDC; Che779 thêm lớp vỏ đa phiê
 |---|---|
 | Không cài được APK | Cho phép cài từ nguồn ngoài Play Store. Nếu đang cài đè, bản cũ phải cùng tên gói và cùng chữ ký. |
 | Không bật được bong bóng nổi | Cấp quyền **hiển thị trên ứng dụng khác** cho ứng dụng trong Cài đặt máy. |
-| Bản ghép nhiều game con (x6–x12) không vào được game con | Đây là lỗi đã biết, chưa sửa. Xem phần dưới. |
+| Bản ghép nhiều game con (x6…) không vào được | Từ v1.3.1 bản x6 đã chơi được. Nếu bản ghép khác vẫn lỗi, mở Issue kèm file `che779-diag.txt`. |
 | Bàn phím J2ME gốc thụt xuống sau khi thoát chế độ lưới | Lỗi đã biết. Dùng mục menu **Sửa bàn phím ảo** hoặc bàn phím ảo của ứng dụng. |
-| Game không vào được mạng | Thử gán proxy hoặc chuyển hướng IP cho tab. Lỗi mạng còn có thể do chính máy chủ game. |
+| Game không vào được mạng | Thử gán proxy (menu **Proxy**) hoặc **Chuyển hướng IP** cho tab, rồi mở lại kết nối: proxy chỉ áp dụng cho kết nối mới. Nút **Kiểm tra** trong form proxy cho biết proxy có sống không. Lỗi mạng còn có thể do chính máy chủ game. |
+| Đồng bộ tab thao tác lan sang tab khác | Đồng bộ tự tắt khi rời dạng lưới. Chỉ bật khi thật sự muốn các tab cùng nhận phím (tránh mua hàng nhầm ở tab khác). |
+| Bong bóng biến mất khi kéo | Đừng thả bong bóng vào vùng ✕ ở giữa đáy màn hình. Cài đặt có mục chỉnh cỡ, độ mờ và chỉ hiện khi treo. |
+| Quên thoát game, máy nóng hoặc hao pin | Bản V2: bấm nút **nguồn** ở danh sách game để thoát hẳn. Bản thường: menu **Thoát**. |
+| Bản V2: không xoá được tab | Đúng thiết kế: không được xoá tab cuối cùng. Dùng nút nguồn để thoát hẳn. |
+| Bản V2: thêm tab không hỏi game | Bạn đang ở chế độ thêm game **tự động**. Bấm giữ ô **+ Thêm tab** để chuyển lại thủ công. |
+| Cài V2 hoặc clone báo xung đột | Mỗi bản có tên gói riêng (`com.che779.emulator`, `…emulatorv2`, `…emulator2`) và thư mục dữ liệu riêng; game cài ở bản này không tự thấy ở bản kia. |
 | Muốn báo lỗi | Mở [Issue](../../issues/new/choose), ghi phiên bản, tên máy, Android và gửi `che779-diag.txt`. Xóa mật khẩu proxy khỏi log. |
 
 ---
 
 ## ⚠️ Giới hạn và vấn đề đã biết
 
-- **Bản ghép nhiều game con** (kiểu x6–x12) hiện **chưa vào được game con**. Chưa sửa; chỉ sửa khi có yêu cầu.
+- **Bản ghép nhiều game con**: bản x6 đã vào chơi được (chủ dự án xác nhận ở v1.3.1). Các bản ghép khác chưa có xác nhận.
 - **Bàn phím J2ME gốc có thể thụt xuống** sau khi thoát lưới; đang che bằng bàn phím ảo mới.
 - Bàn phím ảo mới chưa gõ chữ được vào ô nhập văn bản.
 - Dọn luồng khi đóng tab dựa trên đoán theo tên lớp; hai game trùng tên lớp có thể ảnh hưởng nhau.
