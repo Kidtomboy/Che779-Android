@@ -207,3 +207,29 @@ Kèm theo:
 - Những kiểm thử không thực hiện được và lý do.
 
 Không được tuyên bố hoàn tất nếu còn workflow chưa rà soát hoặc còn lỗi runtime chưa giải thích.
+
+
+---
+
+## 9. Nhật ký thực hiện chuẩn hóa workflows — 2026-11-22
+
+Đã cập nhật trực tiếp các workflow trên đúng branch, không tạo branch mới và không sửa mã nguồn ứng dụng:
+
+- `.github/workflows/build-apk.yml` — thêm concurrency; bảo đảm log luôn được tạo kể cả khi Gradle fail; lưu log thành Actions artifact; cập nhật Release `buildlog` theo kiểu upsert, không xóa tag; kiểm tra đúng một APK và tạo checksum.
+- `.github/workflows/clone.yml` — giữ kiểm tra input; chạy unit tests; xác minh package ID thực tế trong APK; tạo checksum và Actions artifact; cập nhật Release clone theo kiểu upsert, không xóa/di chuyển tag; tải ngược asset để so sánh.
+- `.github/workflows/release.yml` — tách bước resolve tag và build; manual update chỉ chấp nhận tag `vX.Y.Z` có Release tồn tại; build từ commit tag bất biến; đối chiếu `VERSION`; kiểm tra số lượng APK và package clone; tạo checksum sau cùng; giữ V1 thử nghiệm ở Actions artifact; xác minh checksum sau upload trước khi cập nhật notes.
+- `.github/workflows/migrate-v2-release.yml` — đã xóa workflow migration một lần sau khi nội dung bàn giao bảo toàn trạng thái V2; không xóa Release/tag/asset V2.
+- `.github/workflows/build-v2.yml` trên branch `build-v2` — bỏ hoàn toàn mode migrate và mọi thao tác với Release `build-v2`; manual run phải nhập tag `dev-* `; checkout đúng commit tag; chặn tuyệt đối `dev-2.0.0`; xác minh package/version APK; tạo checksum/artifact; chỉ upsert Release đúng tag và xác minh asset sau upload.
+
+Commit đã ghi nhận:
+- main build-apk: `f5c42e6135e8a40f6082220b859e1823369ae3da`
+- main clone: `87cedf57bdc8119fbbf49d313653f33309feaef6`
+- main release: `93d7fd7529f7c0dad8e724580c9234d85052809b`
+- main remove migration: `7e7a53d22c5b09a699042d0c1175d2076fa95bea`
+- branch build-v2: `67cab8c9e6559fa4b8baa99abfafff7bdf97fe39`
+
+**Kiểm thử runtime/lint:** các thay đổi đã được ghi vào GitHub; chưa được đánh dấu lint/runtime pass chỉ dựa trên việc cập nhật file. Phải đối chiếu các workflow run tự kích hoạt sau các commit trên, đọc job logs/artifacts và xác nhận các run mới nhất. Không dispatch clone/release/V2 trên tag thật để thử nghiệm vì có thể tạo/cập nhật Release. Không chạy V2 trên `dev-2.0.0`.
+
+**Bất biến V2:** không chạy migration hoặc build lại V2 đã khôi phục. SHA-256 kỳ vọng của APK trong Release `dev-2.0.0` vẫn là `38b0a8ba7d67a5a02bb6a95af4b1d01fe9f9954e73287c518fb2208ac51391a8`; cần xác minh Release asset sau khi hoàn tất kiểm tra CI, không được thay asset nếu chưa được phép.
+
+Bản ghi này chỉ phản ánh thay đổi đã commit; không được ghi “hoàn tất” cho đến khi lint và runtime CI được xác minh bằng kết quả GitHub Actions thực tế.
