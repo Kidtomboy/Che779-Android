@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.view.Gravity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +33,8 @@ final class GridPanel extends LinearLayout {
 	private final Listener listener;
 	private final Map<Session, Cell> cells = new HashMap<>();
 	private final int border;
+	private boolean fill;
+	private float aspect = 0.75f;
 
 	GridPanel(Context context, Listener listener) {
 		super(context);
@@ -78,6 +82,59 @@ final class GridPanel extends LinearLayout {
 		return best;
 	}
 
+	/** Fill mode: cells take the game's shape (no gaps), 2 or 3 columns, scrolling when 3 columns are not enough. */
+	void setFill(boolean fill, float aspect) {
+		this.fill = fill;
+		this.aspect = aspect > 0.2f && aspect < 5f ? aspect : 0.75f;
+	}
+
+	boolean needsRelayout(float newAspect) {
+		return fill && newAspect > 0.2f && newAspect < 5f && Math.abs(newAspect - aspect) > 0.02f;
+	}
+
+	private void buildFilled(List<Session> sessions, Session active, int w, int h) {
+		int n = sessions.size();
+		int cols, cellW, cellH;
+		if (n == 1) {
+			cols = 1;
+			cellH = Math.min(h, (int) (w / aspect));
+			cellW = (int) (cellH * aspect);
+		} else {
+			cols = 2;
+			cellW = w / 2;
+			cellH = (int) (cellW / aspect) + 2 * border;
+			if (((n + 1) / 2) * cellH > h) {
+				cols = 3;
+				cellW = w / 3;
+				cellH = (int) (cellW / aspect) + 2 * border;
+			}
+		}
+		int rows = (n + cols - 1) / cols;
+		ScrollView sv = new ScrollView(getContext());
+		sv.setFillViewport(true);
+		sv.setVerticalScrollBarEnabled(false);
+		LinearLayout holder = new LinearLayout(getContext());
+		holder.setOrientation(VERTICAL);
+		holder.setGravity(Gravity.CENTER_HORIZONTAL | (rows * cellH <= h ? Gravity.CENTER_VERTICAL : Gravity.TOP));
+		int i = 0;
+		for (int r = 0; r < rows; r++) {
+			LinearLayout row = new LinearLayout(getContext());
+			row.setOrientation(HORIZONTAL);
+			for (int c = 0; c < cols && i < n; c++) {
+				Session s = sessions.get(i++);
+				Cell cell = new Cell(getContext(), s);
+				cells.put(s, cell);
+				row.addView(cell, new LayoutParams(cellW, cellH));
+				show(s);
+			}
+			holder.addView(row, new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, cellH));
+		}
+		sv.addView(holder, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT));
+		addView(sv, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+		setActive(active);
+	}
+
 	void rebuild(List<Session> sessions, Session active, int w, int h) {
 		for (Cell c : cells.values()) {
 			c.removeAllViews();
@@ -86,6 +143,10 @@ final class GridPanel extends LinearLayout {
 		cells.clear();
 		int n = sessions.size();
 		if (n == 0) {
+			return;
+		}
+		if (fill && w > 0 && h > 0) {
+			buildFilled(sessions, active, w, h);
 			return;
 		}
 		int cols = columnsFor(n, w, h);

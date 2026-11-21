@@ -66,6 +66,11 @@ final class FloatingController {
 
 		/** The bubble was tapped while the app is still on screen: move the game into the floating window. */
 		void onMinimize();
+
+		/** Width / height of the game screen (0.75 when unknown). */
+		float aspect();
+
+		boolean fillFloat();
 	}
 
 	private static FloatingController instance;
@@ -546,6 +551,9 @@ final class FloatingController {
 		DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
 		int w = sp.getInt(K_W, Math.min(dm.widthPixels, dm.heightPixels) * 3 / 4);
 		int h = sp.getInt(K_H, w * 4 / 3);
+		if (callbacks != null && callbacks.fillFloat()) {
+			h = (int) (w / Math.max(0.2f, callbacks.aspect())) + dp(32);
+		}
 		windowLp = params(w, h, sp.getInt(K_X, dp(16)), sp.getInt(K_Y, dp(80)));
 		window = new FrameLayout(ctx);
 		window.setBackgroundColor(0xFF14181F);
@@ -660,6 +668,10 @@ final class FloatingController {
 					DisplayMetrics m = ctx.getResources().getDisplayMetrics();
 					windowLp.width = Math.max(dp(140), Math.min(m.widthPixels, startW + (int) (e.getRawX() - downX)));
 					windowLp.height = Math.max(dp(140), Math.min(m.heightPixels, startH + (int) (e.getRawY() - downY)));
+					if (callbacks != null && callbacks.fillFloat()) {
+						windowLp.height = Math.min(m.heightPixels,
+								(int) (windowLp.width / Math.max(0.2f, callbacks.aspect())) + dp(32));
+					}
 					wm.updateViewLayout(window, windowLp);
 				} else if (e.getActionMasked() == MotionEvent.ACTION_UP) {
 					sp.edit().putInt(K_W, windowLp.width).putInt(K_H, windowLp.height).apply();
