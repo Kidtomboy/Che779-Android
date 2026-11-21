@@ -219,7 +219,7 @@ Bản `release` **không** tự dùng khóa thử nghiệm. Muốn ký, cấp đ
 <details>
 <summary><b>Phát hành</b></summary>
 
-Gắn thẻ `vX.Y.Z` → workflow **Phát hành** kiểm thử, build, tạo `Che779-Android-<phiên bản>.apk` và `SHA256SUMS.txt` (mã băm tính sau cùng, trên đúng file phát hành). Mỗi lần có thay đổi trên `main`, workflow **Build Che779 APK** cập nhật bản thử `latest`.
+Gắn thẻ `vX.Y.Z` → workflow **Phát hành bản chính** kiểm thử, build, tạo `Che779-Android-<phiên bản>.apk` và `SHA256SUMS.txt` (mã băm tính sau cùng, trên đúng file phát hành). Mỗi lần có thay đổi trên `main`, workflow **Build Che779 APK** cập nhật bản thử `latest`.
 
 </details>
 
@@ -236,7 +236,7 @@ Che779-Android/
 ├─ tests/          test-termux.sh
 ├─ gradle/  build.gradle  settings.gradle  gradlew*   ← Gradle bắt buộc nằm ở gốc
 ├─ docs/           Tài liệu kỹ thuật (có mục lục)
-└─ .github/        Workflow build thử, Phát hành, Clone; mẫu Issue và Pull Request
+└─ .github/        Workflow build dev, phát hành bản chính, phát hành bản V2, tạo clone; mẫu Issue và Pull Request
 ```
 
 ---
