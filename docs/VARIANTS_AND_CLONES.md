@@ -2,7 +2,7 @@
 
 ## Bản clone
 
-Vào **Actions → Build clone APK → Run workflow** và điền:
+Vào **Actions → Tạo bản clone → Run workflow** và điền:
 
 | Ô | Quy tắc | Ví dụ |
 |---|---|---|

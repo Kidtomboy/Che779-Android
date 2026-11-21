@@ -26,5 +26,5 @@ Bản `release` **không** tự dùng khóa thử nghiệm. Muốn ký, cấp đ
 
 ## Phát hành tự động
 
-- Mỗi lần có thay đổi trên `main`, workflow **Build Che779 APK** kiểm thử, build và cập nhật bản thử `latest` (đánh dấu pre-release).
+- Mỗi lần có thay đổi trên `main`, workflow **Build bản dev (tự động)** kiểm thử, build và cập nhật bản thử `latest` (đánh dấu pre-release).
 - Gắn thẻ `vX.Y.Z` thì workflow **Phát hành** build và tạo `Che779-Android-<phiên bản>.apk` + `SHA256SUMS.txt` ở mục Releases.
