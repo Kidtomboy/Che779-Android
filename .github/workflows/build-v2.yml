@@ -114,16 +114,16 @@ jobs:
         run: |
           set -euo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --prerelease --latest=false --title "Che779 Android V2 $TAG" --notes-file out-notes.md
+            gh release upload "$TAG" out/*.apk --clobber
+            gh release upload "$TAG" out/SHA256SUMS.txt --clobber
           else
-            gh release create "$TAG" --prerelease --latest=false --target "$SOURCE_SHA" --title "Che779 Android V2 $TAG" --notes-file out-notes.md
+            gh release create "$TAG" out/*.apk out/SHA256SUMS.txt --prerelease --latest=false --target "$SOURCE_SHA" --title "Che779 Android V2 $TAG" --notes-file out-notes.md
           fi
-          gh release upload "$TAG" out/*.apk --clobber
-          gh release upload "$TAG" out/SHA256SUMS.txt --clobber
           mkdir -p verify
           gh release download "$TAG" --pattern '*.apk' --dir verify
           gh release download "$TAG" --pattern 'SHA256SUMS.txt' --dir verify
           cmp out/SHA256SUMS.txt verify/SHA256SUMS.txt
           (cd verify && sha256sum -c SHA256SUMS.txt)
           cmp out/*.apk verify/*.apk
+          gh release edit "$TAG" --prerelease --latest=false --title "Che779 Android V2 $TAG" --notes-file out-notes.md
           echo "Release $TAG assets verified." >> "$GITHUB_STEP_SUMMARY"
