@@ -28,7 +28,7 @@ Vào mục **[Releases](../../releases/latest)** và tải file:
 | File | Dùng để |
 |---|---|
 | `Che779-Android-<phiên bản>.apk` | Cài ứng dụng lên điện thoại Android |
-| `Che779-Android-Clone-<phiên bản>.apk` | Bản clone (gói khác, dữ liệu `J2ME-Che779v2`) để cài song song với bản chính |
+| `Che779-Android-Clone-<phiên bản>.apk` | Bản clone (gói khác, dữ liệu `J2ME-Che779Clone`) để cài song song với bản chính |
 | `che779-termux.sh` | Chạy Emulator **V2** trong Termux (xem [mục Termux](#-termux-emulator-v2)) |
 | `SHA256SUMS.txt` | Mã SHA-256 của các file trên (tính sau cùng, trên đúng file đăng). Kiểm tra: `sha256sum -c SHA256SUMS.txt` |
 
@@ -135,9 +135,9 @@ Muốn có thêm một bản cài độc lập (tên gói, tên ứng dụng và
 
 | Ô | Quy tắc | Ví dụ |
 |---|---|---|
-| `app_id` | Tên gói nhiều đoạn, mỗi đoạn bắt đầu bằng chữ | `com.che779.emulatorv2` |
+| `app_id` | Tên gói nhiều đoạn, mỗi đoạn bắt đầu bằng chữ | `com.che779.emulator2` |
 | `app_name` | 1–40 ký tự: chữ, số, dấu cách, `._()-` | `Che779 Emulator V2` |
-| `data_dir` | 1–64 ký tự chữ/số/`.`/`_`/`-`, không chứa `..` | `J2ME-Che779v2` |
+| `data_dir` | 1–64 ký tự chữ/số/`.`/`_`/`-`, không chứa `..` | `J2ME-Che779Clone` |
 
 Bản clone ra ở mục Releases với thẻ `clone-<tên gói>`. Mỗi bản clone có dữ liệu riêng nên cài trùng game ở hai bản sẽ tốn dung lượng gấp đôi.
 
