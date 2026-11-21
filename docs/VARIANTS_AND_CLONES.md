@@ -6,9 +6,9 @@ Vào **Actions → Build clone APK → Run workflow** và điền:
 
 | Ô | Quy tắc | Ví dụ |
 |---|---|---|
-| `app_id` | Tên gói nhiều đoạn, mỗi đoạn bắt đầu bằng chữ | `com.che779.emulatorv2` |
+| `app_id` | Tên gói nhiều đoạn, mỗi đoạn bắt đầu bằng chữ | `com.che779.emulator2` |
 | `app_name` | 1–40 ký tự: chữ, số, dấu cách, `._()-` | `Che779 Emulator V2` |
-| `data_dir` | 1–64 ký tự chữ/số/`.`/`_`/`-`, không chứa `..` | `J2ME-Che779v2` |
+| `data_dir` | 1–64 ký tự chữ/số/`.`/`_`/`-`, không chứa `..` | `J2ME-Che779Clone` |
 
 Bản clone ra ở mục Releases với thẻ `clone-<tên gói>`. Tham số được kiểm tra cả ở workflow lẫn Gradle. Mỗi bản clone có dữ liệu riêng.
 

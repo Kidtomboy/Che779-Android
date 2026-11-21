@@ -36,13 +36,13 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew testDevDebugUnitTest assembleDevDebug --stacktrace
-      - name: Build bản clone (gói com.che779.emulatorv2, thư mục dữ liệu J2ME-Che779v2)
+      - name: Build bản clone (gói com.che779.emulator2, thư mục dữ liệu J2ME-Che779Clone)
         run: |
           mkdir -p out
           VER=$(cat VERSION)
           cp app/build/outputs/apk/dev/debug/*.apk "out/Che779-Android-$VER.apk"
           rm -rf app/build/outputs
-          ./gradlew assembleDevDebug "-PcloneId=com.che779.emulatorv2" "-PcloneName=Che779 Emulator 2" "-PcloneDir=J2ME-Che779v2" --stacktrace
+          ./gradlew assembleDevDebug "-PcloneId=com.che779.emulator2" "-PcloneName=Che779 Emulator 2" "-PcloneDir=J2ME-Che779Clone" --stacktrace
           cp app/build/outputs/apk/dev/debug/*.apk "out/Che779-Android-Clone-$VER.apk"
       - name: Lấy mã V2 đúng commit ghim, build jar và ghép script Termux (V2)
         run: |
