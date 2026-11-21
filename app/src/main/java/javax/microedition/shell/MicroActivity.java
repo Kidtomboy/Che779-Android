@@ -202,7 +202,7 @@ public class MicroActivity extends AppCompatActivity {
 				final EditText input = new EditText(MicroActivity.this);
 				input.setSingleLine(true);
 				input.setText(s.label == null ? "" : s.label);
-				new AlertDialog.Builder(MicroActivity.this)
+				new DialogGate.Builder(MicroActivity.this)
 						.setTitle("Tên tab " + slotOf(s))
 						.setView(input)
 						.setPositiveButton(android.R.string.ok, (d, w) -> {
@@ -637,7 +637,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void showPowerDialog() {
-		new AlertDialog.Builder(this)
+		new DialogGate.Builder(this)
 				.setTitle("Chế độ pin")
 				.setSingleChoiceItems(POWER_NAMES, powerMode, (d, w) -> {
 					d.dismiss();
@@ -706,6 +706,9 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void pickGameForNewTab() {
+		if (DialogGate.busy()) {
+			return; // đang có hộp thoại: bỏ qua lần bấm dồn
+		}
 		final java.util.ArrayList<String> names = new java.util.ArrayList<>();
 		final java.util.ArrayList<String> paths = new java.util.ArrayList<>();
 		File appsDir = new File(Config.getAppDir());
@@ -727,7 +730,7 @@ public class MicroActivity extends AppCompatActivity {
 				paths.add(dir.getAbsolutePath());
 			}
 		}
-		new AlertDialog.Builder(this)
+		new DialogGate.Builder(this)
 				.setTitle("Chọn game mở ở tab mới")
 				.setItems(names.toArray(new String[0]), (d, which) ->
 						addSession(names.get(which), paths.get(which), null))
@@ -741,7 +744,7 @@ public class MicroActivity extends AppCompatActivity {
 			return;
 		}
 		final int no = slotOf(s);
-		new AlertDialog.Builder(this)
+		new DialogGate.Builder(this)
 				.setTitle(R.string.CONFIRMATION_REQUIRED)
 				.setMessage("Đóng tab " + no + "?")
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
@@ -767,13 +770,16 @@ public class MicroActivity extends AppCompatActivity {
 			if (floating && d.getWindow() != null) {
 				d.getWindow().setType(Build.VERSION.SDK_INT >= 26 ? 2038 : 2003);
 			}
-			d.show();
+			DialogGate.present(d);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void showRestartDialog() {
+		if (DialogGate.busy()) {
+			return; // đang có hộp thoại: bỏ qua lần bấm dồn
+		}
 		final Session act = Session.active();
 		if (act == null || tabs.isEmpty()) {
 			return;
@@ -781,7 +787,7 @@ public class MicroActivity extends AppCompatActivity {
 		final EditText input = new EditText(this);
 		input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 		input.setHint("Số tab (để trống = tab " + slotOf(act) + ")");
-		showDlg(new AlertDialog.Builder(dctx())
+		showDlg(new DialogGate.Builder(dctx())
 				.setTitle("Khởi động lại tab")
 				.setMessage("Tab cũ thoát hẳn và ngắt mọi kết nối cũ, rồi mới mở lại game ở cùng số tab.")
 				.setView(input)
@@ -970,7 +976,7 @@ public class MicroActivity extends AppCompatActivity {
 					if (floating && d.getWindow() != null) {
 						d.getWindow().setType(Build.VERSION.SDK_INT >= 26 ? 2038 : 2003);
 					}
-					d.show();
+					DialogGate.present(d);
 					return d;
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -1029,6 +1035,9 @@ public class MicroActivity extends AppCompatActivity {
 
 	/** Proxy: single form in list mode; per-tab table in grid mode and in the floating window. */
 	private void showProxyDialog() {
+		if (DialogGate.busy()) {
+			return; // đang có hộp thoại: bỏ qua lần bấm dồn
+		}
 		final Session cur = Session.active();
 		if (cur == null) {
 			return;
@@ -1041,9 +1050,12 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void editRedirects() {
+		if (DialogGate.busy()) {
+			return; // đang có hộp thoại: bỏ qua lần bấm dồn
+		}
 		final EditText input = multiLine(netPrefs().getString("che779_redirects", ""),
 				"Mỗi dòng một luật: ip_cu[:port]=ip_moi[:port]\nVí dụ: game.example.com:19129=10.0.0.5:19129");
-		showDlg(new AlertDialog.Builder(dctx())
+		showDlg(new DialogGate.Builder(dctx())
 				.setTitle("Chuyển hướng IP")
 				.setView(input)
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
@@ -1102,7 +1114,7 @@ public class MicroActivity extends AppCompatActivity {
 		input.setInputType(InputType.TYPE_CLASS_NUMBER);
 		input.setText(String.valueOf(Math.max(2, tabs.size())));
 		input.setSelectAllOnFocus(true);
-		new AlertDialog.Builder(this)
+		new DialogGate.Builder(this)
 				.setTitle("Chế độ lưới: nhập số ô (N)")
 				.setMessage("Thiếu ô nào sẽ tự mở thêm bản sao game của tab 1. Mỗi ô tốn thêm RAM.")
 				.setView(input)
@@ -1415,6 +1427,9 @@ public class MicroActivity extends AppCompatActivity {
 
 				@Override
 				public void onPickTab() {
+					if (DialogGate.busy()) {
+						return;
+					}
 					final java.util.List<Session> list = new java.util.ArrayList<>(tabs);
 					if (list.isEmpty()) {
 						return;
@@ -1424,7 +1439,7 @@ public class MicroActivity extends AppCompatActivity {
 						Session t = list.get(i);
 						items[i] = "Tab " + slotOf(t) + " — " + (t.appName == null ? "" : t.appName);
 					}
-					showDlg(new AlertDialog.Builder(dctx()).setTitle("Chọn tab")
+					showDlg(new DialogGate.Builder(dctx()).setTitle("Chọn tab")
 							.setItems(items, (d, w) -> {
 								if (gridMode) {
 									focusGrid(list.get(w));
@@ -1621,7 +1636,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void showMidletDialog(String[] names, final String[] classes) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this)
+		AlertDialog.Builder builder = new DialogGate.Builder(this)
 				.setTitle(R.string.select_dialog_title)
 				.setItems(names, (d, n) -> {
 					String clazz = classes[n];
@@ -1644,7 +1659,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	void showErrorDialog(String message) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this)
+		AlertDialog.Builder builder = new DialogGate.Builder(this)
 				.setIcon(android.R.drawable.ic_dialog_alert)
 				.setTitle(R.string.error)
 				.setMessage(message)
@@ -1717,6 +1732,9 @@ public class MicroActivity extends AppCompatActivity {
 	// ------------------------------------------------------------ sync keys list
 
 	private void showSyncDialog() {
+		if (DialogGate.busy()) {
+			return; // đang có hộp thoại: bỏ qua lần bấm dồn
+		}
 		final java.util.List<Session> list = new java.util.ArrayList<>(tabs);
 		if (list.isEmpty()) {
 			return;
@@ -1734,7 +1752,7 @@ public class MicroActivity extends AppCompatActivity {
 			String nm = t.label != null && !t.label.isEmpty() ? " · " + t.label : "";
 			items[i] = "Tab " + (i + 1) + nm + " — " + (t.appName == null ? "" : t.appName);
 		}
-		showDlg(new AlertDialog.Builder(dctx())
+		showDlg(new DialogGate.Builder(dctx())
 				.setTitle("Đồng bộ phím: chọn các tab")
 				.setMultiChoiceItems(items, checked, (d, w, on) -> checked[w] = on)
 				.setPositiveButton("Áp dụng", (d, w) -> {
@@ -1921,7 +1939,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	public void showExitConfirmation() {
 		if (tabs.size() > 1) {
-			new AlertDialog.Builder(this)
+			new DialogGate.Builder(this)
 					.setTitle(R.string.CONFIRMATION_REQUIRED)
 					.setMessage("Thoát hẳn toàn bộ " + tabs.size() + " tab, hay chỉ đóng tab đang chọn?")
 					.setPositiveButton("Thoát hết", (d, w) -> exitAll())
@@ -1939,7 +1957,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	public void showExitConfirmationSingle() {
-		AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+		AlertDialog.Builder alertBuilder = new DialogGate.Builder(this);
 		alertBuilder.setTitle(R.string.CONFIRMATION_REQUIRED)
 				.setMessage(R.string.FORCE_CLOSE_CONFIRMATION)
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
@@ -1952,7 +1970,7 @@ public class MicroActivity extends AppCompatActivity {
 					MidletThread.destroyApp();
 				})
 				.setNegativeButton(android.R.string.cancel, null);
-		alertBuilder.create().show();
+		alertBuilder.show();
 	}
 
 	@Override
@@ -2146,7 +2164,7 @@ public class MicroActivity extends AppCompatActivity {
 		final VirtualKeyboard vk = ContextHolder.getVk();
 		boolean[] states = vk.getKeysVisibility();
 		boolean[] changed = states.clone();
-		new AlertDialog.Builder(this)
+		new DialogGate.Builder(this)
 				.setTitle(R.string.hide_buttons)
 				.setMultiChoiceItems(vk.getKeyNames(), changed, (dialog, which, isChecked) -> {})
 				.setPositiveButton(android.R.string.ok, (dialog, which) -> {
@@ -2158,7 +2176,7 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	private void showSaveVkAlert(boolean keepScreenPreferred) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		AlertDialog.Builder builder = new DialogGate.Builder(this);
 		builder.setTitle(R.string.CONFIRMATION_REQUIRED);
 		builder.setMessage(R.string.pref_vk_save_alert);
 		builder.setNegativeButton(android.R.string.no, null);
@@ -2186,12 +2204,12 @@ public class MicroActivity extends AppCompatActivity {
 			dialog.setButton(dialog.BUTTON_POSITIVE, getText(android.R.string.yes), (d, w) ->
 					ContextHolder.getVk().onLayoutChanged(VirtualKeyboard.TYPE_CUSTOM));
 		}
-		dialog.show();
+		DialogGate.present(dialog);
 	}
 
 	private void showSetLayoutDialog() {
 		final VirtualKeyboard vk = ContextHolder.getVk();
-		AlertDialog.Builder builder = new AlertDialog.Builder(this)
+		AlertDialog.Builder builder = new DialogGate.Builder(this)
 				.setTitle(R.string.layout_switch)
 				.setSingleChoiceItems(R.array.PREF_VK_TYPE_ENTRIES, vk.getLayout(), null)
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
@@ -2222,7 +2240,7 @@ public class MicroActivity extends AppCompatActivity {
 		int paddingVertical = (int) (density * 16);
 		int paddingHorizontal = (int) (density * 8);
 		editText.setPadding(paddingHorizontal, paddingVertical, paddingHorizontal, paddingVertical);
-		new AlertDialog.Builder(this)
+		new DialogGate.Builder(this)
 				.setTitle(R.string.PREF_LIMIT_FPS)
 				.setView(linearLayout)
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
