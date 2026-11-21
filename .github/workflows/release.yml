@@ -38,11 +38,11 @@ jobs:
           set -euo pipefail
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             TAG="$INPUT_TAG"
-            [[ "$TAG" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+$ ]] || { echo "::error::update_tag must match vX.Y.Z."; exit 1; }
+            [[ "$TAG" =~ ^v[0-9]+[.][0-9]+[.][0-9]+$ ]] || { echo "::error::update_tag must match vX.Y.Z."; exit 1; }
             gh release view "$TAG" >/dev/null || { echo "::error::Target Release does not exist."; exit 1; }
             UPDATE=true
           else
-            [[ "$REF_TYPE" == "tag" && "$REF_NAME" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+$ ]] || { echo "::error::Push trigger must be a vX.Y.Z tag."; exit 1; }
+            [[ "$REF_TYPE" == "tag" && "$REF_NAME" =~ ^v[0-9]+[.][0-9]+[.][0-9]+$ ]] || { echo "::error::Push trigger must be a vX.Y.Z tag."; exit 1; }
             TAG="$REF_NAME"
             UPDATE=false
           fi
