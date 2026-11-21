@@ -2,16 +2,23 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
-## [Chưa phát hành]
-- Sửa: rời dạng lưới tự tắt đồng bộ tab (tránh thao tác lan sang tab khác); thu nhỏ vùng thả X của bóng nổi.
-- Proxy mới: tách khỏi "Chuyển hướng IP"; form Host/Port/User/Pass + HTTP/SOCKS4/SOCKS5 (danh sách); bảng theo tab (lưới/cửa sổ nổi) có chọn, sửa, xoá, tích bật/tắt; nhập TXT/JSON/CSV hoặc dán; nút Kiểm tra; dữ liệu dùng chung.
-- Thông báo: bộ đếm thời gian chạy; chu kỳ cập nhật chọn trong Cài đặt (mặc định 5 phút).
+## [dev-2.0.0] — Bản V2 (thử nghiệm, tag `dev-2.0.0`)
+
+Gói `com.che779.emulatorv2`, tên "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, `versionCode 200`. Có mọi tính năng của 1.3.1, thêm:
+- Danh sách game: nút **nguồn** (thoát hẳn, có hỏi), nút **xoá** từng game (có hỏi); giữ vào game vẫn hiện công cụ J2ME; "Sắp xếp" chuyển vào menu 3 chấm.
+- Nút **Giao diện game** mở lưới ô với tab đầu trống; chọn game bằng "+ Thêm tab".
+- Mỗi ô: tiêu đề, ✕, proxy, dừng, phóng to; không cho xoá tab cuối cùng.
+- **Chế độ thêm game**: thủ công (chọn game) hoặc tự động (bản sao game tab đang chọn); lưu qua các lần mở app.
+- Chưa kiểm chứng trên máy thật: giao diện trống khi chưa có game, thao tác nút nguồn dừng game nền.
 
 ## [1.3.1] — Bản phát hành
 
 Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 131`.
 
 ### Mới trong 1.3.1 (so với 1.3.0)
+- Sửa: rời dạng lưới tự tắt đồng bộ tab (tránh thao tác lan sang tab khác); thu nhỏ vùng thả X của bóng nổi.
+- Proxy mới: tách khỏi "Chuyển hướng IP"; form Host/Port/User/Pass + HTTP/SOCKS4/SOCKS5 (danh sách); bảng theo tab (lưới/cửa sổ nổi) có chọn, sửa, xoá, tích bật/tắt; nhập TXT/JSON/CSV hoặc dán; nút Kiểm tra; dữ liệu dùng chung.
+- Thông báo: bộ đếm thời gian chạy; chu kỳ cập nhật chọn trong Cài đặt (mặc định 5 phút).
 - **Xin quyền lần đầu mở app** (từng bước, mỗi quyền hỏi một lần, từ chối không chặn app): bong bóng/hiển thị trên ứng dụng khác → thông báo → bỏ tối ưu pin.
 - Quay lại từ cửa sổ nổi (chế độ danh sách): dựng lại khung game và áp lại thanh công cụ/thanh hệ thống/vị trí lớp phím J2ME để hết lệch/ghost (giả thuyết: thanh tác vụ ẩn/hiện làm lệch bố cục).
 - Sửa lỗi "SetCurrentEvent … child already has a parent" (màn hình ma, không bấm được OK) khi quay lại từ cửa sổ nổi/đa nhiệm: gỡ view khỏi cha cũ trước khi gắn và dựng lại view khi nối lại phiên đang chạy.
