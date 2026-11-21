@@ -4,20 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       app_id:
-        description: 'Package name of the clone (e.g. com.che779.emulator2)'
+        description: 'Package name của bản clone'
         required: true
         default: 'com.che779.emulator2'
+        type: string
       app_name:
-        description: 'App name shown on the phone'
+        description: 'Tên ứng dụng hiển thị'
         required: true
         default: 'Che779 Emulator 2'
+        type: string
       data_dir:
-        description: 'Data folder name on the phone'
+        description: 'Tên thư mục dữ liệu trên điện thoại'
         required: true
         default: 'J2ME-Che779Clone'
+        type: string
 
 permissions:
   contents: write
+
+concurrency:
+  group: clone-${{ inputs.app_id }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -26,10 +33,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
+
       - name: Validate clone parameters
         env:
           CLONE_ID: ${{ inputs.app_id }}
@@ -37,18 +46,17 @@ jobs:
           CLONE_DIR: ${{ inputs.data_dir }}
         run: |
           set -euo pipefail
-          if [[ ! "$CLONE_ID" =~ ^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$ ]]; then
-            echo "Invalid application ID" >&2; exit 2
-          fi
-          if [[ ! "$CLONE_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._\ \(\)-]{0,39}$ ]]; then
-            echo "App name must be 1-40 safe ASCII letters, digits, spaces or ._()- characters" >&2; exit 2
-          fi
-          if [[ ! "$CLONE_DIR" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ || "$CLONE_DIR" == *..* ]]; then
-            echo "Invalid data directory name" >&2; exit 2
-          fi
+          [[ -n "$CLONE_ID" && -n "$CLONE_NAME" && -n "$CLONE_DIR" ]] || { echo "::error::All clone inputs are required."; exit 2; }
+          [[ "$CLONE_ID" =~ ^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$ ]] || { echo "::error::Invalid application ID."; exit 2; }
+          [[ "$CLONE_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._\\ \\(\\)-]{0,39}$ ]] || { echo "::error::App name must be 1-40 safe ASCII characters."; exit 2; }
+          [[ "$CLONE_DIR" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ && "$CLONE_DIR" != *..* ]] || { echo "::error::Invalid data directory name."; exit 2; }
+
       - name: Accept Android SDK licenses
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-      - name: Build clone
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+
+      - name: Run tests and build clone
         env:
           CLONE_ID: ${{ inputs.app_id }}
           CLONE_NAME: ${{ inputs.app_name }}
@@ -56,8 +64,32 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew testDevDebugUnitTest assembleDevDebug "-PcloneId=$CLONE_ID" "-PcloneName=$CLONE_NAME" "-PcloneDir=$CLONE_DIR"
-      - name: Publish
+          ./gradlew testDevDebugUnitTest assembleDevDebug "-PcloneId=$CLONE_ID" "-PcloneName=$CLONE_NAME" "-PcloneDir=$CLONE_DIR" --stacktrace
+
+      - name: Verify APK identity and create checksum
+        env:
+          CLONE_ID: ${{ inputs.app_id }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          APKS=(app/build/outputs/apk/dev/debug/*.apk)
+          [[ ${#APKS[@]} -eq 1 ]] || { echo "::error::Expected exactly one APK, found ${#APKS[@]}."; exit 1; }
+          BUILD_TOOLS="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS/aapt2" dump badging "${APKS[0]}" > badging.txt
+          grep -Fq "name='$CLONE_ID'" badging.txt || { echo "::error::APK package ID does not match input."; cat badging.txt; exit 1; }
+          mkdir -p dist
+          cp "${APKS[0]}" dist/Che779-clone.apk
+          (cd dist && sha256sum Che779-clone.apk > SHA256SUMS.txt)
+
+      - name: Upload clone artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Che779-clone-${{ github.run_id }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish clone Release without moving existing tag
         env:
           GH_TOKEN: ${{ github.token }}
           CLONE_ID: ${{ inputs.app_id }}
@@ -65,10 +97,18 @@ jobs:
         run: |
           set -euo pipefail
           TAG="clone-$(printf '%s' "$CLONE_ID" | tr -c 'A-Za-z0-9' '-')"
-          APK=(app/build/outputs/apk/dev/debug/*.apk)
-          test -f "${APK[0]}"
-          cp "${APK[0]}" Che779-clone.apk
-          gh release delete "$TAG" --cleanup-tag --yes || true
-          gh release create "$TAG" Che779-clone.apk --prerelease \
-            --title "Clone $CLONE_ID" --notes "Clone build: $CLONE_ID ($CLONE_NAME)" \
-            --target "$GITHUB_SHA"
+          NOTES="Clone package: $CLONE_ID
+          Display name: $CLONE_NAME
+          Source commit: $GITHUB_SHA
+          Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "Clone $CLONE_ID" --notes "$NOTES" --prerelease --latest=false
+          else
+            gh release create "$TAG" --prerelease --latest=false --target "$GITHUB_SHA" --title "Clone $CLONE_ID" --notes "$NOTES"
+          fi
+          gh release upload "$TAG" dist/Che779-clone.apk dist/SHA256SUMS.txt --clobber
+          mkdir -p verify
+          gh release download "$TAG" --pattern 'Che779-clone.apk' --dir verify
+          gh release download "$TAG" --pattern 'SHA256SUMS.txt' --dir verify
+          cmp dist/Che779-clone.apk verify/Che779-clone.apk
+          cmp dist/SHA256SUMS.txt verify/SHA256SUMS.txt
