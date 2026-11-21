@@ -1,4 +1,4 @@
-name: Build clone APK
+name: Tạo bản clone
 
 on:
   workflow_dispatch:

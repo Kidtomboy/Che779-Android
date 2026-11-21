@@ -134,7 +134,7 @@ Chủ dự án đã thử bản Termux này trước khi chuyển repo: chạy �
 
 ## 🧬 Tạo bản clone
 
-Muốn có thêm một bản cài độc lập (tên gói, tên ứng dụng và dữ liệu riêng)? Vào **Actions → Build clone APK → Run workflow** và điền ba ô:
+Muốn có thêm một bản cài độc lập (tên gói, tên ứng dụng và dữ liệu riêng)? Vào **Actions → Tạo bản clone → Run workflow** và điền ba ô:
 
 | Ô | Quy tắc | Ví dụ |
 |---|---|---|
