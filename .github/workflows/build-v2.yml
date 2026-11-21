@@ -54,6 +54,12 @@ jobs:
           (cd out && sha256sum "$NAME" > SHA256SUMS.txt && cat SHA256SUMS.txt)
           sed "s/@TAG@/${TAG:-dev-$VER}/g; s/@VER@/$VER/g" .github/release-notes-v2.md > out-notes.md
           if [ -n "$TAG" ]; then
+            # tag phải trỏ đúng commit vừa build; nếu tag có sẵn nhưng trỏ commit khác thì tạo lại
+            if gh release view "$TAG" >/dev/null 2>&1 || git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+              if [ "$(git rev-parse "$TAG^{commit}")" != "$GITHUB_SHA" ]; then
+                gh release delete "$TAG" --yes --cleanup-tag || true
+              fi
+            fi
             if gh release view "$TAG" >/dev/null 2>&1; then
               gh release edit "$TAG" --prerelease --latest=false --title "Che779 Android V2 $TAG" --notes-file out-notes.md
             else
@@ -63,6 +69,7 @@ jobs:
             gh release upload "$TAG" "out/$NAME" --clobber
             gh release upload "$TAG" out/SHA256SUMS.txt --clobber
             gh release delete build-v2 --yes --cleanup-tag || true
+            gh release edit v1.3.1 --latest || true
           else
             gh release delete build-v2 --yes --cleanup-tag || true
             gh release create build-v2 "out/$NAME" --prerelease --latest=false --target "$GITHUB_SHA" \
