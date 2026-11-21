@@ -1,98 +1,201 @@
-name: Phát hành
+name: Phát hành bản chính (v*)
 
-# Gắn thẻ dạng v1.3.0 (hoặc bấm chạy tay) để tự build APK và đưa vào trang Releases.
 on:
   push:
-    tags: [ 'v*' ]
+    tags: ['v*']
   workflow_dispatch:
     inputs:
       update_tag:
-        description: 'Cập nhật tệp của bản phát hành đã có (ví dụ v1.3.0), giữ nguyên số phiên bản'
+        description: 'Tag Release đã tồn tại cần cập nhật (ví dụ v1.3.1)'
         required: false
         default: ''
+        type: string
 
 permissions:
   contents: write
 
 jobs:
-  phat-hanh:
+  resolve:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.target.outputs.tag }}
+      version: ${{ steps.target.outputs.version }}
+      source_sha: ${{ steps.target.outputs.source_sha }}
+      update: ${{ steps.target.outputs.update }}
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
+      - name: Validate target tag and resolve immutable source commit
+        id: target
+        env:
+          INPUT_TAG: ${{ inputs.update_tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            TAG="$INPUT_TAG"
+            [[ "$TAG" =~ ^v[0-9]+[.][0-9]+[.][0-9]+$ ]] || { echo "::error::update_tag must match vX.Y.Z."; exit 1; }
+            gh release view "$TAG" >/dev/null || { echo "::error::Target Release does not exist."; exit 1; }
+            UPDATE=true
+          else
+            [[ "$REF_TYPE" == "tag" && "$REF_NAME" =~ ^v[0-9]+[.][0-9]+[.][0-9]+$ ]] || { echo "::error::Push trigger must be a vX.Y.Z tag."; exit 1; }
+            TAG="$REF_NAME"
+            UPDATE=false
+          fi
+          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+          SOURCE_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
+          [[ -n "$SOURCE_SHA" ]] || { echo "::error::Cannot resolve source tag."; exit 1; }
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "update=$UPDATE" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: resolve
+    runs-on: ubuntu-latest
+    concurrency:
+      group: android-release-${{ needs.resolve.outputs.tag }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout exact release tag commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.tag }}
+          fetch-depth: 0
+
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: '21' }
-      - name: Chấp nhận giấy phép Android SDK
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Validate version metadata
+        env:
+          EXPECTED_VERSION: ${{ needs.resolve.outputs.version }}
+          SOURCE_SHA: ${{ needs.resolve.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          ACTUAL_VERSION="$(tr -d '[:space:]' < VERSION)"
+          [[ "$ACTUAL_VERSION" == "$EXPECTED_VERSION" ]] || { echo "::error::VERSION=$ACTUAL_VERSION does not match tag version $EXPECTED_VERSION."; exit 1; }
+          [[ "$(git rev-parse HEAD)" == "$SOURCE_SHA" ]] || { echo "::error::Checkout does not match immutable tag commit."; exit 1; }
+
+      - name: Accept Android SDK licenses
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-      - name: Kiểm thử và build APK
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Test and build main APK
         run: |
+          set -euo pipefail
           chmod +x gradlew
           ./gradlew testDevDebugUnitTest assembleDevDebug --stacktrace
-      - name: Build bản clone (gói com.che779.emulator2, thư mục dữ liệu J2ME-Che779Clone)
+
+      - name: Build main and clone APK assets
+        env:
+          VER: ${{ needs.resolve.outputs.version }}
         run: |
+          set -euo pipefail
+          shopt -s nullglob
+          MAIN_APKS=(app/build/outputs/apk/dev/debug/*.apk)
+          [[ ${#MAIN_APKS[@]} -eq 1 ]] || { echo "::error::Expected exactly one main APK."; exit 1; }
           mkdir -p out
-          VER=$(cat VERSION)
-          cp app/build/outputs/apk/dev/debug/*.apk "out/Che779-Android-$VER.apk"
+          cp "${MAIN_APKS[0]}" "out/Che779-Android-$VER.apk"
           rm -rf app/build/outputs
           ./gradlew assembleDevDebug "-PcloneId=com.che779.emulator2" "-PcloneName=Che779 Emulator 2" "-PcloneDir=J2ME-Che779Clone" --stacktrace
-          cp app/build/outputs/apk/dev/debug/*.apk "out/Che779-Android-Clone-$VER.apk"
-      - name: Lấy mã V2 đúng commit ghim, build jar và ghép script Termux (V2)
+          CLONE_APKS=(app/build/outputs/apk/dev/debug/*.apk)
+          [[ ${#CLONE_APKS[@]} -eq 1 ]] || { echo "::error::Expected exactly one clone APK."; exit 1; }
+          BUILD_TOOLS="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS/aapt2" dump badging "${CLONE_APKS[0]}" > out/clone-badging.txt
+          grep -Fq "name='com.che779.emulator2'" out/clone-badging.txt
+          cp "${CLONE_APKS[0]}" "out/Che779-Android-Clone-$VER.apk"
+
+      - name: Build Termux V2 and test V1 experimental script
         run: |
+          set -euo pipefail
           bash .github/scripts/fetch-emulator.sh v2
           bash tests/test-termux.sh build/Che779_EmulatorV2.jar
           bash termux/build-termux.sh build/Che779_EmulatorV2.jar Che779_EmulatorV2.jar out/che779-termux.sh
-      - name: Ghép script Termux V1 thử nghiệm (chỉ đưa vào artifact, không vào Releases)
-        run: |
           bash .github/scripts/fetch-emulator.sh v1
           mkdir -p test-out
           bash termux/build-termux.sh build/Che779_Emulator.jar Che779_Emulator.jar test-out/che779-termux-v1-test.sh
-      - name: Tạo SHA256SUMS (làm SAU CÙNG, trên đúng file sẽ phát hành)
+
+      - name: Create final checksums and release notes
+        env:
+          VER: ${{ needs.resolve.outputs.version }}
+          TAG: ${{ needs.resolve.outputs.tag }}
         run: |
-          cd out
-          sha256sum *.apk che779-termux.sh > SHA256SUMS.txt
-          cat SHA256SUMS.txt
-      - name: Ghi chú phát hành (từ .github/release-notes.md)
-        run: |
-          VER=$(cat VERSION)
-          TAG="${{ inputs.update_tag != '' && inputs.update_tag || github.ref_name }}"
+          set -euo pipefail
+          (cd out && sha256sum "Che779-Android-$VER.apk" "Che779-Android-Clone-$VER.apk" che779-termux.sh > SHA256SUMS.txt)
           sed "s/@TAG@/$TAG/g; s/@VER@/$VER/g" .github/release-notes.md > out-notes.md
+          cat out/SHA256SUMS.txt
+          {
+            echo "### Release source"
+            echo "- Tag: $TAG"
+            echo "- Commit: $(git rev-parse HEAD)"
+            echo "- Version: $VER"
+            echo
+            echo "### Assets"
+            while read -r SUM FILE; do
+              echo "- $FILE — $SUM — $(stat -c%s "out/$FILE") bytes"
+            done < out/SHA256SUMS.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/upload-artifact@v4
         with:
           name: termux-v1-test
           path: test-out/*
+          if-no-files-found: error
+
       - uses: actions/upload-artifact@v4
         with:
-          name: phat-hanh
+          name: release-assets-${{ needs.resolve.outputs.tag }}
           path: out/*
           if-no-files-found: error
-      - name: Đưa lên trang Releases
-        if: startsWith(github.ref, 'refs/tags/v')
+
+      - name: Create new tagged Release
+        if: needs.resolve.outputs.update == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          files: out/*
-          name: ${{ github.ref_name }}
+          tag_name: ${{ needs.resolve.outputs.tag }}
+          target_commitish: ${{ needs.resolve.outputs.source_sha }}
+          files: |
+            out/*
+          name: ${{ needs.resolve.outputs.tag }}
           prerelease: false
           make_latest: true
           body_path: out-notes.md
-      - name: Cập nhật bản phát hành đã có (giữ nguyên thẻ và số phiên bản)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.update_tag != '' }}
+
+      - name: Update existing Release assets safely
+        if: needs.resolve.outputs.update == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.update_tag }}
+          TAG: ${{ needs.resolve.outputs.tag }}
         run: |
           set -euo pipefail
-          gh release view "$TAG" > /dev/null
-          # tệp dữ liệu trước, SHA256SUMS.txt đưa lên SAU CÙNG
+          gh release view "$TAG" >/dev/null
           gh release upload "$TAG" out/*.apk out/che779-termux.sh --clobber
           gh release upload "$TAG" out/SHA256SUMS.txt --clobber
-          # sửa tên/ghi chú và gỡ tệp nhật ký build lạc vào bản phát hành (nhật ký build có bản riêng, thẻ buildlog)
+          mkdir -p verify
+          gh release download "$TAG" --pattern '*.apk' --dir verify
+          gh release download "$TAG" --pattern 'che779-termux.sh' --dir verify
+          gh release download "$TAG" --pattern 'SHA256SUMS.txt' --dir verify
+          (cd verify && sha256sum -c SHA256SUMS.txt)
+          cmp out/SHA256SUMS.txt verify/SHA256SUMS.txt
           gh release edit "$TAG" --title "$TAG" --prerelease=false --latest --notes-file out-notes.md
-          gh release delete-asset "$TAG" build-tail.log --yes || true
+          {
+            echo "Release $TAG assets uploaded and verified."
+            echo "Source commit: $(git rev-parse HEAD)"
+          } >> "$GITHUB_STEP_SUMMARY"

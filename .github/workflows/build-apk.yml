@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: android-dev-build
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build APK
@@ -25,7 +29,9 @@ jobs:
           java-version: '21'
 
       - name: Accept Android SDK licenses
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -33,34 +39,84 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Run unit tests and build APK
         run: |
+          set -euo pipefail
           chmod +x gradlew
-          set -o pipefail
           ./gradlew testDevDebugUnitTest assembleDevDebug --stacktrace 2>&1 | tee build.log
 
-      - name: Publish build log (để đọc lỗi từ xa)
+      - name: Prepare build log
+        if: always()
+        run: |
+          set -euo pipefail
+          if [[ -s build.log ]]; then
+            {
+              echo "Commit: $GITHUB_SHA"
+              echo "Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+              echo
+              sed -n '/What went wrong/,/Try:/p' build.log | head -80 || true
+              echo "==== ERRORS"
+              grep -nE "error:|\\.java:[0-9]+: |Caused by|Execution failed|ndk-build|clang" build.log | grep -v "at org.gradle" | head -150 || true
+              echo "==== TAIL"
+              tail -n 200 build.log
+            } > build-tail.log
+          else
+            {
+              echo "Gradle log was not created."
+              echo "Commit: $GITHUB_SHA"
+              echo "Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+              echo "Build step conclusion: failure or did not start."
+            } > build-tail.log
+          fi
+
+      - name: Upload build log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ github.run_id }}
+          path: build-tail.log
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish build log Release without deleting tag
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          { sed -n '/What went wrong/,/Try:/p' build.log | head -80; echo ==== ERRORS; grep -nE "error:|\.java:[0-9]+: |Caused by|Execution failed|ndk-build|clang" build.log | grep -v "^.*\bat org.gradle" | head -150; echo ==== TAIL; tail -n 30 build.log | grep -v "^\s*at "; } > build-tail.log || true
-          gh release delete buildlog --cleanup-tag --yes || true
-          gh release create buildlog build-tail.log --prerelease --latest=false \
-            --title "Nhật ký build" --notes "Nhật ký của lần build gần nhất (tối đa 400 dòng cuối)." --target "$GITHUB_SHA" || true
+          set -euo pipefail
+          TITLE="Nhật ký build"
+          NOTES="Nhật ký build gần nhất. Commit: $GITHUB_SHA. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if gh release view buildlog >/dev/null 2>&1; then
+            gh release edit buildlog --title "$TITLE" --notes "$NOTES" --prerelease --latest=false
+          else
+            gh release create buildlog --prerelease --latest=false --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+          fi
+          gh release upload buildlog build-tail.log --clobber
+          mkdir -p verify
+          gh release download buildlog --pattern build-tail.log --dir verify
+          cmp build-tail.log verify/build-tail.log
 
       - name: Collect APK
         run: |
+          set -euo pipefail
+          shopt -s nullglob
+          APKS=(app/build/outputs/apk/dev/debug/*.apk)
+          if [[ ${#APKS[@]} -ne 1 ]]; then
+            echo "::error::Expected exactly one dev debug APK, found ${#APKS[@]}."
+            exit 1
+          fi
           mkdir -p dist
-          cp app/build/outputs/apk/dev/debug/*.apk dist/Che779-Android.apk
+          cp "${APKS[0]}" dist/Che779-Android.apk
+          sha256sum dist/Che779-Android.apk > dist/SHA256SUMS.txt
           ls -la dist
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Che779-Android-APK
-          path: dist/Che779-Android.apk
+          path: dist/*
           if-no-files-found: error
