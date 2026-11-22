@@ -706,9 +706,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	/** Nút "+" ở thanh dưới: chỉ thêm một ô "Mở game" trống. */
 	private void cloneFirstTab() {
-		if (!DialogGate.tap()) {
-			return;
-		}
+		// BottomBar đã gọi DialogGate.tap(); gọi lại ở đây sẽ tự chặn chính cú bấm này
 		if (!boolPref("pref_fill_grid", R.bool.default_fill_grid)) {
 			pickGameForNewTab(); // lưới kiểu cũ: "+" chọn game cho tab mới
 			return;
