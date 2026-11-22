@@ -2,6 +2,24 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
+## [1.3.2] — Bản phát hành
+
+Gói `com.che779.emulator`, `versionCode 132`. Mọi thứ của 1.3.1, thêm:
+- **Sửa lỗi nghiêm trọng:** bấm dồn các nút thanh công cụ không còn chồng nhiều hộp thoại (nền tối chồng nền tối). Chỉ một hộp thoại tại một thời điểm; nút thanh công cụ có chống bấm đúp (500 ms) và bị bỏ qua khi đang có hộp thoại.
+- **Lấp đầy ô lưới** (công tắc trong Cài đặt, **mặc định tắt**): ô theo hình dạng game, tự chọn 2 hoặc 3 cột sao cho vừa màn hình (tối đa 3 cột); trên 12 tab giữ cỡ ô và vuốt xuống.
+- **Lấp đầy cửa sổ nổi** (công tắc riêng, mặc định tắt): cửa sổ nổi co theo hình dạng game, kéo đổi cỡ vẫn giữ tỉ lệ.
+- Chưa kiểm chứng trên máy thật: cả ba mục trên. Công tắc ở Cài đặt chạy ở tiến trình khác với màn hình game, nên có thể chỉ có hiệu lực sau khi mở lại lưới.
+
+## [dev-2.0.1] — Bản V2 (thử nghiệm, tag `dev-2.0.1`)
+
+- Sửa lỗi nghiêm trọng: bấm dồn nút thanh dưới không còn chồng nhiều hộp thoại.
+- Công tắc **Lấp đầy ô lưới** và **Lấp đầy cửa sổ nổi** (Cài đặt), mặc định BẬT; tắt = kiểu bản chính.
+- Ô lưới theo tỉ lệ khung game, tự 2 hoặc 3 cột; trên 12 tab giữ cỡ ô và cuộn.
+- Tab đầu hiện "Mở game" để chọn game; không còn ô "Thêm tab" thừa khi đã có tab (chế độ lấp đầy).
+- Nút "+" thanh dưới hỏi số tab rồi mở đúng số đó.
+- Bấm ✕ ở tab cuối: thoát game, về ô "Mở game"; bấm ✕ lần nữa: "Không được xoá tab cuối cùng".
+- Gộp các thay đổi của bản chính v1.3.2.
+
 ## [dev-2.0.0] — Bản V2 (thử nghiệm, tag `dev-2.0.0`)
 
 Gói `com.che779.emulatorv2`, tên "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, `versionCode 200`. Có mọi tính năng của 1.3.1, thêm:

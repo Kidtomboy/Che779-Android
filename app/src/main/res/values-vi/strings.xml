@@ -243,4 +243,9 @@
     <string name="action_quit_all">Thoát hẳn</string>
     <string name="delete_game">Xoá game</string>
     <string name="power_confirm">Thoát hẳn và dừng tất cả game?</string>
+    <string name="pref_cat_fill">Lưới và cửa sổ nổi</string>
+    <string name="pref_fill_grid_title">Lấp đầy ô lưới</string>
+    <string name="pref_fill_grid_summary">Tự chọn 2 cột, hoặc 3 cột khi cần (tối đa 3 cột, quá 12 tab thì vuốt xuống); ô theo hình dạng game nên không còn khoảng trống thừa</string>
+    <string name="pref_fill_float_title">Lấp đầy cửa sổ nổi</string>
+    <string name="pref_fill_float_summary">Cửa sổ nổi tự co theo hình dạng game (không còn vạch xám hai bên)</string>
 </resources>

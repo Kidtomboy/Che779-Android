@@ -305,4 +305,9 @@
     <string name="action_quit_all">Quit completely</string>
     <string name="delete_game">Delete game</string>
     <string name="power_confirm">Quit the emulator and stop all games?</string>
+    <string name="pref_cat_fill">Grid and floating window</string>
+    <string name="pref_fill_grid_title">Fill the grid</string>
+    <string name="pref_fill_grid_summary">2 columns, or 3 when needed (3 columns, scroll beyond 12 tabs); cells follow the game shape so there are no empty gaps</string>
+    <string name="pref_fill_float_title">Fill the floating window</string>
+    <string name="pref_fill_float_summary">The floating window resizes to the game shape (no side bars)</string>
 </resources>

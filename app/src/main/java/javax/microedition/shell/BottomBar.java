@@ -51,31 +51,73 @@ final class BottomBar extends LinearLayout {
 		setOrientation(HORIZONTAL);
 		setBackgroundColor(0xFF14181F);
 		setGravity(Gravity.CENTER_VERTICAL);
-		ImageView bubble = Icons.view(c, R.drawable.che779_bubble, 0, 6, v -> l.onBubble());
+		ImageView bubble = Icons.view(c, R.drawable.che779_bubble, 0, 6, v -> {
+			if (DialogGate.tap()) {
+				l.onBubble();
+			}
+		});
 		bubble.clearColorFilter();
 		add(bubble, "Bong bóng");
-		ImageView close = Icons.view(c, R.drawable.ic_c_remove, Color.WHITE, 9, v -> l.onClose());
+		ImageView close = Icons.view(c, R.drawable.ic_c_remove, Color.WHITE, 9, v -> {
+			if (DialogGate.tap()) {
+				l.onClose();
+			}
+		});
 		add(close, "Đóng tab");
-		ImageView plus = Icons.view(c, R.drawable.ic_c_add, Color.WHITE, 9, v -> l.onClone());
+		ImageView plus = Icons.view(c, R.drawable.ic_c_add, Color.WHITE, 9, v -> {
+			if (DialogGate.tap()) {
+				l.onClone();
+			}
+		});
 		plus.setOnLongClickListener(v -> {
-			l.onPickGame();
+			if (DialogGate.tap()) {
+				l.onPickGame();
+			}
 			return true;
 		});
 		add(plus, "Tab mới (giữ để chọn game)");
-		grid = Icons.view(c, R.drawable.ic_c_grid, Color.WHITE, 9, v -> l.onGrid());
+		grid = Icons.view(c, R.drawable.ic_c_grid, Color.WHITE, 9, v -> {
+			if (DialogGate.tap()) {
+				l.onGrid();
+			}
+		});
 		add(grid, "Chuyển danh sách / lưới");
-		ImageView pad = Icons.view(c, R.drawable.ic_che779_gamepad, 0, 8, v -> l.onPickGame());
+		ImageView pad = Icons.view(c, R.drawable.ic_che779_gamepad, 0, 8, v -> {
+			if (DialogGate.tap()) {
+				l.onPickGame();
+			}
+		});
 		pad.clearColorFilter();
 		add(pad, "Chọn game");
-		nokia = Icons.view(c, R.drawable.ic_c_dialpad, Color.WHITE, 9, v -> l.onNokia());
+		nokia = Icons.view(c, R.drawable.ic_c_dialpad, Color.WHITE, 9, v -> {
+			if (DialogGate.tap()) {
+				l.onNokia();
+			}
+		});
 		add(nokia, "Bàn phím Nokia");
-		androidKb = Icons.view(c, R.drawable.ic_c_keyboard, Color.WHITE, 9, v -> l.onAndroid());
+		androidKb = Icons.view(c, R.drawable.ic_c_keyboard, Color.WHITE, 9, v -> {
+			if (DialogGate.tap()) {
+				l.onAndroid();
+			}
+		});
 		add(androidKb, "Bàn phím Android");
-		sync = Icons.view(c, R.drawable.ic_c_unchecked, Color.WHITE, 9, v -> l.onSync());
+		sync = Icons.view(c, R.drawable.ic_c_unchecked, Color.WHITE, 9, v -> {
+			if (DialogGate.tap()) {
+				l.onSync();
+			}
+		});
 		add(sync, "Đồng bộ phím");
-		proxy = Icons.view(c, R.drawable.ic_c_swap, Color.WHITE, 9, v -> l.onProxy());
+		proxy = Icons.view(c, R.drawable.ic_c_swap, Color.WHITE, 9, v -> {
+			if (DialogGate.tap()) {
+				l.onProxy();
+			}
+		});
 		add(proxy, "Proxy");
-		ImageView more = Icons.view(c, R.drawable.ic_c_more, Color.WHITE, 9, v -> l.onMenu());
+		ImageView more = Icons.view(c, R.drawable.ic_c_more, Color.WHITE, 9, v -> {
+			if (DialogGate.tap()) {
+				l.onMenu();
+			}
+		});
 		add(more, "Menu");
 		setGridMode(false, false);
 	}

@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ScrollView;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +47,8 @@ final class GridPanel extends LinearLayout {
 	private final Listener listener;
 	private final Map<Session, Cell> cells = new HashMap<>();
 	private final int border;
+	private boolean fill;
+	private float aspect = 0.75f;
 
 	GridPanel(Context context, Listener listener) {
 		super(context);
@@ -128,7 +131,7 @@ final class GridPanel extends LinearLayout {
 		}
 	}
 
-	private View addCell() {
+	private View addCell(boolean empty) {
 		FrameLayout f = new FrameLayout(getContext());
 		f.setPadding(border, border, border, border);
 		LinearLayout col = new LinearLayout(getContext());
@@ -141,7 +144,7 @@ final class GridPanel extends LinearLayout {
 		plus.setTextSize(TypedValue.COMPLEX_UNIT_SP, 40);
 		plus.setGravity(Gravity.CENTER);
 		TextView lab = new TextView(getContext());
-		lab.setText("Thêm tab");
+		lab.setText(empty ? "Mở game" : "Thêm tab");
 		lab.setTextColor(0xFF9E9E9E);
 		lab.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
 		lab.setGravity(Gravity.CENTER);
@@ -177,6 +180,68 @@ final class GridPanel extends LinearLayout {
 		return best;
 	}
 
+	/** Fill mode: cells take the game's shape (no gaps), 2 or 3 columns, scrolling when 3 columns are not enough. */
+	void setFill(boolean fill, float aspect) {
+		this.fill = fill;
+		this.aspect = aspect > 0.2f && aspect < 5f ? aspect : 0.75f;
+	}
+
+	boolean needsRelayout(float newAspect) {
+		return fill && newAspect > 0.2f && newAspect < 5f && Math.abs(newAspect - aspect) > 0.02f;
+	}
+
+	private void buildFilled(List<Session> sessions, Session active, int w, int h) {
+		int n = sessions.size();
+		int cols, cellW, cellH;
+		if (n == 0) {
+			// no game yet: one cell "Mở game" in the game's shape
+			cellH = Math.min(h, (int) (w / aspect));
+			cellW = (int) (cellH * aspect);
+			setGravity(Gravity.CENTER);
+			addView(addCell(true), new LayoutParams(cellW, cellH));
+			return;
+		}
+		setGravity(Gravity.NO_GRAVITY);
+		if (n == 1) {
+			cols = 1;
+			cellH = Math.min(h, (int) (w / aspect));
+			cellW = (int) (cellH * aspect);
+		} else {
+			cols = 2;
+			cellW = w / 2;
+			cellH = (int) (cellW / aspect) + 2 * border;
+			if (((n + 1) / 2) * cellH > h) {
+				cols = 3;
+				cellW = w / 3;
+				cellH = (int) (cellW / aspect) + 2 * border;
+			}
+		}
+		int rows = (n + cols - 1) / cols;
+		ScrollView sv = new ScrollView(getContext());
+		sv.setFillViewport(true);
+		sv.setVerticalScrollBarEnabled(false);
+		LinearLayout holder = new LinearLayout(getContext());
+		holder.setOrientation(VERTICAL);
+		holder.setGravity(Gravity.CENTER_HORIZONTAL | (rows * cellH <= h ? Gravity.CENTER_VERTICAL : Gravity.TOP));
+		int i = 0;
+		for (int r = 0; r < rows; r++) {
+			LinearLayout row = new LinearLayout(getContext());
+			row.setOrientation(HORIZONTAL);
+			for (int c = 0; c < cols && i < n; c++) {
+				Session s = sessions.get(i++);
+				Cell cell = new Cell(getContext(), s);
+				cells.put(s, cell);
+				row.addView(cell, new LayoutParams(cellW, cellH));
+				show(s);
+			}
+			holder.addView(row, new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, cellH));
+		}
+		sv.addView(holder, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT));
+		addView(sv, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+		setActive(active);
+	}
+
 	void rebuild(List<Session> sessions, Session active, int w, int h) {
 		for (Cell c : cells.values()) {
 			c.removeAllViews();
@@ -184,7 +249,11 @@ final class GridPanel extends LinearLayout {
 		removeAllViews();
 		cells.clear();
 		int count = sessions.size();
-		int n = count + 1; // the last cell is "+ Thêm tab"
+		if (fill && w > 0 && h > 0) {
+			buildFilled(sessions, active, w, h);
+			return;
+		}
+		int n = count + 1; // the last cell is "+ Thêm tab" (or "Mở game" when empty)
 		int cols = columnsFor(n, w, h);
 		int rows = (n + cols - 1) / cols;
 		int i = 0;
@@ -195,7 +264,7 @@ final class GridPanel extends LinearLayout {
 			for (int c = 0; c < cols; c++) {
 				if (i == count) {
 					i++;
-					row.addView(addCell(), new LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
+					row.addView(addCell(count == 0), new LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
 				} else if (i < n) {
 					Session s = sessions.get(i++);
 					Cell cell = new Cell(getContext(), s);

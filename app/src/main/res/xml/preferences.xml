@@ -77,6 +77,18 @@
             android:title="@string/pref_bubble_alpha_title"
             android:summary="@string/pref_bubble_alpha_summary" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_cat_fill">
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/default_fill_grid"
+            android:key="pref_fill_grid"
+            android:title="@string/pref_fill_grid_title"
+            android:summary="@string/pref_fill_grid_summary" />
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/default_fill_float"
+            android:key="pref_fill_float"
+            android:title="@string/pref_fill_float_title"
+            android:summary="@string/pref_fill_float_summary" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_cat_perf">
         <SwitchPreferenceCompat
             android:defaultValue="false"

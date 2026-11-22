@@ -6,7 +6,11 @@
 - `che779-termux.sh`: chạy Emulator V2 trong Termux
 - `SHA256SUMS.txt`: mã kiểm tra file tải về
 
-**Điểm mới so với 1.3.0**
+**Điểm mới so với 1.3.1**
+- Sửa lỗi bấm dồn nút công cụ làm chồng nhiều hộp thoại
+- Công tắc "Lấp đầy ô lưới" và "Lấp đầy cửa sổ nổi" trong Cài đặt (mặc định tắt)
+
+**Các bản trước (1.3.1)**
 - Cài đặt mới: Treo Online, Bóng nổi, Headless Mode
 - Cửa sổ nổi: nút proxy, khởi động lại tab, đồng bộ tab; kéo cửa sổ từ mọi nút
 - Xin quyền lần đầu mở app: bong bóng, thông báo, pin
