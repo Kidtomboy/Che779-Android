@@ -249,7 +249,10 @@ final class GridPanel extends LinearLayout {
 			}
 		}
 		if (fit) { // cửa sổ nổi: chia đều chiều ngang cho tối đa 3 ô mỗi dòng, ô theo tỉ lệ game, cuộn dọc nếu dài
-			cols = Math.min(3, total);
+			cols = Math.min(2, total); // mặc định 2 ô/dòng; đủ rộng (mỗi ô ≥ 150dp) mới dàn 3 ô/dòng
+			if (total >= 3 && w / 3 >= dp(150)) {
+				cols = 3;
+			}
 			cellW = w / cols;
 			cellH = (int) ((cellW - 2 * border) / aspect) + 2 * hh() + 2 * border;
 		}
