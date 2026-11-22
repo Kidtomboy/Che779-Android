@@ -11,13 +11,14 @@ Gói `com.che779.emulator`, `versionCode 132`. Mọi thứ của 1.3.1, thêm:
 - **Kiểm tra cập nhật** (Cài đặt, mục "Cập nhật"): so với Release `v*` mới nhất của GitHub, hiện ghi chú, tải APK, đối chiếu SHA-256 với `SHA256SUMS.txt` rồi mở trình cài đặt (giữ dữ liệu vì cùng khoá ký). Công tắc "Tự kiểm tra khi mở app" (mặc định tắt, tối đa một lần/ngày). Bản clone chỉ mở trang tải. Chưa kiểm chứng trên máy thật.
 - Chưa kiểm chứng trên máy thật: cả ba mục trên. Công tắc ở Cài đặt chạy ở tiến trình khác với màn hình game, nên có thể chỉ có hiệu lực sau khi mở lại lưới.
 
-## [dev-2.0.1] — Bản V2 (thử nghiệm, tag `dev-2.0.0`)
+## [dev-2.0.1] — Bản V2 (thử nghiệm, tag `dev-2.0.1`)
 
-Gói `com.che779.emulatorv2`, tên "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, `versionCode 200`. Có mọi tính năng của 1.3.1, thêm:
+Gói `com.che779.emulatorv2`, tên "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, `versionCode 201`. Có mọi tính năng của 1.3.1, thêm:
 - Danh sách game: nút **nguồn** (thoát hẳn, có hỏi), nút **xoá** từng game (có hỏi); giữ vào game vẫn hiện công cụ J2ME; "Sắp xếp" chuyển vào menu 3 chấm.
 - Nút **Giao diện game** mở lưới ô; tab đầu là ô **"Mở game"** để chọn game (khi đã có tab thì không còn ô "Thêm tab" thừa).
 - Mỗi ô: tiêu đề, ✕, proxy, dừng, phóng to. ✕ ở tab cuối = thoát game, về ô "Mở game"; ✕ lần nữa báo "Không được xoá tab cuối cùng".
-- Nút "+" thanh dưới hỏi số tab rồi mở đúng số đó.
+- Nút "+" thanh dưới (bấm một lần) thêm một ô "Mở game" trống; chạm ô để chọn game. Cửa sổ nổi: 2 ô/dòng, kéo rộng gần hết màn hình thì 3 ô/dòng.
+- **Kiểm tra cập nhật** (Cài đặt → Cập nhật): kênh tag `dev-*` (kể cả pre-release), tệp `Che779-AndroidV2-<ver>.apk`; cách hoạt động như bản chính.
 - Công tắc **Lấp đầy ô lưới** / **Lấp đầy cửa sổ nổi** (mặc định BẬT; tắt = kiểu bản chính); sửa lỗi bấm dồn chồng nhiều hộp thoại (gộp từ bản chính 1.3.2).
 - **Chế độ thêm game**: thủ công (chọn game) hoặc tự động (bản sao game tab đang chọn); lưu qua các lần mở app.
 - Chưa kiểm chứng trên máy thật: giao diện trống khi chưa có game, thao tác nút nguồn dừng game nền.
