@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pref_cat_update">Cập nhật</string>
+    <string name="pref_check_update_title">Kiểm tra cập nhật</string>
+    <string name="pref_check_update_summary">Phiên bản hiện tại: %1$s</string>
+    <string name="pref_update_auto_title">Tự kiểm tra khi mở app</string>
+    <string name="pref_update_auto_summary">Tối đa một lần mỗi ngày; không có bản mới thì im lặng</string>
+    <string name="update_checking">Đang kiểm tra cập nhật…</string>
+    <string name="update_latest">Bạn đang dùng bản mới nhất (%1$s)</string>
+    <string name="update_error">Cập nhật lỗi: %1$s</string>
+    <string name="update_available_title">Có bản mới</string>
+    <string name="update_available_msg">Đã có %1$s (đang cài: %2$s).</string>
+    <string name="update_later">Để sau</string>
+    <string name="update_download">Tải và cài</string>
+    <string name="update_open_page">Mở trang tải</string>
+    <string name="update_downloading">Đang tải…</string>
+    <string name="update_downloading_pct">Đang tải… %1$d%%</string>
+    <string name="update_no_sum">Release thiếu tệp SHA256SUMS.txt</string>
+    <string name="update_bad_sum">Tệp tải về không khớp mã kiểm tra</string>
+    <string name="update_allow_install">Hãy cho phép cài ứng dụng từ app này, rồi bấm "Kiểm tra cập nhật" lần nữa</string>
+</resources>
