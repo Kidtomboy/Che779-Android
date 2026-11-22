@@ -119,26 +119,10 @@ final class GridPanel extends LinearLayout {
 				cellH = (int) (cellW / aspect) + 2 * border;
 			}
 		}
-		if (fit) { // cửa sổ nổi: xếp vừa khít, không cắt/cuộn
-			double best = -1;
-			for (int c = 1; c <= Math.min(4, n); c++) {
-				int r = (n + c - 1) / c;
-				int cw = w / c;
-				int ch = (int) ((cw - 2 * border) / aspect) + 2 * border;
-				if (r * ch > h) {
-					ch = h / r;
-					cw = (int) ((ch - 2 * border) * aspect) + 2 * border;
-				}
-				if (cw <= 0 || ch <= 0) {
-					continue;
-				}
-				if ((double) cw * ch > best) {
-					best = (double) cw * ch;
-					cols = c;
-					cellW = cw;
-					cellH = ch;
-				}
-			}
+		if (fit) { // cửa sổ nổi: chia đều chiều ngang cho tối đa 3 ô mỗi dòng, ô theo tỉ lệ game, cuộn dọc nếu dài
+			cols = Math.min(3, n);
+			cellW = w / cols;
+			cellH = (int) ((cellW - 2 * border) / aspect) + 2 * border;
 		}
 		int rows = (n + cols - 1) / cols;
 		ScrollView sv = new ScrollView(getContext());
@@ -178,7 +162,7 @@ final class GridPanel extends LinearLayout {
 		if (n == 0) {
 			return;
 		}
-		if (fill && w > 0 && h > 0) {
+		if ((fill || fit) && w > 0 && h > 0) {
 			buildFilled(sessions, active, w, h);
 			return;
 		}

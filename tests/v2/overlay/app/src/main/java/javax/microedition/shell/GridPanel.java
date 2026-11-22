@@ -60,6 +60,11 @@ final class GridPanel extends LinearLayout {
 		setBackgroundColor(IDLE);
 	}
 
+	/** Header/footer height of a cell: slimmer inside the floating window. */
+	private int hh() {
+		return fit ? dp(24) : dp(34);
+	}
+
 	private int dp(int v) {
 		return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics());
 	}
@@ -78,7 +83,7 @@ final class GridPanel extends LinearLayout {
 		v.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 		v.setGravity(Gravity.CENTER);
 		v.setOnClickListener(l);
-		v.setLayoutParams(new LinearLayout.LayoutParams(dp(40), dp(34)));
+		v.setLayoutParams(new LinearLayout.LayoutParams(dp(40), hh()));
 		return v;
 	}
 
@@ -107,7 +112,7 @@ final class GridPanel extends LinearLayout {
 			title.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 			head.addView(title);
 			head.addView(glyph(c, "\u2715", 0xFFBBBBBB, v -> listener.onClose(session)));
-			col.addView(head, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(34)));
+			col.addView(head, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, hh()));
 			content = new FrameLayout(c);
 			col.addView(content, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 			LinearLayout foot = new LinearLayout(c);
@@ -119,7 +124,7 @@ final class GridPanel extends LinearLayout {
 			foot.addView(sp);
 			foot.addView(glyph(c, "\u25A0", 0xFFE53935, v -> listener.onClose(session)));
 			foot.addView(glyph(c, "\u26F6", 0xFF42A5F5, v -> listener.onFullscreen(session)));
-			col.addView(foot, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(34)));
+			col.addView(foot, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, hh()));
 			addView(col, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
 					ViewGroup.LayoutParams.MATCH_PARENT));
 		}
@@ -223,7 +228,7 @@ final class GridPanel extends LinearLayout {
 		if (total == 0) {
 			total = empties = 1;
 		}
-		int chrome = dp(34) * 2 + 2 * border; // header + footer + border of a cell
+		int chrome = 2 * hh() + 2 * border; // header + footer + border of a cell
 		int cols, cellW, cellH;
 		if (total == 1) {
 			cols = 1;
@@ -243,26 +248,10 @@ final class GridPanel extends LinearLayout {
 				cellH = (int) ((cellW - 2 * border) / aspect) + chrome;
 			}
 		}
-		if (fit) { // cửa sổ nổi: xếp vừa khít, không cắt/cuộn
-			double best = -1;
-			for (int c = 1; c <= Math.min(4, total); c++) {
-				int r = (total + c - 1) / c;
-				int cw = w / c;
-				int ch = (int) ((cw - 2 * border) / aspect) + chrome;
-				if (r * ch > h) {
-					ch = h / r;
-					cw = (int) ((ch - chrome) * aspect) + 2 * border;
-				}
-				if (cw <= 0 || ch <= 0) {
-					continue;
-				}
-				if ((double) cw * ch > best) {
-					best = (double) cw * ch;
-					cols = c;
-					cellW = cw;
-					cellH = ch;
-				}
-			}
+		if (fit) { // cửa sổ nổi: chia đều chiều ngang cho tối đa 3 ô mỗi dòng, ô theo tỉ lệ game, cuộn dọc nếu dài
+			cols = Math.min(3, total);
+			cellW = w / cols;
+			cellH = (int) ((cellW - 2 * border) / aspect) + 2 * hh() + 2 * border;
 		}
 		int rows = (total + cols - 1) / cols;
 		ScrollView sv = new ScrollView(getContext());
@@ -303,7 +292,7 @@ final class GridPanel extends LinearLayout {
 		removeAllViews();
 		cells.clear();
 		int count = sessions.size();
-		if (fill && w > 0 && h > 0) {
+		if ((fill || fit) && w > 0 && h > 0) {
 			buildFilled(sessions, active, w, h);
 			return;
 		}
