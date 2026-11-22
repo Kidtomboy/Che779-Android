@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag dev-* cần build (phải tồn tại; không dùng tag cũ đã phát hành)'
+        description: 'Tag dev-* cần build (chạy tay: build mã mới nhất của nhánh và đặt lại tag/release này)'
         required: true
         type: string
 
@@ -44,9 +44,13 @@ jobs:
             TAG="$INPUT_TAG"
           fi
           [[ "$TAG" =~ ^dev-[0-9]+[.][0-9]+[.][0-9]+$ ]] || { echo "::error::Tag must match dev-X.Y.Z."; exit 1; }
-          git rev-parse -q --verify "refs/tags/$TAG^{commit}" >/dev/null || { echo "::error::Tag does not exist."; exit 1; }
-          TAG_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
-          git checkout --detach "refs/tags/$TAG"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            TAG_SHA="$(git rev-parse HEAD)"   # chạy tay: lấy mã mới nhất của nhánh
+          else
+            git rev-parse -q --verify "refs/tags/$TAG^{commit}" >/dev/null || { echo "::error::Tag does not exist."; exit 1; }
+            TAG_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
+            git checkout --detach "refs/tags/$TAG"
+          fi
           [[ "$(git rev-parse HEAD)" == "$TAG_SHA" ]] || { echo "::error::Checked-out commit does not match tag."; exit 1; }
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#dev-}" >> "$GITHUB_OUTPUT"
@@ -118,6 +122,9 @@ jobs:
           SOURCE_SHA: ${{ steps.target.outputs.source_sha }}
         run: |
           set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            gh release delete "$TAG" --cleanup-tag --yes 2>/dev/null || true   # đặt lại tag về mã vừa build
+          fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" out/*.apk --clobber
             gh release upload "$TAG" out/SHA256SUMS.txt --clobber
