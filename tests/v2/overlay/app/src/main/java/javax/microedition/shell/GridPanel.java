@@ -190,33 +190,40 @@ final class GridPanel extends LinearLayout {
 		return fill && newAspect > 0.2f && newAspect < 5f && Math.abs(newAspect - aspect) > 0.02f;
 	}
 
+	private int empties;
+
+	/** Number of empty "Mở game" placeholder cells shown after the real tabs (fill mode). */
+	void setEmpties(int e) {
+		empties = Math.max(0, e);
+	}
+
 	private void buildFilled(List<Session> sessions, Session active, int w, int h) {
 		int n = sessions.size();
-		int cols, cellW, cellH;
-		if (n == 0) {
-			// no game yet: one cell "Mở game" in the game's shape
-			cellH = Math.min(h, (int) (w / aspect));
-			cellW = (int) (cellH * aspect);
-			setGravity(Gravity.CENTER);
-			addView(addCell(true), new LayoutParams(cellW, cellH));
-			return;
+		int total = n + empties;
+		if (total == 0) {
+			total = empties = 1;
 		}
-		setGravity(Gravity.NO_GRAVITY);
-		if (n == 1) {
+		int chrome = dp(34) * 2 + 2 * border; // header + footer + border of a cell
+		int cols, cellW, cellH;
+		if (total == 1) {
 			cols = 1;
-			cellH = Math.min(h, (int) (w / aspect));
-			cellW = (int) (cellH * aspect);
+			cellH = h;
+			cellW = (int) ((cellH - chrome) * aspect) + 2 * border;
+			if (cellW > w) {
+				cellW = w;
+				cellH = (int) ((cellW - 2 * border) / aspect) + chrome;
+			}
 		} else {
 			cols = 2;
 			cellW = w / 2;
-			cellH = (int) (cellW / aspect) + 2 * border;
-			if (((n + 1) / 2) * cellH > h) {
+			cellH = (int) ((cellW - 2 * border) / aspect) + chrome;
+			if (((total + 1) / 2) * cellH > h) {
 				cols = 3;
 				cellW = w / 3;
-				cellH = (int) (cellW / aspect) + 2 * border;
+				cellH = (int) ((cellW - 2 * border) / aspect) + chrome;
 			}
 		}
-		int rows = (n + cols - 1) / cols;
+		int rows = (total + cols - 1) / cols;
 		ScrollView sv = new ScrollView(getContext());
 		sv.setFillViewport(true);
 		sv.setVerticalScrollBarEnabled(false);
@@ -227,12 +234,16 @@ final class GridPanel extends LinearLayout {
 		for (int r = 0; r < rows; r++) {
 			LinearLayout row = new LinearLayout(getContext());
 			row.setOrientation(HORIZONTAL);
-			for (int c = 0; c < cols && i < n; c++) {
-				Session s = sessions.get(i++);
-				Cell cell = new Cell(getContext(), s);
-				cells.put(s, cell);
-				row.addView(cell, new LayoutParams(cellW, cellH));
-				show(s);
+			for (int c = 0; c < cols && i < total; c++, i++) {
+				if (i < n) {
+					Session s = sessions.get(i);
+					Cell cell = new Cell(getContext(), s);
+					cells.put(s, cell);
+					row.addView(cell, new LayoutParams(cellW, cellH));
+					show(s);
+				} else {
+					row.addView(addCell(true), new LayoutParams(cellW, cellH));
+				}
 			}
 			holder.addView(row, new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, cellH));
 		}
