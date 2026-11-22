@@ -1,4 +1,4 @@
-## Che779 Android V2 @TAG@ (bản thử)
+## @TAG@ (bản thử)
 
 **Tải về**
 - `Che779-AndroidV2-@VER@.apk`: Che779 Emulator V2 (gói `com.che779.emulatorv2`, dữ liệu `J2ME-Che779v2`), cài song song được với bản chính và bản clone
