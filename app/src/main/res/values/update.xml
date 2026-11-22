@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Kênh cập nhật của bản chính: tag v*, tệp Che779-Android-<ver>.apk. V2 ghi đè tệp này (tests/v2/overlay). -->
+    <string name="update_tag_prefix" translatable="false">v</string>
+    <string name="update_asset_prefix" translatable="false">Che779-Android-</string>
+    <bool name="update_allow_prerelease">false</bool>
+    <string name="pref_cat_update">Updates</string>
+    <string name="pref_check_update_title">Check for updates</string>
+    <string name="pref_check_update_summary">Current version: %1$s</string>
+    <string name="pref_update_auto_title">Check on launch</string>
+    <string name="pref_update_auto_summary">At most once a day; stays silent when there is nothing new</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_latest">You are on the latest version (%1$s)</string>
+    <string name="update_error">Update failed: %1$s</string>
+    <string name="update_available_title">New version available</string>
+    <string name="update_available_msg">%1$s is available (installed: %2$s).</string>
+    <string name="update_later">Later</string>
+    <string name="update_download">Download &amp; install</string>
+    <string name="update_open_page">Open download page</string>
+    <string name="update_downloading">Downloading…</string>
+    <string name="update_downloading_pct">Downloading… %1$d%%</string>
+    <string name="update_no_sum">SHA256SUMS.txt is missing in the Release</string>
+    <string name="update_bad_sum">The downloaded file does not match its checksum</string>
+    <string name="update_allow_install">Allow installing apps from this app, then tap "Check for updates" again</string>
+</resources>

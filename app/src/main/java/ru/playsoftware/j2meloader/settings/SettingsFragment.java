@@ -72,6 +72,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 			pickBackgroundLauncher.launch(new String[]{"image/*"});
 			return true;
 		});
+		findPreference("pref_check_update").setOnPreferenceClickListener(preference -> {
+			ru.playsoftware.j2meloader.update.UpdateManager.check(requireActivity(), true);
+			return true;
+		});
+		findPreference("pref_check_update").setSummary(getString(R.string.pref_check_update_summary,
+				ru.playsoftware.j2meloader.update.UpdateManager.currentVersion(requireActivity())));
 		findPreference("pref_clear_background").setOnPreferenceClickListener(preference -> {
 			getPreferenceManager().getSharedPreferences().edit()
 					.remove(ru.playsoftware.j2meloader.util.Constants.PREF_CUSTOM_BACKGROUND)

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Kênh cập nhật của bản V2: tag dev-*, tệp Che779-AndroidV2-<ver>.apk, chấp nhận pre-release. -->
+    <string name="update_tag_prefix" translatable="false">dev-</string>
+    <string name="update_asset_prefix" translatable="false">Che779-AndroidV2-</string>
+    <bool name="update_allow_prerelease">true</bool>
+</resources>

@@ -86,6 +86,7 @@ public class MainActivity extends BaseActivity {
 			boolean enable = !ViewConfiguration.get(this).hasPermanentMenuKey();
 			preferences.edit().putBoolean(PREF_TOOLBAR, enable).apply();
 		}
+		ru.playsoftware.j2meloader.update.UpdateManager.autoCheck(this);
 		boolean warningShown = preferences.getBoolean(PREF_STORAGE_WARNING_SHOWN, false);
 		if (!FileUtils.isExternalStorageLegacy() && !warningShown) {
 			showScopedStorageDialog();

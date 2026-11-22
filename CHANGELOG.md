@@ -8,6 +8,7 @@ Gói `com.che779.emulator`, `versionCode 132`. Mọi thứ của 1.3.1, thêm:
 - **Sửa lỗi nghiêm trọng:** bấm dồn các nút thanh công cụ không còn chồng nhiều hộp thoại (nền tối chồng nền tối). Chỉ một hộp thoại tại một thời điểm; nút thanh công cụ có chống bấm đúp (500 ms) và bị bỏ qua khi đang có hộp thoại.
 - **Lấp đầy ô lưới** (công tắc trong Cài đặt, **mặc định tắt**): ô theo hình dạng game, tự chọn 2 hoặc 3 cột sao cho vừa màn hình (tối đa 3 cột); trên 12 tab giữ cỡ ô và vuốt xuống.
 - **Lấp đầy cửa sổ nổi** (công tắc riêng, mặc định tắt): cửa sổ nổi co theo hình dạng game, kéo đổi cỡ vẫn giữ tỉ lệ.
+- **Kiểm tra cập nhật** (Cài đặt, mục "Cập nhật"): so với Release `v*` mới nhất của GitHub, hiện ghi chú, tải APK, đối chiếu SHA-256 với `SHA256SUMS.txt` rồi mở trình cài đặt (giữ dữ liệu vì cùng khoá ký). Công tắc "Tự kiểm tra khi mở app" (mặc định tắt, tối đa một lần/ngày). Bản clone chỉ mở trang tải. Chưa kiểm chứng trên máy thật.
 - Chưa kiểm chứng trên máy thật: cả ba mục trên. Công tắc ở Cài đặt chạy ở tiến trình khác với màn hình game, nên có thể chỉ có hiệu lực sau khi mở lại lưới.
 
 ## [dev-2.0.1] — Bản V2 (thử nghiệm, tag `dev-2.0.0`)
