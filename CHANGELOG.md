@@ -14,8 +14,10 @@ Gói `com.che779.emulator`, `versionCode 132`. Mọi thứ của 1.3.1, thêm:
 
 Gói `com.che779.emulatorv2`, tên "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, `versionCode 200`. Có mọi tính năng của 1.3.1, thêm:
 - Danh sách game: nút **nguồn** (thoát hẳn, có hỏi), nút **xoá** từng game (có hỏi); giữ vào game vẫn hiện công cụ J2ME; "Sắp xếp" chuyển vào menu 3 chấm.
-- Nút **Giao diện game** mở lưới ô với tab đầu trống; chọn game bằng "+ Thêm tab".
-- Mỗi ô: tiêu đề, ✕, proxy, dừng, phóng to; không cho xoá tab cuối cùng.
+- Nút **Giao diện game** mở lưới ô; tab đầu là ô **"Mở game"** để chọn game (khi đã có tab thì không còn ô "Thêm tab" thừa).
+- Mỗi ô: tiêu đề, ✕, proxy, dừng, phóng to. ✕ ở tab cuối = thoát game, về ô "Mở game"; ✕ lần nữa báo "Không được xoá tab cuối cùng".
+- Nút "+" thanh dưới hỏi số tab rồi mở đúng số đó.
+- Công tắc **Lấp đầy ô lưới** / **Lấp đầy cửa sổ nổi** (mặc định BẬT; tắt = kiểu bản chính); sửa lỗi bấm dồn chồng nhiều hộp thoại (gộp từ bản chính 1.3.2).
 - **Chế độ thêm game**: thủ công (chọn game) hoặc tự động (bản sao game tab đang chọn); lưu qua các lần mở app.
 - Chưa kiểm chứng trên máy thật: giao diện trống khi chưa có game, thao tác nút nguồn dừng game nền.
 

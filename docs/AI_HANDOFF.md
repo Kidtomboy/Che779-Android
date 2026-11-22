@@ -72,7 +72,7 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 
 - Bản clone (từ 2026-11-22): gói `com.che779.emulator2`, tên "Che779 Emulator 2", dữ liệu `J2ME-Che779Clone` (trước đó `com.che779.emulatorv2` / `J2ME-Che779v2`, nay dành cho bản V2).
 - Proxy mới (v1.3.1): `ProxyStore` (kho dùng chung: danh sách + proxy/tích bật theo tab, parser TXT/JSON/CSV), `ProxyUi` (form danh sách; bảng lưới/nổi), SOCKS4 trong `NetHooks`. Bộ đếm thời gian: `BubbleService` (pref_notif_interval). Chưa thử máy thật.
-- Bản V2 (nhánh `build-v2`, tag `dev-2.0.0`, workflow `build-v2.yml`): gói `com.che779.emulatorv2`, "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, versionCode 200. Thêm: nút nguồn/xoá ở danh sách, `Config.startEmptyUi` (tab đầu trống, extra `KEY_EMPTY_UI`), GridPanel dạng thẻ (tiêu đề, ✕, proxy, dừng, phóng to, "+ Thêm tab"), chặn xoá tab cuối, chế độ thêm game (`che779_add_mode`). Cần Darling QA: giao diện trống không có game, nút nguồn dừng game nền.
+- Bản V2 (mã trong `tests/v2/overlay` của main, tag `dev-2.0.0`, workflow `release-v2.yml`): gói `com.che779.emulatorv2`, "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, versionCode 200. Thêm: nút nguồn/xoá ở danh sách, `Config.startEmptyUi` (tab đầu trống, extra `KEY_EMPTY_UI`), GridPanel dạng thẻ (tiêu đề, ✕, proxy, dừng, phóng to, "+ Thêm tab"), chặn xoá tab cuối, chế độ thêm game (`che779_add_mode`). Cần Darling QA: giao diện trống không có game, nút nguồn dừng game nền.
 
 - Lỗi từ video 18:42: IllegalStateException trong SetCurrentEvent khi quay lại từ cửa sổ nổi (view còn gắn ở floating host/grid). Sửa: gỡ cha cũ trước addView; reattachRunningSessions đặt Session.grid=false và clearDisplayableView. CHƯA thử máy thật.
 
