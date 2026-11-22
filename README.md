@@ -71,7 +71,7 @@ Che779 gồm 4 dự án, mỗi dự án một repo. Bạn đang xem **Project 4*
 | ⏱️ | **Bộ đếm thời gian** | Thông báo hiện thời gian đã chạy (phút / giờ + phút / ngày + giờ), nút ⏱ giữa nút Chế độ và Dừng; chu kỳ cập nhật chọn trong Cài đặt (mặc định 5 phút) |
 | 🧹 | **Quản lý bộ nhớ** | Treo (ngừng vẽ), ngủ màn hình, tự dọn khi RAM thấp, cảnh báo |
 | 🧬 | **Bản clone** | Tạo thêm bản cài độc lập với tên gói, tên app và thư mục dữ liệu riêng |
-| 🆕 | **Bản V2 (dev-2.0.1)** | Bản cài riêng (*Che779 Emulator V2*): danh sách game có nút **nguồn** (thoát hẳn) và nút **xoá** từng game (giữ vào game vẫn hiện công cụ J2ME); nút **Giao diện game** mở lưới ô, tab đầu "Mở game"; lấp đầy ô và cửa sổ nổi (công tắc, mặc định bật); "+" hỏi số tab; mỗi ô có tiêu đề, ✕, proxy, dừng, phóng to; ✕ tab cuối thoát game, ✕ lần nữa báo không xoá được; **chế độ thêm game** thủ công hoặc tự động (nhớ cả khi thoát app) |
+| 🆕 | **Bản V2 (dev-2.0.1)** | Bản cài riêng (*Che779 Emulator V2*): danh sách game có nút **nguồn** (thoát hẳn) và nút **xoá** từng game (giữ vào game vẫn hiện công cụ J2ME); nút **Giao diện game** mở lưới ô, tab đầu "Mở game"; lấp đầy ô và cửa sổ nổi (công tắc, mặc định bật); "+" thêm ô "Mở game" khi bấm; mỗi ô có tiêu đề, ✕, proxy, dừng, phóng to; ✕ tab cuối thoát game, ✕ lần nữa báo không xoá được; **chế độ thêm game** thủ công hoặc tự động (nhớ cả khi thoát app) |
 
 > Các tính năng chính (đa tab, lưới, bong bóng, treo/ẩn/ngủ, proxy theo tab, chuyển hướng IP) đã được chủ dự án thử trên máy thật. Những tính năng còn lại chưa có xác nhận — xem danh sách ở [`CHANGELOG.md`](CHANGELOG.md).
 >
