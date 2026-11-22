@@ -10,7 +10,7 @@ Gói `com.che779.emulator`, `versionCode 132`. Mọi thứ của 1.3.1, thêm:
 - **Lấp đầy cửa sổ nổi** (công tắc riêng, mặc định tắt): cửa sổ nổi co theo hình dạng game, kéo đổi cỡ vẫn giữ tỉ lệ.
 - Chưa kiểm chứng trên máy thật: cả ba mục trên. Công tắc ở Cài đặt chạy ở tiến trình khác với màn hình game, nên có thể chỉ có hiệu lực sau khi mở lại lưới.
 
-## [dev-2.0.0] — Bản V2 (thử nghiệm, tag `dev-2.0.0`)
+## [dev-2.0.1] — Bản V2 (thử nghiệm, tag `dev-2.0.0`)
 
 Gói `com.che779.emulatorv2`, tên "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, `versionCode 200`. Có mọi tính năng của 1.3.1, thêm:
 - Danh sách game: nút **nguồn** (thoát hẳn, có hỏi), nút **xoá** từng game (có hỏi); giữ vào game vẫn hiện công cụ J2ME; "Sắp xếp" chuyển vào menu 3 chấm.
