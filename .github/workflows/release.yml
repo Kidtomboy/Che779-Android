@@ -47,7 +47,11 @@ jobs:
             UPDATE=false
           fi
           git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
-          SOURCE_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            SOURCE_SHA="$(git rev-parse HEAD)"   # chạy tay: build mã mới nhất của nhánh, cập nhật file của Release
+          else
+            SOURCE_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
+          fi
           [[ -n "$SOURCE_SHA" ]] || { echo "::error::Cannot resolve source tag."; exit 1; }
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
@@ -64,7 +68,7 @@ jobs:
       - name: Checkout exact release tag commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.resolve.outputs.tag }}
+          ref: ${{ needs.resolve.outputs.source_sha }}
           fetch-depth: 0
 
       - uses: actions/setup-java@v4
