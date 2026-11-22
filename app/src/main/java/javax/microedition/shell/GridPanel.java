@@ -90,6 +90,10 @@ final class GridPanel extends LinearLayout {
 		this.aspect = aspect > 0.2f && aspect < 5f ? aspect : 0.75f;
 	}
 
+	private int dp(int v) {
+		return (int) (v * getResources().getDisplayMetrics().density);
+	}
+
 	void setFit(boolean fit) {
 		this.fit = fit;
 	}
