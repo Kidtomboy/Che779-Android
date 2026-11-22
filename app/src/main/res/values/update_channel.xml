@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Kênh cập nhật của bản chính: tag v*, tệp Che779-Android-<ver>.apk. V2 ghi đè tệp này (tests/v2/overlay). -->
+    <string name="update_tag_prefix" translatable="false">v</string>
+    <string name="update_asset_prefix" translatable="false">Che779-Android-</string>
+    <bool name="update_allow_prerelease">false</bool>
+</resources>
