@@ -48,6 +48,8 @@ final class GridPanel extends LinearLayout {
 	private final Map<Session, Cell> cells = new HashMap<>();
 	private final int border;
 	private boolean fill;
+	private boolean fit;
+	private int builtW, builtH;
 	private float aspect = 0.75f;
 
 	GridPanel(Context context, Listener listener) {
@@ -196,6 +198,14 @@ final class GridPanel extends LinearLayout {
 		this.aspect = aspect > 0.2f && aspect < 5f ? aspect : 0.75f;
 	}
 
+	void setFit(boolean fit) {
+		this.fit = fit;
+	}
+
+	boolean sizeChanged(int w, int h) {
+		return builtW > 0 && (Math.abs(w - builtW) > 2 || Math.abs(h - builtH) > 2);
+	}
+
 	boolean needsRelayout(float newAspect) {
 		return fill && newAspect > 0.2f && newAspect < 5f && Math.abs(newAspect - aspect) > 0.02f;
 	}
@@ -233,6 +243,27 @@ final class GridPanel extends LinearLayout {
 				cellH = (int) ((cellW - 2 * border) / aspect) + chrome;
 			}
 		}
+		if (fit) { // cửa sổ nổi: xếp vừa khít, không cắt/cuộn
+			double best = -1;
+			for (int c = 1; c <= Math.min(4, total); c++) {
+				int r = (total + c - 1) / c;
+				int cw = w / c;
+				int ch = (int) ((cw - 2 * border) / aspect) + chrome;
+				if (r * ch > h) {
+					ch = h / r;
+					cw = (int) ((ch - chrome) * aspect) + 2 * border;
+				}
+				if (cw <= 0 || ch <= 0) {
+					continue;
+				}
+				if ((double) cw * ch > best) {
+					best = (double) cw * ch;
+					cols = c;
+					cellW = cw;
+					cellH = ch;
+				}
+			}
+		}
 		int rows = (total + cols - 1) / cols;
 		ScrollView sv = new ScrollView(getContext());
 		sv.setFillViewport(true);
@@ -264,6 +295,8 @@ final class GridPanel extends LinearLayout {
 	}
 
 	void rebuild(List<Session> sessions, Session active, int w, int h) {
+		builtW = w;
+		builtH = h;
 		for (Cell c : cells.values()) {
 			c.removeAllViews();
 		}
