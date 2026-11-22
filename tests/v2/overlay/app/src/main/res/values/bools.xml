@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mặc định của hai công tắc lấp đầy (bản V2 mặc định true) -->
+    <bool name="default_fill_grid">true</bool>
+    <bool name="default_fill_float">true</bool>
+</resources>
