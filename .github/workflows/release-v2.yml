@@ -52,12 +52,7 @@ jobs:
           NAME="Che779-AndroidV2-${VER}.apk"
           cp "${APK[0]}" "out/$NAME"
           (cd out && sha256sum "$NAME" > SHA256SUMS.txt && cat SHA256SUMS.txt)
-          # Lấy ghi chú phát hành V2 từ nhánh build-v2, không phụ thuộc file trên main.
-          git fetch --no-tags origin build-v2:refs/remotes/origin/build-v2
-          git show origin/build-v2:.github/release-notes-v2.md > release-notes-v2.md
-          test -s release-notes-v2.md
-          sed "s/@TAG@/${TAG:-dev-$VER}/g; s/@VER@/$VER/g" release-notes-v2.md > out-notes.md
-          test -s out-notes.md
+          sed "s/@TAG@/${TAG:-dev-$VER}/g; s/@VER@/$VER/g" .github/release-notes-v2.md > out-notes.md
           if [ -n "$TAG" ]; then
             # tag phải trỏ đúng commit vừa build; nếu tag có sẵn nhưng trỏ commit khác thì tạo lại
             if gh release view "$TAG" >/dev/null 2>&1 || git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
