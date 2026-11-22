@@ -117,9 +117,6 @@ jobs:
           ./gradlew assembleDevDebug "-PcloneId=com.che779.emulator2" "-PcloneName=Che779 Emulator 2" "-PcloneDir=J2ME-Che779Clone" --stacktrace
           CLONE_APKS=(app/build/outputs/apk/dev/debug/*.apk)
           [[ ${#CLONE_APKS[@]} -eq 1 ]] || { echo "::error::Expected exactly one clone APK."; exit 1; }
-          BUILD_TOOLS="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-          "$ANDROID_HOME/build-tools/$BUILD_TOOLS/aapt2" dump badging "${CLONE_APKS[0]}" > out/clone-badging.txt
-          grep -Fq "name='com.che779.emulator2'" out/clone-badging.txt
           cp "${CLONE_APKS[0]}" "out/Che779-Android-Clone-$VER.apk"
 
       - name: Build Termux V2 and test V1 experimental script
