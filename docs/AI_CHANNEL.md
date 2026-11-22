@@ -105,3 +105,12 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **Cài:** tải về `cacheDir/updates`, đối chiếu SHA-256 với `SHA256SUMS.txt` (thiếu hoặc lệch thì huỷ), cài qua `FileProvider` `${applicationId}.updates` + `REQUEST_INSTALL_PACKAGES`. Chỉ `com.che779.emulator` và `com.che779.emulatorv2` tự cài; gói khác (clone `com.che779.emulator2`) chỉ mở trang Releases.
 - **Cần Darling QA:** (1) cài đè thật bản cũ lên mới (cùng khoá ký `che779-test.keystore`); (2) luồng cấp quyền "cài từ app này" (Android 8+); (3) Release chưa đủ APK/SHA thì bỏ qua đúng; (4) giới hạn API 60 lượt/giờ khi bật tự kiểm tra; (5) V2 thấy pre-release `dev-*`, bản chính không thấy.
 - **Quy tắc logic:** đổi tên tệp APK hoặc tag trong workflow thì phải đổi `update_asset_prefix`/`update_tag_prefix` tương ứng.
+
+### [2026-11-23T05:15:00+07:00] Claude → Darling, Cherry — P4: bàn giao lượt "đồng bộ version + tag + QA" (Cherry duyệt thứ tự 1, 4, 2, 3)
+- **Ownership:** owner Claude (P4); reviewer Darling; yêu cầu Cherry duyệt 2026-11-23 04:46 (chat tổng, không có Issue: `No linked Issue — Cherry-approved request`).
+- **Phạm vi:** (1) đối chiếu và sửa version trong docs, (4) bỏ cơ chế workflow tự dời tag, (2) ma trận QA cập nhật, (3) danh sách kiểm tra lifecycle. Ngoài phạm vi: mã ứng dụng, tag, Release, khoá ký.
+- **Git:** main, base `715daca19e8ec0e7bae1353d5a50b4d49ca82567`, head `79632194e5076214a1ab3202be8619dba4392152` (CI `Build bản dev` xanh, `CI_VERIFIED`). Đồng thời P1–P3 nhận commit docs đồng bộ: P1 `6cc088e`, P2 `a8bfe8a`, P3 `d7d60db`.
+- **File đổi (P4):** `docs/AI_HANDOFF.md` (version 1.3.1/131→1.3.2/132; V2 200→201; bảng đối chiếu), `docs/PROJECT_STATE.md`, `docs/TESTING.md` (ma trận U1–U14, L1–L10), `.github/workflows/release.yml` và `release-v2.yml` (bỏ nhánh `workflow_dispatch` build HEAD/xoá-tạo lại tag).
+- **Điều chưa xác nhận / còn mở:** (a) Release `v1.3.2` target `c7d5f9c` nhưng APK build từ `715daca` → version inconsistency chờ Cherry dời tag (Cherry tự làm); (b) tag `dev-2.0.0` (`b3bb6ef`) còn tồn tại; (c) mọi dòng U/L trong TESTING là `NOT_RUN`; (d) rủi ro lifecycle `GridPanel.post()` sau khi view tách: `S3-S2 / MEDIUM CONFIDENCE`, chưa sửa vì ngoài phạm vi; (e) khoá ký thử công khai, Cherry đã quyết không đổi (chưa lập `ACCEPTED_RISK` đủ trường).
+- **Thay đổi ngoài dự kiến:** không có. Không động vào mã ứng dụng.
+- **Việc cần Cherry quyết:** dời tag `v1.3.2` → `715daca`? xoá tag/Release `dev-2.0.0`? lập `ACCEPTED_RISK` cho khoá ký? có sửa `isAttachedToWindow` trong `GridPanel` không?
