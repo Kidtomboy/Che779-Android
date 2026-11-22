@@ -704,31 +704,19 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
-	/** Nút "+" ở thanh dưới: hỏi số tab muốn mở rồi mở đúng số đó (không thừa tab trống). */
+	/** Nút "+" ở thanh dưới: chỉ thêm một ô "Mở game" trống. */
 	private void cloneFirstTab() {
-		if (DialogGate.busy()) {
-			return;
+		if (DialogGate.tap()) {
+			emptyTabs++;
+			rebuildGrid();
 		}
-		final String[] opts = {"1", "2", "3", "4", "5", "6", "8", "9", "12"};
-		new DialogGate.Builder(this)
-				.setTitle("Mở bao nhiêu tab?")
-				.setItems(opts, (d, which) -> openTabs(Integer.parseInt(opts[which])))
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
 	}
 
-	private void openTabs(final int n) {
-		Session cur = Session.active();
-		if (cur == null && !tabs.isEmpty()) {
-			cur = tabs.get(0);
+	/** Một ô trống được gán game: bớt một ô "Mở game". */
+	private void useEmptyTab() {
+		if (emptyTabs > 0) {
+			emptyTabs--;
 		}
-		if (cur != null && "1".equals(addMode())) {
-			for (int i = 0; i < n; i++) {
-				addSession(cur.appName, cur.appPath, null);
-			}
-			return;
-		}
-		pickGameForTabs(n);
 	}
 
 	/** "0" = chọn game thủ công mỗi lần, "1" = tự thêm bản sao game của tab đang chọn. */
@@ -762,6 +750,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		Session cur = Session.active();
 		if ("1".equals(addMode()) && cur != null && tabs.contains(cur)) {
+			useEmptyTab();
 			addSession(cur.appName, cur.appPath, null);
 			return;
 		}
@@ -794,9 +783,8 @@ public class MicroActivity extends AppCompatActivity {
 				.setTitle("Chọn game mở ở tab mới")
 				.setItems(names.toArray(new String[0]), (d, which) ->
 						{
-							for (int i = 0; i < count; i++) {
-								addSession(names.get(which), paths.get(which), null);
-							}
+							useEmptyTab();
+							addSession(names.get(which), paths.get(which), null);
 						})
 				.setNeutralButton("Chế độ thêm game", (d, w) -> showAddModeDialog(this::pickGameForNewTab))
 				.setNegativeButton(android.R.string.cancel, null)
@@ -1299,6 +1287,8 @@ public class MicroActivity extends AppCompatActivity {
 		return 0.75f;
 	}
 
+	private int emptyTabs; // ô "Mở game" chưa gán game (chế độ lấp đầy)
+
 	private void rebuildGrid() {
 		host().post(() -> {
 			if (!gridMode || gridPanel == null) {
@@ -1306,6 +1296,10 @@ public class MicroActivity extends AppCompatActivity {
 			}
 			ViewGroup h = host();
 			gridPanel.setFill(boolPref("pref_fill_grid", R.bool.default_fill_grid), aspectOf());
+			if (tabs.isEmpty() && emptyTabs == 0) {
+				emptyTabs = 2; // chưa có game: hai ô "Mở game"
+			}
+			gridPanel.setEmpties(emptyTabs);
 			gridPanel.rebuild(tabs, Session.active(), h.getWidth(), h.getHeight());
 		});
 	}
