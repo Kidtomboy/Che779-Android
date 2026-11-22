@@ -1,6 +1,6 @@
 # Trạng thái dự án — Che779 Android
 
-**Phiên bản:** `1.3.2` (`versionCode 132`). Trạng thái: tạm ổn, đã phát hành thử và đang thu phản hồi.
+**Phiên bản:** bản chính `1.3.2` (`versionCode 132`); V2 `2.0.1` (`versionCode 201`, overlay `tests/v2/overlay`). Xem bảng đối chiếu trong `AI_HANDOFF.md` (2026-11-23). Trạng thái: tạm ổn, đã phát hành thử và đang thu phản hồi.
 
 ## Tóm tắt
 

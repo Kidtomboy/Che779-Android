@@ -47,11 +47,7 @@ jobs:
             UPDATE=false
           fi
           git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
-          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            SOURCE_SHA="$(git rev-parse HEAD)"   # chạy tay: build mã mới nhất của nhánh, cập nhật file của Release
-          else
-            SOURCE_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
-          fi
+          SOURCE_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"   # luôn build đúng commit của tag; workflow không dời tag
           [[ -n "$SOURCE_SHA" ]] || { echo "::error::Cannot resolve source tag."; exit 1; }
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
