@@ -124,8 +124,8 @@ final class GridPanel extends LinearLayout {
 			}
 		}
 		if (fit) { // cửa sổ nổi: chia đều chiều ngang cho tối đa 3 ô mỗi dòng, ô theo tỉ lệ game, cuộn dọc nếu dài
-			cols = Math.min(2, n); // mặc định 2 ô/dòng; đủ rộng (mỗi ô ≥ 150dp) mới dàn 3 ô/dòng
-			if (n >= 3 && w / 3 >= dp(150)) {
+			cols = Math.min(2, n); // mặc định 2 ô/dòng; đủ rộng (cửa sổ ≥ 85% chiều ngang màn hình) mới dàn 3 ô/dòng
+			if (n >= 3 && w >= getResources().getDisplayMetrics().widthPixels * 0.85f) {
 				cols = 3;
 			}
 			cellW = w / cols;
@@ -157,7 +157,29 @@ final class GridPanel extends LinearLayout {
 		setActive(active);
 	}
 
+	private List<Session> lastSessions;
+	private Session lastActive;
+	private boolean relayoutPending;
+
+	/** The panel was resized (floating window dragged, rotation): lay the cells out again for the new size. */
+	@Override
+	protected void onSizeChanged(int w, int h, int ow, int oh) {
+		super.onSizeChanged(w, h, ow, oh);
+		if (lastSessions != null && w > 0 && h > 0 && (Math.abs(w - builtW) > 2 || Math.abs(h - builtH) > 2)
+				&& !relayoutPending) {
+			relayoutPending = true;
+			post(() -> {
+				relayoutPending = false;
+				if (lastSessions != null && getWidth() > 0 && getHeight() > 0) {
+					rebuild(lastSessions, lastActive, getWidth(), getHeight());
+				}
+			});
+		}
+	}
+
 	void rebuild(List<Session> sessions, Session active, int w, int h) {
+		lastSessions = sessions;
+		lastActive = active;
 		builtW = w;
 		builtH = h;
 		for (Cell c : cells.values()) {
