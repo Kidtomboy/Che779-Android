@@ -706,10 +706,28 @@ public class MicroActivity extends AppCompatActivity {
 
 	/** Nút "+" ở thanh dưới: chỉ thêm một ô "Mở game" trống. */
 	private void cloneFirstTab() {
-		if (DialogGate.tap()) {
-			emptyTabs++;
+		if (!DialogGate.tap()) {
+			return;
+		}
+		if (!boolPref("pref_fill_grid", R.bool.default_fill_grid)) {
+			pickGameForNewTab(); // lưới kiểu cũ: "+" chọn game cho tab mới
+			return;
+		}
+		emptyTabs++;
+		if (!gridMode) {
+			enterGrid(); // đang xem một game: chuyển sang lưới để thấy ô mới
+		} else {
 			rebuildGrid();
 		}
+	}
+
+	/** Tab cuối cùng (tính cả ô "Mở game" trống) không được xoá. */
+	private boolean isLastTab() {
+		return tabs.size() + emptyTabs <= 1;
+	}
+
+	private void toastLastTab() {
+		Toast.makeText(this, "Không được xoá tab cuối cùng", Toast.LENGTH_SHORT).show();
 	}
 
 	/** Một ô trống được gán game: bớt một ô "Mở game". */
@@ -801,7 +819,14 @@ public class MicroActivity extends AppCompatActivity {
 				.setTitle(R.string.CONFIRMATION_REQUIRED)
 				.setMessage("Đóng tab " + no + "?")
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
-					closeSession(s);
+					if (isLastTab()) {
+						toastLastTab();
+					} else {
+						if (gridMode) {
+							emptyTabs++;
+						}
+						closeSession(s);
+					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
@@ -1214,10 +1239,14 @@ public class MicroActivity extends AppCompatActivity {
 
 			@Override
 			public void onClose(Session s) {
-				if (!tabs.contains(s)) {
-					Toast.makeText(MicroActivity.this, "Không được xoá tab cuối cùng", Toast.LENGTH_SHORT).show();
+				if (isLastTab()) {
+					toastLastTab();
+				} else if (s == null) {
+					emptyTabs--; // xoá một ô "Mở game" trống
+					rebuildGrid();
 				} else {
-					closeSession(s); // tab cuối: thoát game, về ô "Mở game"
+					emptyTabs++; // đóng game: ô trở về "Mở game", giữ nguyên số tab
+					closeSession(s);
 				}
 			}
 
