@@ -5,7 +5,7 @@ Dành cho người hoặc AI tiếp tục làm việc trên Project 4.
 ## Nhận diện
 
 - Repo: `Kidtomboy/Che779-Android` (trước đây tên `Che779-Emulator`; tên đó nay là Project 1).
-- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản `1.3.1` (`versionCode 131`).
+- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản nguồn hiện tại `1.3.2` (`versionCode 132`); lịch sử 1.3.1/131 ở mục "Nâng lên 1.3.1" bên dưới.
 - Lớp vỏ Che779: `javax.microedition.shell.*`.
 
 ## Nguyên tắc
@@ -73,7 +73,7 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - Bản clone (từ 2026-11-22): gói `com.che779.emulator2`, tên "Che779 Emulator 2", dữ liệu `J2ME-Che779Clone` (trước đó `com.che779.emulatorv2` / `J2ME-Che779v2`, nay dành cho bản V2).
 - Proxy mới (v1.3.1): `ProxyStore` (kho dùng chung: danh sách + proxy/tích bật theo tab, parser TXT/JSON/CSV), `ProxyUi` (form danh sách; bảng lưới/nổi), SOCKS4 trong `NetHooks`. Bộ đếm thời gian: `BubbleService` (pref_notif_interval). Chưa thử máy thật.
 - Kiểm tra cập nhật (cả hai bản): xem `update/UpdateManager`, `res/values/update_channel.xml` và ghi chú cuối `docs/AI_CHANNEL.md` (Darling cần QA cài đè).
-- Bản V2 (mã trong `tests/v2/overlay` của main, tag `dev-2.0.1`, workflow `release-v2.yml`): gói `com.che779.emulatorv2`, "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, versionCode 200. Thêm: nút nguồn/xoá ở danh sách, `Config.startEmptyUi` (tab đầu trống, extra `KEY_EMPTY_UI`), GridPanel dạng thẻ (tiêu đề, ✕, proxy, dừng, phóng to, "+ Thêm tab"), chặn xoá tab cuối, chế độ thêm game (`che779_add_mode`). Cần Darling QA: giao diện trống không có game, nút nguồn dừng game nền.
+- Bản V2 (mã trong `tests/v2/overlay` của main, tag `dev-2.0.1`, workflow `release-v2.yml`): gói `com.che779.emulatorv2`, "Che779 Emulator V2", dữ liệu `J2ME-Che779v2`, versionName `2.0.1`, versionCode 201. Thêm: nút nguồn/xoá ở danh sách, `Config.startEmptyUi` (tab đầu trống, extra `KEY_EMPTY_UI`), GridPanel dạng thẻ (tiêu đề, ✕, proxy, dừng, phóng to, "+ Thêm tab"), chặn xoá tab cuối, chế độ thêm game (`che779_add_mode`). Cần Darling QA: giao diện trống không có game, nút nguồn dừng game nền.
 
 - Lỗi từ video 18:42: IllegalStateException trong SetCurrentEvent khi quay lại từ cửa sổ nổi (view còn gắn ở floating host/grid). Sửa: gỡ cha cũ trước addView; reattachRunningSessions đặt Session.grid=false và clearDisplayableView. CHƯA thử máy thật.
 
@@ -89,3 +89,14 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 - termux/che779-termux.sh: sửa tên tệp trong trợ giúp/thông báo (che779.sh → che779-termux.sh), --help không in khung ASCII, cảnh báo khi chưa cấp quyền bộ nhớ (dữ liệu lưu tạm). Test tests/test-termux.sh đạt với jar giả; KHÔNG thử trên Termux thật.
 
 - Release: ghi chú lấy từ .github/release-notes.md (@TAG@/@VER@); workflow update_tag cũng sửa tên/pre-release/ghi chú và gỡ build-tail.log. Bản v1.3.1 từng bị đổi tên "Nhật ký build" + pre-release (trùng lúc Cherry tạo thẻ và workflow Build; nguyên nhân chính xác chưa rõ). Sandbox không có quyền sửa release qua API (403), phải qua workflow.
+
+## Đối chiếu version — 2026-11-23 (yêu cầu Cherry, theo thư Darling)
+Nguồn đối chiếu: source/Gradle, docs, tag, Release (APK thực tế chưa cài/chạy: `NOT_RUN`).
+| Nguồn | Bản chính | V2 |
+|---|---|---|
+| `app/build.gradle` (HEAD `715daca19e8ec0e7bae1353d5a50b4d49ca82567`) | 1.3.2 / 132 | overlay: 2.0.1 / 201 |
+| `VERSION` | 1.3.2 | — |
+| Tag | `v1.3.2` → `c7d5f9c` | `dev-2.0.1` → `715daca`; `dev-2.0.0` → `b3bb6ef` (còn tồn tại) |
+| Release | `v1.3.2` target `c7d5f9c`, APK build từ `715daca` (workflow cũ build mã mới nhất khi chạy tay) | `dev-2.0.1` target `715daca` |
+- **Version inconsistency còn mở:** Release `v1.3.2` có tag ở `c7d5f9c` nhưng APK lấy từ `715daca` (các commit giữa hai mốc đổi code, gồm cập nhật cửa sổ nổi và kiểm tra cập nhật). Cần Cherry quyết định dời tag `v1.3.2` về `715daca` (Cherry tự thực hiện) hoặc phát hành lại.
+- Claude không tự dời tag. Workflow đã được trả về hành vi "luôn build đúng commit của tag, không tạo/dời/xoá tag".
