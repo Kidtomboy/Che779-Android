@@ -157,6 +157,16 @@ final class GridPanel extends LinearLayout {
 		});
 		f.addView(col, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
 				ViewGroup.LayoutParams.MATCH_PARENT));
+		if (empty) {
+			TextView x = new TextView(getContext());
+			x.setText("\u2715");
+			x.setTextColor(0xFFBBBBBB);
+			x.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+			x.setGravity(Gravity.CENTER);
+			x.setOnClickListener(v -> listener.onClose(null));
+			FrameLayout.LayoutParams xp = new FrameLayout.LayoutParams(dp(44), dp(40), Gravity.TOP | Gravity.END);
+			f.addView(x, xp);
+		}
 		return f;
 	}
 
