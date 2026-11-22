@@ -60,8 +60,8 @@ Che779 gồm 4 dự án, mỗi dự án một repo. Bạn đang xem **Project 4*
 |:-:|---|---|
 | 🗂️ | **Đa tab** | Mỗi game là một phiên riêng trong cùng một ứng dụng; dữ liệu, mạng và hiển thị tách theo tab |
 | 🔢 | **Số tab cố định** | Đóng tab 3 rồi mở lại vẫn là tab 3; dữ liệu tài khoản theo số tab, không trùng nhau |
-| 🔲 | **Chế độ lưới** | Xem nhiều game cùng lúc dạng ô, chuyển qua lại giữa danh sách và lưới |
-| 💬 | **Bong bóng nổi** | Thu game thành bong bóng kéo được; chạm để mở cửa sổ nổi (đổi cỡ, thu nhỏ); kéo vào ✕ để tắt, chạm đúp để mở ứng dụng |
+| 🔲 | **Chế độ lưới** | Xem nhiều game cùng lúc dạng ô, chuyển qua lại giữa danh sách và lưới. Công tắc **Lấp đầy ô lưới** (Cài đặt): ô theo hình dạng game, 2–3 cột, quá 12 tab thì vuốt xuống |
+| 💬 | **Bong bóng nổi** | Thu game thành bong bóng kéo được; chạm để mở cửa sổ nổi (đổi cỡ, thu nhỏ; công tắc **Lấp đầy cửa sổ nổi** cho cửa sổ co theo hình dạng game); kéo vào ✕ để tắt, chạm đúp để mở ứng dụng |
 | ⌨️ | **Bàn phím ảo kiểu J2ME** | Bàn phím 12 phím dạng điện thoại, dùng ở chế độ lưới và trong cửa sổ nổi |
 | 🔁 | **Đồng bộ phím** | Chọn các tab cùng nhận một phím bấm (tick từng tab) |
 | 🌐 | **Proxy theo tab** | HTTP / SOCKS4 / SOCKS5 riêng từng tab. Dạng danh sách: form Host/Port/User/Pass + nút Kiểm tra; dạng lưới và cửa sổ nổi: bảng theo tab (chọn, sửa, xoá, tích bật/tắt, gán lần lượt). Nhập từ TXT/JSON/CSV hoặc dán; dữ liệu dùng chung giữa các dạng |
@@ -171,6 +171,8 @@ Phần lõi J2ME Loader lo các API MIDP/CLDC; Che779 thêm lớp vỏ đa phiê
 | Bản ghép nhiều game con (x6…) không vào được | Từ v1.3.1 bản x6 đã chơi được. Nếu bản ghép khác vẫn lỗi, mở Issue kèm file `che779-diag.txt`. |
 | Bàn phím J2ME gốc thụt xuống sau khi thoát chế độ lưới | Lỗi đã biết. Dùng mục menu **Sửa bàn phím ảo** hoặc bàn phím ảo của ứng dụng. |
 | Game không vào được mạng | Thử gán proxy (menu **Proxy**) hoặc **Chuyển hướng IP** cho tab, rồi mở lại kết nối: proxy chỉ áp dụng cho kết nối mới. Nút **Kiểm tra** trong form proxy cho biết proxy có sống không. Lỗi mạng còn có thể do chính máy chủ game. |
+| Bấm nhanh nhiều nút công cụ ra nhiều hộp thoại chồng nhau | Đã sửa ở 1.3.2: chỉ một hộp thoại tại một thời điểm, bấm khi đang có hộp thoại sẽ bị bỏ qua. |
+| Ô lưới còn khoảng trống hai bên / bên dưới | Bật **Lấp đầy ô lưới** (và **Lấp đầy cửa sổ nổi**) trong Cài đặt ở màn hình chọn game. Nếu không đổi ngay, thoát hẳn game rồi mở lại lưới. |
 | Đồng bộ tab thao tác lan sang tab khác | Đồng bộ tự tắt khi rời dạng lưới. Chỉ bật khi thật sự muốn các tab cùng nhận phím (tránh mua hàng nhầm ở tab khác). |
 | Bong bóng biến mất khi kéo | Đừng thả bong bóng vào vùng ✕ ở giữa đáy màn hình. Cài đặt có mục chỉnh cỡ, độ mờ và chỉ hiện khi treo. |
 | Quên thoát game, máy nóng hoặc hao pin | Bản V2: bấm nút **nguồn** ở danh sách game để thoát hẳn. Bản thường: menu **Thoát**. |
