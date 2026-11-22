@@ -62,7 +62,7 @@ jobs:
               echo "==== ERRORS"
               grep -nE "error:|\\.java:[0-9]+: |Caused by|Execution failed|ndk-build|clang" build.log | grep -v "at org.gradle" | head -150 || true
               echo "==== TAIL"
-              tail -n 200 build.log
+              tail -n 10000 build.log
             } > build-tail.log
           else
             {
