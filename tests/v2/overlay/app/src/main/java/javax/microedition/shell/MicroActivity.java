@@ -1282,6 +1282,15 @@ public class MicroActivity extends AppCompatActivity {
 			}
 		});
 		bottomBar.setGridMode(true, Session.syncKeys);
+		if (gridLayoutL != null) {
+			host().removeOnLayoutChangeListener(gridLayoutL);
+		}
+		gridLayoutL = (v, l, t, r, b, ol, ot, or2, ob) -> {
+			if (gridPanel != null && gridPanel.sizeChanged(r - l, b - t)) {
+				rebuildGrid(); // khung đổi cỡ (cửa sổ nổi, xoay màn hình): xếp lại ô
+			}
+		};
+		host().addOnLayoutChangeListener(gridLayoutL);
 		host().addView(gridPanel, new android.widget.FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 		LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) binding.toolbar.getLayoutParams();
@@ -1328,6 +1337,8 @@ public class MicroActivity extends AppCompatActivity {
 
 	private int emptyTabs; // ô "Mở game" chưa gán game (chế độ lấp đầy)
 
+	private View.OnLayoutChangeListener gridLayoutL;
+
 	private void rebuildGrid() {
 		host().post(() -> {
 			if (!gridMode || gridPanel == null) {
@@ -1335,6 +1346,7 @@ public class MicroActivity extends AppCompatActivity {
 			}
 			ViewGroup h = host();
 			gridPanel.setFill(boolPref("pref_fill_grid", R.bool.default_fill_grid), aspectOf());
+			gridPanel.setFit(floating);
 			if (tabs.isEmpty() && emptyTabs == 0) {
 				emptyTabs = 2; // chưa có game: hai ô "Mở game"
 			}
