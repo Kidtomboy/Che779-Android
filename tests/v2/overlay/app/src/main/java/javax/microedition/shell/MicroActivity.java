@@ -812,6 +812,12 @@ public class MicroActivity extends AppCompatActivity {
 	private void confirmCloseActive() {
 		final Session s = Session.active();
 		if (s == null) {
+			if (isLastTab()) {
+				toastLastTab(); // chỉ còn ô "Mở game" cuối cùng
+			} else if (emptyTabs > 0) {
+				emptyTabs--;
+				rebuildGrid();
+			}
 			return;
 		}
 		final int no = slotOf(s);
@@ -819,14 +825,10 @@ public class MicroActivity extends AppCompatActivity {
 				.setTitle(R.string.CONFIRMATION_REQUIRED)
 				.setMessage("Đóng tab " + no + "?")
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
-					if (isLastTab()) {
-						toastLastTab();
-					} else {
-						if (gridMode) {
-							emptyTabs++;
-						}
-						closeSession(s);
+					if (gridMode) {
+						emptyTabs++; // ô trở về "Mở game"
 					}
+					closeSession(s); // tab cuối: chỉ thoát game; ấn lần nữa mới báo không xoá được
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
@@ -975,9 +977,17 @@ public class MicroActivity extends AppCompatActivity {
 				uiHandler.postDelayed(again, 1200);
 			}
 			saveTabs();
-			if (tabs.isEmpty() && again == null && gridMode) {
+			if (tabs.isEmpty() && again == null) {
 				// V2: đóng tab cuối = thoát game, quay về ô trống "Mở game" (không đóng ứng dụng)
 				Session.setActive(null);
+				if (emptyTabs == 0) {
+					emptyTabs = 1;
+				}
+				if (!gridMode) {
+					enterGrid(); // dạng danh sách: chuyển sang lưới trống
+					refreshTabBar();
+					return;
+				}
 				rebuildGrid();
 				refreshTabBar();
 				return;
@@ -1239,11 +1249,13 @@ public class MicroActivity extends AppCompatActivity {
 
 			@Override
 			public void onClose(Session s) {
-				if (isLastTab()) {
-					toastLastTab();
-				} else if (s == null) {
-					emptyTabs--; // xoá một ô "Mở game" trống
-					rebuildGrid();
+				if (s == null) {
+					if (isLastTab()) {
+						toastLastTab(); // ô cuối cùng, đã trống: không xoá được
+					} else {
+						emptyTabs--; // xoá một ô "Mở game" trống
+						rebuildGrid();
+					}
 				} else {
 					emptyTabs++; // đóng game: ô trở về "Mở game", giữ nguyên số tab
 					closeSession(s);
