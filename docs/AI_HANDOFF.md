@@ -5,7 +5,7 @@ Dành cho người hoặc AI tiếp tục làm việc trên Project 4.
 ## Nhận diện
 
 - Repo: `Kidtomboy/Che779-Android` (trước đây tên `Che779-Emulator`; tên đó nay là Project 1).
-- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản nguồn hiện tại `1.3.2` (`versionCode 132`); lịch sử 1.3.1/131 ở mục "Nâng lên 1.3.1" bên dưới.
+- Ứng dụng `com.che779.emulator`, nền J2ME Loader 1.8.2, phiên bản nguồn hiện tại `1.3.3` (`versionCode 133`); lịch sử 1.3.2/132 và 1.3.1/131 ở mục "Nâng lên 1.3.1" bên dưới.
 - Lớp vỏ Che779: `javax.microedition.shell.*`.
 
 ## Nguyên tắc
@@ -94,9 +94,9 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 Nguồn đối chiếu: source/Gradle, docs, tag, Release (APK thực tế chưa cài/chạy: `NOT_RUN`).
 | Nguồn | Bản chính | V2 |
 |---|---|---|
-| `app/build.gradle` (HEAD `715daca19e8ec0e7bae1353d5a50b4d49ca82567`) | 1.3.2 / 132 | overlay: 2.0.1 / 201 |
-| `VERSION` | 1.3.2 | — |
+| `app/build.gradle` (HEAD `715daca19e8ec0e7bae1353d5a50b4d49ca82567`) | 1.3.3 / 133 (nâng 2026-11-24) | overlay: 2.0.1 / 201 (giữ nguyên) |
+| `VERSION` | 1.3.3 | — |
 | Tag | `v1.3.2` → `c7d5f9c` | `dev-2.0.1` → `715daca`; `dev-2.0.0` → `b3bb6ef` (còn tồn tại) |
-| Release | `v1.3.2` target `c7d5f9c`, APK build từ `715daca` (workflow cũ build mã mới nhất khi chạy tay) | `dev-2.0.1` target `715daca` |
+| Release | `v1.3.3` chưa có (Cherry tạo tag); `v1.3.2` target `c7d5f9c`, APK build từ `715daca` (workflow cũ build mã mới nhất khi chạy tay) | `dev-2.0.1` target `715daca` |
 - **Version inconsistency còn mở:** Release `v1.3.2` có tag ở `c7d5f9c` nhưng APK lấy từ `715daca` (các commit giữa hai mốc đổi code, gồm cập nhật cửa sổ nổi và kiểm tra cập nhật). Cần Cherry quyết định dời tag `v1.3.2` về `715daca` (Cherry tự thực hiện) hoặc phát hành lại.
-- Claude không tự dời tag. Workflow đã được trả về hành vi "luôn build đúng commit của tag, không tạo/dời/xoá tag".
+- Tag `v1.3.3` do Cherry tạo trên commit chứa version 1.3.3; Claude không tự tạo hay dời tag. Workflow đã được trả về hành vi "luôn build đúng commit của tag, không tạo/dời/xoá tag".

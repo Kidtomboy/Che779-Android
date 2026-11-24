@@ -29,7 +29,7 @@ Một lần CI xanh không thay cho việc thử trên máy thật.
 Trạng thái của mọi dòng dưới đây: `NOT_RUN` (cần thiết bị Android thật; Claude không có). Người thực hiện đề xuất: Cherry/Darling. Mã nguồn: `update/UpdateManager.java`.
 | ID | Kịch bản | Thiết bị/API | Cách làm | Kết quả mong đợi | Loại | Trạng thái |
 |---|---|---|---|---|---|---|
-| U1 | Cập nhật từ bản cũ lên mới (bản chính) | Android 8+ | Cài bản thấp hơn v1.3.2, Cài đặt → Cập nhật → Kiểm tra | Hộp thoại bản mới, tải, cài đè, dữ liệu còn | thủ công | NOT_RUN |
+| U1 | Cập nhật từ bản cũ lên mới (bản chính) | Android 8+ | Cài bản thấp hơn v1.3.3, Cài đặt → Cập nhật → Kiểm tra | Hộp thoại bản mới, tải, cài đè, dữ liệu còn | thủ công | NOT_RUN |
 | U2 | Như U1 cho V2 | Android 8+ | Cài `dev-2.0.0`, kiểm tra | Thấy `dev-2.0.1`; bản chính không thấy `dev-*` | thủ công | NOT_RUN |
 | U3 | Chưa cấp quyền cài từ nguồn ngoài | API 26+ | Tải xong khi chưa cấp quyền | Mở màn hình cấp quyền, không crash; kiểm tra lại sau khi cấp thì cài được | thủ công | NOT_RUN |
 | U4 | Từ chối quyền | API 26+ | Quay lại không cấp | Không cài, không treo | thủ công | NOT_RUN |
@@ -39,7 +39,7 @@ Trạng thái của mọi dòng dưới đây: `NOT_RUN` (cần thiết bị And
 | U8 | Release chưa có APK | bất kỳ | Release thử không APK | Bị bỏ qua, không báo "có bản mới" | thủ công | NOT_RUN |
 | U9 | Kênh/gói không khớp | bất kỳ | Chạy bản clone `com.che779.emulator2` | Chỉ mở trang Releases, không tự cài | thủ công | NOT_RUN |
 | U10 | Đã là bản mới nhất | bất kỳ | Kiểm tra khi trùng phiên bản | Toast "đang dùng bản mới nhất" | thủ công | NOT_RUN |
-| U11 | So sánh phiên bản `1.3.2-dev-N` | bất kỳ | Bản dev có hậu tố | Hậu tố bị bỏ khi so sánh | unit (chưa có test) | NOT_RUN |
+| U11 | So sánh phiên bản `1.3.3-dev-N` | bất kỳ | Bản dev có hậu tố | Hậu tố bị bỏ khi so sánh | unit (chưa có test) | NOT_RUN |
 | U12 | Giới hạn API 60/giờ | bất kỳ | Kiểm tra liên tục | Toast lỗi HTTP, không crash | thủ công | NOT_RUN |
 | U13 | Tự kiểm tra khi mở app | bất kỳ | Bật công tắc, mở app 2 lần trong ngày | Chỉ kiểm tra 1 lần; im lặng khi không có gì mới | thủ công | NOT_RUN |
 | U14 | Log không lộ dữ liệu nhạy cảm | bất kỳ | Xem logcat | Không có token/khoá (app không dùng token) | static + thủ công | STATIC_REVIEW (chưa thủ công) |

@@ -2,6 +2,12 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
+## [1.3.3] — Bản phát hành
+
+Gói `com.che779.emulator`, `versionCode 133`. Mọi thứ của 1.3.2, thêm:
+- Việt hóa comment trong mã lớp vỏ Che779 và dọn tài liệu. **Không đổi chức năng.** Chưa kiểm chứng trên máy thật.
+- Bản V2 (thử nghiệm) giữ nguyên `dev-2.0.1` (`versionCode 201`).
+
 ## [1.3.2] — Bản phát hành
 
 Gói `com.che779.emulator`, `versionCode 132`. Mọi thứ của 1.3.1, thêm:
