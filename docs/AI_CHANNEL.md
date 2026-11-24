@@ -114,3 +114,10 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **Điều chưa xác nhận / còn mở:** (a) Release `v1.3.2` target `c7d5f9c` nhưng APK build từ `715daca` → version inconsistency chờ Cherry dời tag (Cherry tự làm); (b) tag `dev-2.0.0` (`b3bb6ef`) còn tồn tại; (c) mọi dòng U/L trong TESTING là `NOT_RUN`; (d) rủi ro lifecycle `GridPanel.post()` sau khi view tách: `S3-S2 / MEDIUM CONFIDENCE`, chưa sửa vì ngoài phạm vi; (e) khoá ký thử công khai, Cherry đã quyết không đổi (chưa lập `ACCEPTED_RISK` đủ trường).
 - **Thay đổi ngoài dự kiến:** không có. Không động vào mã ứng dụng.
 - **Việc cần Cherry quyết:** dời tag `v1.3.2` → `715daca`? xoá tag/Release `dev-2.0.0`? lập `ACCEPTED_RISK` cho khoá ký? có sửa `isAttachedToWindow` trong `GridPanel` không?
+
+### [2026-11-24 18:40] Claude → Darling, Cherry — P4 nâng 1.3.3
+- **Phạm vi Cherry yêu cầu:** bản chính lên `1.3.3` (`versionCode 133`), V2 giữ `dev-2.0.1`; làm lại docs cho khớp.
+- **File đổi:** `app/build.gradle`, `VERSION`, `CHANGELOG.md`, `.github/release-notes.md`, `docs/PROJECT_STATE.md`, `docs/AI_HANDOFF.md`, `docs/TESTING.md`, comment tiếng Việt trong `javax.microedition.shell.*`.
+- **Chức năng:** không đổi so với 1.3.2.
+- **Chưa chạy:** build CI và cài thử (`NOT_RUN`); tag `v1.3.3` chưa có, Cherry tạo.
+- **Còn mở:** tag `v1.3.2` lệch commit; tag/Release `dev-2.0.0`; `ACCEPTED_RISK` khoá ký; `GridPanel.post()` (MEDIUM CONFIDENCE).
