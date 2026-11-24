@@ -1,7 +1,6 @@
 /*
- *  Che779 Emulator - unified bubble: control bubble <-> floating game window.
- *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
- *  Concept: control bubble of J2ME_NST (NST Tien) + floating window of J2ME Loader v10 (Hung Hero).
+ *  Che779 Emulator - bong bóng hợp nhất: bong bóng điều khiển <-> cửa sổ game nổi.
+ *  Giấy phép Apache License 2.0 (cùng giấy phép J2ME Loader).
  */
 package javax.microedition.shell;
 
@@ -31,12 +30,12 @@ import androidx.preference.PreferenceManager;
 import ru.playsoftware.j2meloader.R;
 
 /**
- * Lives in the :midlet process. Shown while the game screen is in the background so the
- * games keep running and can still be seen and operated in a small window.
+ * Chạy trong tiến trình :midlet. Hiện khi màn hình game ở nền để
+ * game vẫn chạy và có thể xem, điều khiển trong cửa sổ nhỏ.
  */
 final class FloatingController {
 	interface Callbacks {
-		/** Bring the full game screen back. */
+		/** Đưa màn hình game đầy đủ trở lại. */
 		void onDock();
 
 		void onSyncDialog();
@@ -47,27 +46,27 @@ final class FloatingController {
 
 		void onPickTab();
 
-		/** The "*" button (switches tabs of merged games). */
+		/** Nút "*" (chuyển tab của các game đã gộp). */
 		void onStar();
 
-		/** Previous (-1) / next (+1) tab. */
+		/** Tab trước (-1) / tab sau (+1). */
 		void onCycle(int delta);
 
-		/** Toggles key sync (all tabs of the same game); returns the new state. */
+		/** Bật/tắt đồng bộ phím (mọi tab cùng game); trả về trạng thái mới. */
 		boolean onToggleSync();
 
 		boolean isSync();
 
-		/** Keys from the keypad of the floating window. */
+		/** Phím từ bàn phím của cửa sổ nổi. */
 		void onKeys(int[] codes, boolean down);
 
 		/** Hide level changed (0 OFF, 1 SOFT, 2 STEALTH, 3 NINJA). */
 		void onHideLevel(int level);
 
-		/** The bubble was tapped while the app is still on screen: move the game into the floating window. */
+		/** Bong bóng được chạm khi ứng dụng còn trên màn hình: chuyển game vào cửa sổ nổi. */
 		void onMinimize();
 
-		/** Width / height of the game screen (0.75 when unknown). */
+		/** Rộng / cao của màn hình game (0.75 khi chưa biết). */
 		float aspect();
 
 		boolean fillFloat();
@@ -103,7 +102,7 @@ final class FloatingController {
 	private TextView label;
 	private boolean showing;
 	private boolean expanded;
-	/** Bubble shown while the game is on screen (it only offers the menu and the floating window). */
+	/** Bong bóng hiện khi game đang trên màn hình (chỉ có menu và cửa sổ nổi). */
 	private boolean inApp;
 	private boolean longFired;
 
@@ -144,7 +143,7 @@ final class FloatingController {
 		return lp;
 	}
 
-	/** Shows the bubble (or the window, when it was open before). */
+	/** Hiện bong bóng (hoặc cửa sổ, nếu trước đó đang mở). */
 	void show(Callbacks cb) {
 		callbacks = cb;
 		if (showing && inApp) {
@@ -163,7 +162,7 @@ final class FloatingController {
 		applyHide();
 	}
 
-	/** Shows only the bubble while the game is on screen; tapping it moves the game to the floating window. */
+	/** Chỉ hiện bong bóng khi game đang trên màn hình; chạm vào sẽ chuyển game sang cửa sổ nổi. */
 	void showInApp(Callbacks cb) {
 		callbacks = cb;
 		if (showing) {
@@ -251,7 +250,7 @@ final class FloatingController {
 					case MotionEvent.ACTION_UP:
 						handler.removeCallbacks(longPress);
 						if (longFired) {
-							// a long press only opens the menu; it must not also count as a tap
+							// nhấn giữ chỉ mở menu, không được tính thêm là một lần chạm
 							longFired = false;
 							return true;
 						}
@@ -259,19 +258,19 @@ final class FloatingController {
 							boolean drop = overDropTarget();
 							removeDropTarget();
 							if (drop) {
-								// dropped on the X: close the bubble
+								// thả vào nút X: đóng bong bóng
 								sp.edit().putBoolean("pref_bubble_enabled", false).apply();
 								hide();
 								return true;
 							}
 							sp.edit().putInt(K_BX, bubbleLp.x).putInt(K_BY, bubbleLp.y).apply();
 						} else if (inApp) {
-							// the app is already on screen: one tap moves the game into the floating window
+							// ứng dụng đang trên màn hình: chạm một lần để chuyển game vào cửa sổ nổi
 							if (callbacks != null) {
 								callbacks.onMinimize();
 							}
 						} else if (pendingTap != null) {
-							// double tap: bring the full app back
+							// chạm đúp: đưa ứng dụng đầy đủ trở lại
 							handler.removeCallbacks(pendingTap);
 							pendingTap = null;
 							if (callbacks != null) {
@@ -385,7 +384,7 @@ final class FloatingController {
 		}
 	}
 
-	/** SOFT: out of recents. STEALTH: small and faint bubble. NINJA: almost invisible bubble. */
+	/** SOFT: ẩn khỏi danh sách gần đây. STEALTH: bong bóng nhỏ và mờ. NINJA: bong bóng gần như vô hình. */
 	void applyHide() {
 		int level = hideLevel();
 		if (callbacks != null) {
@@ -493,10 +492,10 @@ final class FloatingController {
 		void down(float rawX, float rawY);
 	}
 
-	/** Width of a bar button; shrinks with the window so a strip of the bar stays free for dragging. */
+	/** Độ rộng một nút trên thanh; co lại theo cửa sổ để còn một đoạn thanh trống dùng để kéo. */
 	private int btnW = 34 * 3;
 
-	/** Bar that starts dragging the window when a finger moves on any of its buttons. */
+	/** Thanh bắt đầu kéo cửa sổ khi ngón tay di chuyển trên bất kỳ nút nào của nó. */
 	private final class DragBar extends LinearLayout {
 		private final DragBegin begin;
 		private float dx, dy;
@@ -587,7 +586,7 @@ final class FloatingController {
 		bar.addView(label);
 		TextView star = button("*", null);
 		star.setOnTouchListener((v, ev) -> {
-			// hold = key held down, like the keypad (long press switches merged games)
+			// giữ = giữ phím như bàn phím (nhấn giữ để chuyển game đã gộp)
 			int a = ev.getActionMasked();
 			if (callbacks != null && (a == MotionEvent.ACTION_DOWN || a == MotionEvent.ACTION_UP
 					|| a == MotionEvent.ACTION_CANCEL)) {
@@ -684,8 +683,8 @@ final class FloatingController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			window = null;
-			// The window was not attached. Keep the floating controls reachable
-			// instead of leaving the game with neither a window nor a bubble.
+			// Cửa sổ chưa được gắn vào. Giữ các nút điều khiển nổi còn dùng được
+			// thay vì để game không còn cửa sổ lẫn bong bóng.
 			showing = true;
 			expanded = false;
 			showBubble();
@@ -739,7 +738,7 @@ final class FloatingController {
 				wm.removeView(window);
 			} catch (Exception ignored) {
 			}
-			// keep the content host alive for the next show
+			// giữ vùng chứa nội dung để lần hiện sau dùng lại
 			if (host.getParent() instanceof ViewGroup) {
 				((ViewGroup) host.getParent()).removeView(host);
 			}

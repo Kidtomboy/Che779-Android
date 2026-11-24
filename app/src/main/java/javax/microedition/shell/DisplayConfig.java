@@ -1,12 +1,12 @@
 /*
- *  Che779 Emulator - per-tab display configuration (was static in Canvas/Displayable).
+ *  Che779 Emulator - cấu hình hiển thị theo tab (trước đây là static trong Canvas/Displayable).
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
 
 import ru.playsoftware.j2meloader.config.ShaderInfo;
 
-/** Screen settings of one tab, so tabs shown side by side in the grid can differ. */
+/** Cài đặt màn hình của một tab, để các tab hiện cạnh nhau trong lưới có thể khác nhau. */
 public final class DisplayConfig {
 	public volatile boolean filter;
 	public volatile boolean touchInput;

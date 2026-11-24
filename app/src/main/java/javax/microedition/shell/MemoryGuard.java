@@ -1,5 +1,5 @@
 /*
- *  Che779 Emulator - periodic memory cleaning (settings idea: J2ME Loader v10 by Hung Hero).
+ *  Che779 Emulator - dọn bộ nhớ định kỳ.
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
@@ -12,7 +12,7 @@ import android.os.Looper;
 
 import androidx.preference.PreferenceManager;
 
-/** Every N seconds, when free RAM drops under a threshold, asks the VM to collect garbage. */
+/** Cứ N giây, khi RAM trống xuống dưới ngưỡng, yêu cầu VM dọn rác. */
 final class MemoryGuard {
 	private final Context ctx;
 	private final Handler handler = new Handler(Looper.getMainLooper());
@@ -31,7 +31,7 @@ final class MemoryGuard {
 				am.getMemoryInfo(mi);
 				long availMb = mi.availMem / (1024 * 1024);
 				if (mi.lowMemory || availMb < readInt(sp, "pref_mem_threshold_mb", 100)) {
-					// never on the UI thread: a slow finalizer must not freeze the screen
+					// không bao giờ chạy trên luồng giao diện: finalizer chậm không được làm đứng màn hình
 					Thread t = new Thread(System::gc, "Che779-MemGuard");
 					t.setDaemon(true);
 					t.setPriority(Thread.MIN_PRIORITY);

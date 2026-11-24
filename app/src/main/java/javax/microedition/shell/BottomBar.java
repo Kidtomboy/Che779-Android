@@ -1,7 +1,7 @@
 /*
- *  Che779 Emulator - bottom action bar: every function is an icon with an equal-width cell, so icons
- *  never overlap. Bubble, close tab, new tab, list/grid, game picker, Nokia / Android keypad, key sync
- *  and proxy (grid mode only), and the three-dot menu.
+ *  Che779 Emulator - thanh thao tác dưới: mỗi chức năng là một biểu tượng trong ô cùng độ rộng, nên biểu tượng
+ *  không bao giờ chồng nhau. Bong bóng, đóng tab, tab mới, danh sách/lưới, chọn game, bàn phím Nokia / Android, đồng bộ phím
+ *  và proxy (chỉ chế độ lưới), cùng menu ba chấm.
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
@@ -128,7 +128,7 @@ final class BottomBar extends LinearLayout {
 		addView(v, new LayoutParams(0, (int) (HEIGHT_DP * d), 1f));
 	}
 
-	/** Grid mode shows the grid-only icons (key sync, proxy) and a list icon to go back. */
+	/** Chế độ lưới hiện các biểu tượng riêng của lưới (đồng bộ phím, proxy) và biểu tượng danh sách để quay lại. */
 	void setGridMode(boolean grid, boolean syncOn) {
 		this.grid.setImageResource(grid ? R.drawable.ic_c_list : R.drawable.ic_c_grid);
 		this.grid.setContentDescription(grid ? "Về danh sách" : "Chế độ lưới");
@@ -141,7 +141,7 @@ final class BottomBar extends LinearLayout {
 		sync.setImageResource(on ? R.drawable.ic_c_checked : R.drawable.ic_c_unchecked);
 	}
 
-	/** Highlights the keypad kind that is open (or none). */
+	/** Tô sáng loại bàn phím đang mở (hoặc không có). */
 	void setKeypad(int type, boolean open) {
 		nokia.setColorFilter(open && type == KeypadFactory.NOKIA ? 0xFF4C8DFF : Color.WHITE);
 		androidKb.setColorFilter(open && type == KeypadFactory.ANDROID ? 0xFF4C8DFF : Color.WHITE);

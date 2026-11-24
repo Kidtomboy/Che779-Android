@@ -1,7 +1,7 @@
 /*
- *  Che779 Emulator - keeps the game process alive while games run (bubble and notification).
+ *  Che779 Emulator - giữ tiến trình game sống khi game chạy (bong bóng và thông báo).
  *  The notification has two buttons: "Chế độ" (cycles the battery mode) and "Dừng" (stops the app),
- *  and shows the current battery mode in its text.
+ *  và hiện chế độ pin hiện tại trong nội dung.
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
@@ -32,7 +32,7 @@ public class BubbleService extends Service {
 	static final String ACTION_STOP = "com.che779.emulator.action.STOP";
 	static final String ACTION_TIME = "com.che779.emulator.action.TIME";
 
-	/** Moment the first game was opened (0 = no game yet). */
+	/** Thời điểm mở game đầu tiên (0 = chưa có game). */
 	private static volatile long startedAt;
 	private final Handler tick = new Handler(Looper.getMainLooper());
 	private final Runnable tickTask = new Runnable() {
@@ -82,7 +82,7 @@ public class BubbleService extends Service {
 		}
 	}
 
-	/** Redraws the notification (battery mode changed). */
+	/** Vẽ lại thông báo (chế độ pin đã đổi). */
 	static void refresh(Context c) {
 		try {
 			NotificationManager nm = (NotificationManager) c.getSystemService(NOTIFICATION_SERVICE);
@@ -132,7 +132,7 @@ public class BubbleService extends Service {
 		MicroActivity a = ContextHolder.getActivity();
 		int mode = a == null ? 0 : a.powerMode();
 		if (ACTION_MODE.equals(act) && a != null) {
-			// show the new mode at once; the activity applies it on its UI thread
+			// hiện chế độ mới ngay; activity áp dụng trên luồng giao diện của nó
 			mode = (mode + 1) % MicroActivity.POWER_NAMES.length;
 			a.cyclePowerMode();
 		}

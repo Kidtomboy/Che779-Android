@@ -1,5 +1,5 @@
 /*
- *  Che779 Emulator - shared proxy storage (one source of truth for the list dialog and the grid/floating table).
+ *  Che779 Emulator - kho proxy dùng chung (một nguồn dữ liệu duy nhất cho hộp thoại danh sách và bảng lưới/cửa sổ nổi).
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
@@ -50,7 +50,7 @@ final class ProxyStore {
 		sp.edit().putString(LIST, sb.toString()).apply();
 	}
 
-	/** Adds when new (same host/port/user/pass/type counts as the same). Returns true when added. */
+	/** Thêm nếu là mới (cùng host/cổng/user/pass/loại tính là trùng). Trả về true nếu đã thêm. */
 	static boolean add(SharedPreferences sp, NetConfig c) {
 		List<NetConfig> l = list(sp);
 		String k = c.serialize();
@@ -64,7 +64,7 @@ final class ProxyStore {
 		return true;
 	}
 
-	/** Replaces the entry whose serialized form is {@code oldKey}; adds when it is missing. */
+	/** Thay mục có dạng chuỗi là {@code oldKey}; thêm mới nếu chưa có. */
 	static void replace(SharedPreferences sp, String oldKey, NetConfig c) {
 		List<NetConfig> l = list(sp);
 		boolean done = false;
@@ -91,7 +91,7 @@ final class ProxyStore {
 		saveList(sp, l);
 	}
 
-	// ---- per tab
+	// ---- theo từng tab
 
 	static NetConfig tabProxy(SharedPreferences sp, int no) {
 		return NetConfig.parse(sp.getString("che779_tab_proxy_" + no, ""));
@@ -111,7 +111,7 @@ final class ProxyStore {
 		e.apply();
 	}
 
-	/** Copies the stored choice of tab {@code no} into the running session (applies to new connections). */
+	/** Chép lựa chọn đã lưu của tab {@code no} vào phiên đang chạy (áp dụng cho kết nối mới). */
 	static void applyTo(SharedPreferences sp, int no, Session s) {
 		NetConfig c = tabProxy(sp, no);
 		if (c != null && tabEnabled(sp, no)) {

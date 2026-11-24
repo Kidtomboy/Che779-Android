@@ -5,7 +5,7 @@ import android.graphics.PorterDuff;
 import android.view.View;
 import android.widget.ImageView;
 
-/** Helper to build tinted Android (Material) vector icon buttons. */
+/** Hàm hỗ trợ dựng nút biểu tượng vector Android (Material) có đổi màu. */
 final class Icons {
 	private Icons() {
 	}

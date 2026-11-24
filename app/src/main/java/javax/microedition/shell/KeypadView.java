@@ -1,6 +1,6 @@
 /*
- *  Che779 Emulator - phone-style virtual keypad (same layout as the J2ME virtual keyboard),
- *  used as a popup in grid mode and inside the floating (bubble) window.
+ *  Che779 Emulator - bàn phím ảo kiểu điện thoại (cùng bố cục với bàn phím ảo J2ME),
+ *  dùng làm popup ở chế độ lưới và trong cửa sổ nổi (bong bóng).
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
@@ -58,7 +58,7 @@ final class KeypadView extends LinearLayout {
 				{{Canvas.KEY_NUM4}, {Canvas.KEY_NUM5}, {Canvas.KEY_NUM6}, {U, L}, {U}, {U, R}},
 				{{Canvas.KEY_NUM7}, {Canvas.KEY_NUM8}, {Canvas.KEY_NUM9}, {L}, {Canvas.KEY_FIRE}, {R}},
 				{{Canvas.KEY_STAR}, {Canvas.KEY_NUM0}, {Canvas.KEY_POUND}, {D, L}, {D}, {D, R}}};
-		// top-right row: L and R are the soft keys
+		// hàng trên bên phải: L và R là phím mềm
 		labels[0][3] = "L";
 		labels[0][5] = "R";
 		for (int r = 0; r < labels.length; r++) {

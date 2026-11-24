@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-/** Keeps the current diagnostic log and one previous generation without unbounded growth. */
+/** Giữ nhật ký chẩn đoán hiện tại và một bản trước đó, không để phình vô hạn. */
 final class DiagnosticLogStore {
     static final long DEFAULT_MAX_BYTES = 3L * 1024L * 1024L;
 
@@ -60,7 +60,7 @@ final class DiagnosticLogStore {
             throw copyFailure;
         }
         try (FileOutputStream ignored = new FileOutputStream(current, false)) {
-            // Truncate only after the previous generation has been copied successfully.
+            // Chỉ cắt ngắn sau khi bản trước đã được chép thành công.
         }
     }
 

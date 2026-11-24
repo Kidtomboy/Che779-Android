@@ -99,7 +99,7 @@ public class MicroActivity extends AppCompatActivity {
 	private boolean actionBarEnabled;
 	private boolean statusBarEnabled;
 	private InputMethodManager inputMethodManager;
-	/** Tabs in creation order (tab numbers shown in the bar). */
+	/** Các tab theo thứ tự tạo (số tab hiện trên thanh). */
 	private final java.util.ArrayList<Session> tabs = new java.util.ArrayList<>();
 	private TabBar tabBar;
 	private boolean gridMode;
@@ -287,8 +287,8 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	/**
-	 * The app was removed from the recent list but its games kept running in the background:
-	 * show those tabs again instead of failing on the empty launch intent.
+	 * Ứng dụng bị xóa khỏi danh sách gần đây nhưng game vẫn chạy nền:
+	 * hiện lại các tab đó thay vì lỗi do intent khởi chạy rỗng.
 	 */
 	private boolean reattachRunningSessions() {
 		if (Session.count() == 0 || !tabs.isEmpty()) {
@@ -298,7 +298,7 @@ public class MicroActivity extends AppCompatActivity {
 		java.util.Collections.sort(list, (a, b) -> Integer.compare(a.slot, b.slot));
 		Session want = Session.active() != null && list.contains(Session.active()) ? Session.active() : list.get(0);
 		tabs.addAll(list);
-		// views built for the old activity / grid cells / floating host: drop them so fresh ones are made
+		// các view dựng cho activity cũ / ô lưới / vùng nổi: bỏ đi để tạo cái mới
 		Session.grid = false;
 		for (Session o : list) {
 			if (o.current != null) {
@@ -310,7 +310,7 @@ public class MicroActivity extends AppCompatActivity {
 		return true;
 	}
 
-	/** Starts a game described by the intent: first launch, or a new tab when already running. */
+	/** Chạy game mô tả trong intent: lần đầu, hoặc thêm tab mới khi đã chạy. */
 	private void handleLaunchIntent(Intent intent, boolean additional) {
 		String appName;
 		String appPath;
@@ -354,8 +354,8 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	/**
-	 * Data folder suffix of a new tab. A slot remembers which account data it used for a game, so
-	 * re-opening tab 3 gives tab 3's account back and never an account that another open tab uses.
+	 * Hậu tố thư mục dữ liệu của tab mới. Mỗi ô nhớ dữ liệu tài khoản đã dùng cho game, nên
+	 * mở lại tab 3 sẽ trả đúng tài khoản của tab 3, không bao giờ lấy tài khoản của tab khác đang mở.
 	 */
 	private String nextDataSuffix(String appPath, int slot) {
 		java.util.Set<String> used = new java.util.HashSet<>();
@@ -401,7 +401,7 @@ public class MicroActivity extends AppCompatActivity {
 		return false;
 	}
 
-	/** The wanted number when it is free, otherwise the smallest free number. */
+	/** Số mong muốn nếu còn trống, nếu không thì số trống nhỏ nhất. */
 	private int allocSlot(int wanted) {
 		if (wanted > 0 && !slotUsed(wanted)) {
 			return wanted;
@@ -482,7 +482,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
-	// ------------------------------------------------------------ restore tabs
+	// ------------------------------------------------------------ khôi phục tab
 
 	private boolean restoring;
 
@@ -505,7 +505,7 @@ public class MicroActivity extends AppCompatActivity {
 		PreferenceManager.getDefaultSharedPreferences(this).edit().putString("che779_tabs", arr.toString()).apply();
 	}
 
-	/** After the first game of a launch started: reopen the other tabs of the last run. */
+	/** Sau khi game đầu của lần chạy đã khởi động: mở lại các tab khác của lần chạy trước. */
 	private void restoreTabs(String firstPath) {
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 		if (!sp.getBoolean("pref_restore_tabs", true)) {
@@ -517,7 +517,7 @@ public class MicroActivity extends AppCompatActivity {
 			if (arr.length() < 1 || !firstPath.equals(arr.getJSONObject(0).getString("p"))) {
 				return;
 			}
-			// the first tab gets back its old number and name
+			// tab đầu nhận lại số và tên cũ
 			org.json.JSONObject f0 = arr.getJSONObject(0);
 			Session f = tabs.get(0);
 			int sl = f0.optInt("s", 1);
@@ -576,7 +576,7 @@ public class MicroActivity extends AppCompatActivity {
 	private boolean prefPowerApplied;
 	private boolean relayoutPending;
 
-	/** Applies the power mode / headless chosen in Settings once per activity. */
+	/** Áp dụng chế độ pin / headless chọn trong Cài đặt, một lần cho mỗi activity. */
 	private void applyPowerPrefs() {
 		if (prefPowerApplied || Session.count() == 0) {
 			return;
@@ -631,7 +631,7 @@ public class MicroActivity extends AppCompatActivity {
 		BubbleService.refresh(getApplicationContext());
 	}
 
-	/** Used by the Quick Settings tile. */
+	/** Dùng cho ô Cài đặt nhanh. */
 	public void cyclePowerMode() {
 		uiHandler.post(() -> applyPowerMode((powerMode + 1) % POWER_NAMES.length));
 	}
@@ -647,7 +647,7 @@ public class MicroActivity extends AppCompatActivity {
 				.show();
 	}
 
-	/** Removes the visible parts of a tab that is going to the background. */
+	/** Gỡ các phần đang hiện của tab sắp xuống nền. */
 	private void detachSession(Session s) {
 		VirtualKeyboard vk = s.vk;
 		if (vk != null) {
@@ -682,7 +682,7 @@ public class MicroActivity extends AppCompatActivity {
 		MidletThread.resumeApp();
 	}
 
-	/** Height of the tab bar; the overlay (virtual keyboard) must be shifted by it as well. */
+	/** Chiều cao thanh tab; lớp phủ (bàn phím ảo) cũng phải dịch xuống theo. */
 	private int tabBarHeight() {
 		if (tabBar == null) {
 			return 0;
@@ -763,7 +763,7 @@ public class MicroActivity extends AppCompatActivity {
 				androidx.appcompat.R.style.Theme_AppCompat_Light_Dialog_Alert) : this;
 	}
 
-	/** Shows a dialog; over other apps (overlay window) while the game runs in the floating window. */
+	/** Hiện hộp thoại; đè lên ứng dụng khác (cửa sổ lớp phủ) khi game chạy trong cửa sổ nổi. */
 	private void showDlg(AlertDialog.Builder b) {
 		try {
 			AlertDialog d = b.create();
@@ -819,9 +819,9 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	/**
-	 * Fully ends a tab, then opens the same game again in the same number. Order: drop the old
-	 * connections, ask the game to exit, remove the tab (event queue and threads stopped), and only
-	 * then start the new session.
+	 * Kết thúc hẳn một tab rồi mở lại cùng game ở cùng số. Thứ tự: bỏ các
+	 * kết nối cũ, yêu cầu game thoát, gỡ tab (dừng hàng đợi sự kiện và luồng), và chỉ
+	 * sau đó mới khởi động phiên mới.
 	 */
 	private void restartSession(final Session s) {
 		if (!tabs.contains(s) || s.restartAfter != null) {
@@ -839,7 +839,7 @@ public class MicroActivity extends AppCompatActivity {
 		};
 		Toast.makeText(this, "Đang khởi động lại tab " + slotNo + "…", Toast.LENGTH_SHORT).show();
 		closeSession(s);
-		// a game that ignores the exit request is removed anyway
+		// game phớt lờ yêu cầu thoát vẫn bị gỡ
 		uiHandler.postDelayed(() -> {
 			if (tabs.contains(s)) {
 				removeSession(s);
@@ -847,7 +847,7 @@ public class MicroActivity extends AppCompatActivity {
 		}, 3500);
 	}
 
-	/** Asks the game of a tab to exit; the tab disappears when it does. */
+	/** Yêu cầu game của tab thoát; tab biến mất khi game thoát. */
 	private void closeSession(Session s) {
 		MidletThread t = s.thread;
 		if (t != null) {
@@ -857,7 +857,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
-	/** Called (from any thread) when a tab's game has ended. */
+	/** Được gọi (từ bất kỳ luồng nào) khi game của một tab đã kết thúc. */
 	public void removeSession(final Session s) {
 		runOnUiThread(() -> {
 			if (!tabs.contains(s)) {
@@ -897,13 +897,13 @@ public class MicroActivity extends AppCompatActivity {
 				dead.release();
 			}, "Che779-Cleanup").start();
 			if (again != null) {
-				// the old tab is fully gone (threads interrupted, connections closed): open the new one
+				// tab cũ đã hết hẳn (luồng đã ngắt, kết nối đã đóng): mở tab mới
 				uiHandler.postDelayed(again, 1200);
 			}
 			saveTabs();
 			if (tabs.isEmpty() && again == null) {
-				// last tab closed through the multi-tab path: no neighbour to show, so leave cleanly
-				// instead of keeping an empty frame on screen
+				// tab cuối bị đóng qua đường nhiều tab: không còn tab kề để hiện, nên thoát gọn
+				// thay vì để khung trống trên màn hình
 				hideKeypad();
 				host().removeAllViews();
 				MidletThread.finishApp();
@@ -1033,7 +1033,7 @@ public class MicroActivity extends AppCompatActivity {
 		};
 	}
 
-	/** Proxy: single form in list mode; per-tab table in grid mode and in the floating window. */
+	/** Proxy: form đơn ở chế độ danh sách; bảng theo tab ở chế độ lưới và trong cửa sổ nổi. */
 	private void showProxyDialog() {
 		if (DialogGate.busy()) {
 			return; // đang có hộp thoại: bỏ qua lần bấm dồn
@@ -1069,7 +1069,7 @@ public class MicroActivity extends AppCompatActivity {
 				);
 	}
 
-	/** Opening another game costs RAM: tell the user how much is left before the phone struggles. */
+	/** Mở thêm game tốn RAM: báo cho người dùng còn bao nhiêu trước khi máy bị đuối. */
 	private void warnIfLowRam() {
 		if (tabs.isEmpty()) {
 			return;
@@ -1178,14 +1178,14 @@ public class MicroActivity extends AppCompatActivity {
 		MidletThread.resumeApp();
 	}
 
-	/** Preference written by the settings screen (another process): reload the file when it changed. */
+	/** Tùy chọn do màn hình cài đặt ghi (tiến trình khác): nạp lại tệp khi nó thay đổi. */
 	@SuppressWarnings("deprecation")
 	private boolean boolPref(String key, int defRes) {
 		return getSharedPreferences(getPackageName() + "_preferences", MODE_MULTI_PROCESS)
 				.getBoolean(key, getResources().getBoolean(defRes));
 	}
 
-	/** Width / height of the first tab that shows a game screen (0.75 when unknown). */
+	/** Rộng / cao của tab đầu tiên có màn hình game (0.75 khi chưa biết). */
 	private float aspectOf() {
 		for (Session t : tabs) {
 			try {
@@ -1271,7 +1271,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		if (act != null) {
 			attachVk(act);
-			// the old view is still inside a grid cell: clear it so a fresh one is built (fixes the white screen)
+			// view cũ còn nằm trong ô lưới: xóa đi để dựng cái mới (sửa lỗi màn hình trắng)
 			ViewHandler.postEvent(new SetCurrentEvent(act.current, act.current));
 			showListKeypad();
 		}
@@ -1305,7 +1305,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
-	/** Black screen, no drawing: the games keep running but the phone does almost no work. */
+	/** Màn hình đen, không vẽ: game vẫn chạy nhưng máy gần như không phải làm gì. */
 	private void enterSleep() {
 		if (sleeping || binding == null) {
 			return;
@@ -1511,7 +1511,7 @@ public class MicroActivity extends AppCompatActivity {
 			};
 	}
 
-	/** Bubble visible while the game is on screen (tap it to move the game into the floating window). */
+	/** Bong bóng hiện khi game đang trên màn hình (chạm để chuyển game vào cửa sổ nổi). */
 	private void showInAppBubble() {
 		if (binding == null || floating || tabs.isEmpty() || isFinishing()) {
 			return;
@@ -1537,7 +1537,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	private boolean bubblePermissionHinted;
 
-	/** Activity left the screen: games keep running in the bubble. */
+	/** Activity rời màn hình: game vẫn chạy trong bong bóng. */
 	private void startFloating(boolean force) {
 		boolean ok = force ? !isFinishing() && !tabs.isEmpty() && FloatingController.canDraw(this)
 				: bubbleAllowed();
@@ -1568,7 +1568,7 @@ public class MicroActivity extends AppCompatActivity {
 		updateFloatLabel();
 	}
 
-	/** Back on screen: put the game view back and hide the bubble. */
+	/** Quay lại màn hình: đặt lại view game và ẩn bong bóng. */
 	private boolean stopFloating() {
 		if (!floating) {
 			return false;
@@ -1641,7 +1641,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		if (hasFocus && relayoutPending) {
 			relayoutPending = false;
-			// bars were hidden/shown after onResume: rebuild after they settled, then once more to be sure
+			// thanh hệ thống bị ẩn/hiện sau onResume: dựng lại khi đã ổn định, rồi thêm một lần nữa cho chắc
 			Runnable r = () -> {
 				Session act = Session.active();
 				if (!floating && !gridMode && act != null && act.current != null && binding != null) {
@@ -1851,7 +1851,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
-	/** Bottom-bar icon: opens the Nokia or Android keypad, or closes it when it is already open. */
+	/** Biểu tượng thanh dưới: mở bàn phím Nokia hoặc Android, hoặc đóng nếu đang mở. */
 	private void openKeypad(int type) {
 		if (keypad != null && keypadType == type) {
 			closeKeypad();
@@ -1861,7 +1861,7 @@ public class MicroActivity extends AppCompatActivity {
 		rebuildKeypad();
 	}
 
-	/** Closes the keypad; in list mode the J2ME virtual keyboard comes back. */
+	/** Đóng bàn phím; ở chế độ danh sách, bàn phím ảo J2ME hiện lại. */
 	private void closeKeypad() {
 		// J2ME VK stays hidden after a keypad was used (ghost-button fix)
 		hideKeypad();
@@ -1881,7 +1881,7 @@ public class MicroActivity extends AppCompatActivity {
 		};
 	}
 
-	/** List mode: our keypad is drawn over the (broken or missing) J2ME virtual keyboard. */
+	/** Chế độ danh sách: bàn phím của ta vẽ đè lên bàn phím ảo J2ME (hỏng hoặc thiếu). */
 	private void showListKeypad() {
 		Session a = Session.active();
 		hideKeypad();
@@ -1918,7 +1918,7 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
-	/** Sends J2ME key codes (a diagonal is two keys) to the active tab. */
+	/** Gửi mã phím J2ME (đường chéo là hai phím) tới tab đang chọn. */
 	void sendKeys(int[] codes, boolean down) {
 		for (int c : codes) {
 			sendKey(c, down);
@@ -1953,7 +1953,7 @@ public class MicroActivity extends AppCompatActivity {
 	private void showKeypad() {
 		keypadType = KeypadFactory.type(this);
 		keypad = KeypadFactory.create(this, keypadType, 40, 20, keypadSink(), this::rebuildKeypad);
-		// docked above the bottom bar: the grid shrinks instead of being covered
+		// gắn phía trên thanh dưới: lưới co lại thay vì bị che
 		binding.virtualDisplay.addView(keypad, Math.max(0, binding.virtualDisplay.getChildCount() - 1),
 				new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 		if (bottomBar != null) {
@@ -1965,7 +1965,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	private boolean exiting;
 
-	/** Closes every tab and ends the process (no battery use afterwards). */
+	/** Đóng mọi tab và kết thúc tiến trình (sau đó không tốn pin). */
 	public void exitAll() {
 		exiting = true;
 		FloatingController.get(this).hide();
@@ -2415,7 +2415,7 @@ public class MicroActivity extends AppCompatActivity {
 			invalidateOptionsMenu();
 			if (next != null) {
 				android.view.View dv = next.getDisplayableView();
-				// the view may still sit in the floating host or a destroyed activity's container
+				// view có thể còn nằm trong vùng nổi hoặc vùng chứa của activity đã hủy
 				if (dv.getParent() instanceof ViewGroup) {
 					((ViewGroup) dv.getParent()).removeView(dv);
 				}
@@ -2430,7 +2430,7 @@ public class MicroActivity extends AppCompatActivity {
 			memoryGuard.stop();
 		}
 		uiHandler.removeCallbacks(sleepRunnable);
-		// Removed from the recent list while games still run: keep them (and their bubble and
+		// Bị xóa khỏi danh sách gần đây khi game còn chạy: giữ game (cùng bong bóng và
 		// notification) alive. Only the user's explicit exit (main menu / notification "Dừng") stops them.
 		boolean keepAlive = !exiting && !isChangingConfigurations() && Session.count() > 0;
 		if (keepAlive) {
