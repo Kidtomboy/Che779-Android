@@ -1,7 +1,6 @@
 /*
- *  Che779 Emulator - parallel multi-dex converter.
- *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
- *  Idea: J2ME Loader v10 (Hung Hero) splits big jars into converted.dex, converted2.dex, ...
+ *  Che779 Emulator - bộ chuyển đổi multi-dex song song (tách jar lớn thành converted.dex, converted2.dex, ...).
+ *  Giấy phép Apache License 2.0 (cùng giấy phép J2ME Loader).
  */
 package ru.woesss.j2me.installer;
 

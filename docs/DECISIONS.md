@@ -14,7 +14,7 @@ Cả 4 repo lên **v1.3.0 thẳng** (không tạo tag v1.2.0). Phân chia: **P1,
 | Giữ chuyển hướng IP theo từng tab | |
 | Không có mục "Liên hệ" trong ứng dụng | |
 | Clone phải độc lập | Tên gói, tên app, thư mục dữ liệu riêng. |
-| Nền J2ME Loader 1.8.2 | Gộp giao diện từ bản mod của Hùng Hero (v10) và đa tab của NST Tiến (J2ME_NST). |
+| Nền J2ME Loader 1.8.2 | Giao diện và đa tab xây trên J2ME Loader; chức năng bổ sung do Che779 tự viết. |
 | APK ký bằng khóa thử nghiệm công khai | Để bản cài đè được; không phải khóa phát hành riêng. |
 | Dùng GitHub Actions để build APK | Vì môi trường làm việc của Claude không build được APK. |
 

@@ -1,11 +1,10 @@
 /*
- *  Che779 Emulator - per-tab network settings (proxy + IP redirect).
- *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
- *  List-import idea: J2ME_NST (NST Tien); IP redirect idea: J2ME Loader v10 (Hung Hero).
+ *  Che779 Emulator - cấu hình mạng theo từng tab (proxy + chuyển hướng IP).
+ *  Giấy phép Apache License 2.0 (cùng giấy phép J2ME Loader).
  */
 package javax.microedition.shell;
 
-/** Proxy and redirect rules of one tab. */
+/** Quy tắc proxy và chuyển hướng của một tab. */
 public final class NetConfig {
 	public static final int NONE = 0, HTTP = 1, SOCKS5 = 2, SOCKS4 = 3;
 
@@ -13,7 +12,7 @@ public final class NetConfig {
 		return type == SOCKS5 ? "socks5" : type == SOCKS4 ? "socks4" : "http";
 	}
 
-	/** Protocol word -> type, or -1 when the word is not a protocol. */
+	/** Từ giao thức -> loại, hoặc -1 nếu không phải giao thức. */
 	public static int typeOf(String w) {
 		if (w == null) {
 			return -1;
@@ -35,7 +34,7 @@ public final class NetConfig {
 	public volatile int port;
 	public volatile String user;
 	public volatile String pass;
-	/** Lines "from[:port]=to[:port]". */
+	/** Các dòng "từ[:cổng]=đến[:cổng]". */
 	public volatile String redirects = "";
 
 	public boolean hasProxy() {
@@ -50,7 +49,7 @@ public final class NetConfig {
 				+ (user != null && !user.isEmpty() ? " (" + user + ")" : "");
 	}
 
-	/** Same string format that {@link #parse} reads. */
+	/** Cùng định dạng chuỗi mà {@link #parse} đọc. */
 	public String serialize() {
 		if (!hasProxy()) {
 			return "";
@@ -61,8 +60,8 @@ public final class NetConfig {
 	}
 
 	/**
-	 * Accepts: [scheme://][user:pass@]host:port, or host:port:user:pass. Scheme is http or
-	 * socks5 (socks, socks5h); default http. Returns null for an unreadable line.
+	 * Chấp nhận: [scheme://][user:pass@]host:port, hoặc host:port:user:pass. Scheme là http hoặc
+	 * socks5 (socks, socks5h); mặc định http. Trả về null nếu dòng không đọc được.
 	 */
 	public static NetConfig parse(String line) {
 		if (line == null) {
@@ -113,8 +112,8 @@ public final class NetConfig {
 		} catch (NumberFormatException e) {
 			return null;
 		}
-		// IPv6 literals are not accepted by this legacy colon-delimited format.
-		// Reject invalid hosts/ports here instead of deferring failure to socket creation.
+		// Định dạng cũ phân tách bằng dấu hai chấm này không nhận địa chỉ IPv6 dạng chữ.
+		// Từ chối host/cổng sai ngay tại đây thay vì để lỗi xảy ra lúc tạo socket.
 		if (c.host == null || c.host.trim().isEmpty() || c.host.indexOf('[') >= 0
 				|| c.host.indexOf(']') >= 0 || c.port < 1 || c.port > 65535) {
 			return null;

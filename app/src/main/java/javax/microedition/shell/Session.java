@@ -1,7 +1,6 @@
 /*
- *  Che779 Emulator - multi-session core.
- *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
- *  Concept inspired by the multi-tab sessions of J2ME_NST (NST Tien) and J2ME Loader v10 (Hung Hero).
+ *  Che779 Emulator - lõi đa phiên (nhiều tab chạy song song).
+ *  Giấy phép Apache License 2.0 (cùng giấy phép J2ME Loader).
  */
 package javax.microedition.shell;
 
@@ -12,13 +11,13 @@ import javax.microedition.lcdui.event.EventQueue;
 import javax.microedition.lcdui.keyboard.VirtualKeyboard;
 
 /**
- * One running game ("tab"). Everything that used to be a process-wide static in the
- * engine (display, event queue, virtual keyboard, midlet thread) now lives here, and is
+ * Một game đang chạy ("tab"). Mọi thứ từng là biến static toàn tiến trình trong
+ * engine (màn hình, hàng đợi sự kiện, bàn phím ảo, luồng midlet) nay nằm ở đây, và được
  * found through {@link #current()}.
  * <p>
- * Threads created by a game inherit its session, so engine code running on them resolves
- * to the right tab. The Android UI thread has no session of its own and falls back to
- * {@link #active()}, the tab currently in front.
+ * Luồng do game tạo ra kế thừa phiên của nó, nên mã engine chạy trên các luồng đó tìm
+ * đúng tab. Luồng giao diện Android không có phiên riêng và dùng
+ * {@link #active()}, tab đang ở phía trước.
  */
 public final class Session {
 	private static final InheritableThreadLocal<Session> CURRENT = new InheritableThreadLocal<>();
@@ -26,9 +25,9 @@ public final class Session {
 	private static volatile Session active;
 	private static int nextId = 1;
 
-	/** Grid mode: copy keys of the active tab to all others. */
+	/** Chế độ lưới: chép phím của tab đang chọn sang các tab khác. */
 	public static volatile boolean syncKeys;
-	/** True while tabs are shown side by side. */
+	/** True khi các tab hiện cạnh nhau. */
 	public static volatile boolean grid;
 
 	/** "Treo" render mode: 0 = draw, 1 = 20 FPS, 2 = no drawing (games keep running). */
@@ -47,49 +46,49 @@ public final class Session {
 	public final int id;
 	public final String appPath;
 	public final DisplayConfig dc = new DisplayConfig();
-	/** Proxy / IP redirect of this tab. */
+	/** Proxy / chuyển hướng IP của tab này. */
 	public final NetConfig net = new NetConfig();
 	public volatile Display display;
 	public volatile EventQueue queue;
 	public volatile VirtualKeyboard vk;
 	volatile MidletThread thread;
-	// per-game resources (were statics in AppClassLoader)
+	// tài nguyên theo từng game (trước đây là static trong AppClassLoader)
 	public volatile String dataDir;
 	public volatile String dataSuffix = "";
 	volatile java.io.File oldResDir;
 	volatile net.lingala.zip4j.ZipFile resZip;
 	volatile AppClassLoader classLoader;
 	public volatile java.util.Map<String, String> props;
-	// per-game UI state (were fields of MicroActivity)
+	// trạng thái giao diện theo từng game (trước đây là trường của MicroActivity)
 	volatile MicroLoader microLoader;
 	public volatile String appName;
-	/** User-chosen tab name (null = show the tab number). */
+	/** Tên tab do người dùng đặt (null = hiện số tab). */
 	public volatile String label;
-	/** True when this tab takes part in key sync (grid mode). */
+	/** True khi tab này tham gia đồng bộ phím (chế độ lưới). */
 	public volatile boolean sync;
-	/** Fixed tab number (1-based); a closed number is reused by the next new tab. */
+	/** Số tab cố định (từ 1); số đã đóng sẽ được tab mới kế tiếp dùng lại. */
 	public volatile int slot;
-	/** Names of the game classes loaded by this tab (used to find its threads when it is closed). */
+	/** Tên các lớp game do tab này nạp (dùng để tìm các luồng của nó khi đóng). */
 	public final java.util.Set<String> classes = java.util.concurrent.ConcurrentHashMap.newKeySet();
-	/** fps limit before a power mode changed it (-1 = untouched). */
+	/** Giới hạn fps trước khi chế độ pin đổi nó (-1 = chưa đổi). */
 	public volatile int fpsBackup = -1;
-	/** Diagnostic thread-dump quota owned by this tab (avoids a process-wide per-tab map). */
+	/** Hạn mức dump luồng chẩn đoán của tab này (tránh bản đồ theo tab ở cấp tiến trình). */
 	final java.util.concurrent.atomic.AtomicInteger diagnosticDumps = new java.util.concurrent.atomic.AtomicInteger();
 
-	/** Runs once this tab has been removed (used to open it again: "restart tab"). */
+	/** Chạy khi tab này đã bị gỡ (dùng để mở lại: "khởi động lại tab"). */
 	volatile Runnable restartAfter;
-	/** Sockets and HTTP connections opened by this tab's game, so a restart can drop all of them. */
+	/** Socket và kết nối HTTP do game của tab này mở, để khi khởi động lại có thể đóng hết. */
 	private final java.util.Set<Object> connections =
 			java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<Object, Boolean>()));
 
-	/** Remembers a connection of this tab (held weakly). */
+	/** Ghi nhớ một kết nối của tab này (giữ bằng tham chiếu yếu). */
 	public void track(Object connection) {
 		if (connection != null) {
 			connections.add(connection);
 		}
 	}
 
-	/** Closes every connection this tab opened, so no old socket outlives the tab. */
+	/** Đóng mọi kết nối tab này đã mở, để không socket cũ nào sống lâu hơn tab. */
 	public void closeNet() {
 		Object[] all;
 		synchronized (connections) {
@@ -110,7 +109,7 @@ public final class Session {
 		}
 	}
 
-	/** Releases what a closed tab still holds: connections and the resource archive. */
+	/** Giải phóng những gì tab đã đóng còn giữ: kết nối và kho tài nguyên. */
 	void release() {
 		closeNet();
 		try {
@@ -122,7 +121,7 @@ public final class Session {
 		}
 	}
 
-	/** Interrupts every thread that is running code of this tab's game. */
+	/** Ngắt mọi luồng đang chạy mã của game thuộc tab này. */
 	public void killThreads() {
 		try {
 			for (java.util.Map.Entry<Thread, StackTraceElement[]> e : Thread.getAllStackTraces().entrySet()) {
@@ -150,7 +149,7 @@ public final class Session {
 		this.appPath = appPath;
 	}
 
-	/** Creates a session and its event queue; the queue thread inherits the new session. */
+	/** Tạo phiên và hàng đợi sự kiện của nó; luồng hàng đợi kế thừa phiên mới. */
 	public static synchronized Session create(String appPath, String dataSuffix) {
 		Session s = new Session(nextId++, appPath);
 		s.dataSuffix = dataSuffix == null ? "" : dataSuffix;
@@ -169,7 +168,7 @@ public final class Session {
 		return s;
 	}
 
-	/** Binds the calling thread (and every thread it creates later) to this session. */
+	/** Gắn luồng gọi (và mọi luồng nó tạo sau này) vào phiên này. */
 	public void bindCurrentThread() {
 		CURRENT.set(this);
 	}

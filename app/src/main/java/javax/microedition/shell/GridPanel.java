@@ -1,7 +1,6 @@
 /*
- *  Che779 Emulator - grid of tabs shown side by side.
- *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
- *  Idea: J2ME_NST (NST Tien) multi-game grid.
+ *  Che779 Emulator - lưới các tab hiển thị cạnh nhau.
+ *  Giấy phép Apache License 2.0 (cùng giấy phép J2ME Loader).
  */
 package javax.microedition.shell;
 
@@ -21,7 +20,7 @@ import java.util.Map;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.Displayable;
 
-/** Rows x columns of cells, one per tab. The cell touched last becomes the active tab. */
+/** Lưới hàng x cột, mỗi ô một tab. Ô chạm gần nhất trở thành tab đang chọn. */
 final class GridPanel extends LinearLayout {
 	interface Listener {
 		void onFocus(Session s);
@@ -64,7 +63,7 @@ final class GridPanel extends LinearLayout {
 		}
 	}
 
-	/** Columns for n tabs so that cells stay as square as the panel shape allows. */
+	/** Số cột cho n tab sao cho ô gần vuông nhất có thể theo hình dạng khung. */
 	static int columnsFor(int n, int w, int h) {
 		if (n <= 1) {
 			return 1;
@@ -84,7 +83,7 @@ final class GridPanel extends LinearLayout {
 		return best;
 	}
 
-	/** Fill mode: cells take the game's shape (no gaps), 2 or 3 columns, scrolling when 3 columns are not enough. */
+	/** Chế độ lấp đầy: ô theo hình dạng game (không khe hở), 2 hoặc 3 cột, cuộn khi 3 cột chưa đủ. */
 	void setFill(boolean fill, float aspect) {
 		this.fill = fill;
 		this.aspect = aspect > 0.2f && aspect < 5f ? aspect : 0.75f;
@@ -161,7 +160,7 @@ final class GridPanel extends LinearLayout {
 	private Session lastActive;
 	private boolean relayoutPending;
 
-	/** The panel was resized (floating window dragged, rotation): lay the cells out again for the new size. */
+	/** Khung bị đổi kích thước (kéo cửa sổ nổi, xoay màn hình): xếp lại các ô theo kích thước mới. */
 	@Override
 	protected void onSizeChanged(int w, int h, int ow, int oh) {
 		super.onSizeChanged(w, h, ow, oh);
@@ -217,7 +216,7 @@ final class GridPanel extends LinearLayout {
 		setActive(active);
 	}
 
-	/** (Re)attaches the current displayable of a tab to its cell. */
+	/** Gắn (lại) màn hình hiện tại của một tab vào ô của nó. */
 	void show(Session s) {
 		Cell cell = cells.get(s);
 		if (cell == null) {
@@ -232,7 +231,7 @@ final class GridPanel extends LinearLayout {
 		if (v.getParent() instanceof ViewGroup) {
 			((ViewGroup) v.getParent()).removeView(v);
 		}
-		// own background: lists and forms are transparent and would show the blue focus border colour
+		// nền riêng: danh sách và form trong suốt, sẽ lộ màu viền xanh của ô đang chọn
 		FrameLayout content = new FrameLayout(getContext());
 		content.setBackgroundColor(d instanceof javax.microedition.lcdui.Canvas ? 0xFF000000 : 0xFFFAFAFA);
 		content.addView(v, new FrameLayout.LayoutParams(

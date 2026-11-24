@@ -1,7 +1,6 @@
 /*
- *  Che779 Emulator - grid of tabs shown side by side.
- *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
- *  Idea: J2ME_NST (NST Tien) multi-game grid.
+ *  Che779 Emulator - lưới các tab hiển thị cạnh nhau.
+ *  Giấy phép Apache License 2.0 (cùng giấy phép J2ME Loader).
  */
 package javax.microedition.shell;
 
@@ -87,7 +86,7 @@ final class GridPanel extends LinearLayout {
 		return v;
 	}
 
-	/** Cell in the style of Hùng Hero: title + close on top, proxy / stop / full screen below. */
+	/** Ô dạng thẻ: tiêu đề + nút đóng ở trên, proxy / dừng / toàn màn hình ở dưới. */
 	private final class Cell extends FrameLayout {
 		final Session session;
 		final FrameLayout content;

@@ -1,5 +1,5 @@
 /*
- *  Che779 Emulator - builds the on-screen keypad of the chosen kind (Nokia numeric or Android QWERTY).
+ *  Che779 Emulator - dựng bàn phím trên màn hình theo loại đã chọn (số kiểu Nokia hoặc QWERTY Android).
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
@@ -33,9 +33,9 @@ final class KeypadFactory {
 	}
 
 	/**
-	 * A column: a small switch row (Nokia icon, Android icon, close) above the keypad.
+	 * Một cột: hàng chuyển nhỏ (biểu tượng Nokia, Android, đóng) phía trên bàn phím.
 	 *
-	 * @param rebuild called after the user picked the other kind, to draw the keypad again
+	 * @param rebuild được gọi sau khi người dùng chọn loại khác, để vẽ lại bàn phím
 	 */
 	static LinearLayout create(Context c, int type, int keyDp, int textSp, KeypadView.Sink sink, Runnable rebuild) {
 		float dp = c.getResources().getDisplayMetrics().density;

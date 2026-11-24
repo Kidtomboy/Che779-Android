@@ -1,6 +1,6 @@
 /*
- *  Che779 Emulator - Android-style QWERTY keypad. Letters are sent as their character code, like the
- *  QWERTY J2ME phones did; arrows, OK and the soft keys use the usual J2ME key codes.
+ *  Che779 Emulator - bàn phím QWERTY kiểu Android. Chữ được gửi bằng mã ký tự, như các
+ *  điện thoại J2ME QWERTY; mũi tên, OK và phím mềm dùng mã phím J2ME thông thường.
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;

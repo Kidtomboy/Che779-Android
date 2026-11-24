@@ -461,7 +461,7 @@ public class MicroActivity extends AppCompatActivity {
 		insertSorted(session);
 		microLoader.applyConfiguration();
 		if (!gridMode && tabs.size() == 1 && !restoring) {
-			uiHandler.post(this::enterGrid); // giao diện lưới ô kiểu Hùng Hero ngay khi vào game
+			uiHandler.post(this::enterGrid); // vào giao diện lưới ô ngay khi vào game
 		}
 		VirtualKeyboard vk = ContextHolder.getVk();
 		int orientation = microLoader.getOrientation();

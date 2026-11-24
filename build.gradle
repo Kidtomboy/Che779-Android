@@ -1,4 +1,4 @@
-// Che779 Emulator - nen: J2ME Loader 1.6.7 (Apache-2.0) + chinh sua cua Hung Hero v10 + y tuong NST.
+// Che779 Emulator - nền: J2ME Loader (Apache-2.0).
 plugins {
     id 'com.android.application' version '8.7.3' apply false
     id 'com.android.library' version '8.7.3' apply false

@@ -1,6 +1,6 @@
 /*
- *  Che779 Emulator - proxy screens: single form (list mode) and per-tab table (grid / floating window).
- *  Both read and write {@link ProxyStore}, so they always show the same data.
+ *  Che779 Emulator - màn hình proxy: form đơn (chế độ danh sách) và bảng theo tab (lưới / cửa sổ nổi).
+ *  Cả hai cùng đọc/ghi {@link ProxyStore} nên luôn hiện cùng dữ liệu.
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
@@ -32,7 +32,7 @@ final class ProxyUi {
 	interface Host {
 		Context ctx();
 
-		/** Shows the dialog (overlay type while floating); null if it could not be shown. */
+		/** Hiện hộp thoại (kiểu lớp phủ khi đang nổi); null nếu không hiện được. */
 		AlertDialog show(AlertDialog.Builder b);
 
 		void pickFile(Consumer<String> onText);
@@ -85,7 +85,7 @@ final class ProxyUi {
 
 	// =============================================================== list mode: single form
 
-	/** Form for one proxy of tab {@code s}: Host / Port / User / Pass + HTTP, SOCKS4, SOCKS5. */
+	/** Form cho một proxy của tab {@code s}: Host / Port / User / Pass + HTTP, SOCKS4, SOCKS5. */
 	static void showForm(final Host h, final Session s, final Runnable after) {
 		final Context c = h.ctx();
 		final int no = h.slotOf(s);
@@ -432,7 +432,7 @@ final class ProxyUi {
 		return r;
 	}
 
-	/** Drop-down of the stored proxies for one tab (scroll to the end for "+ add"). */
+	/** Danh sách thả xuống các proxy đã lưu của một tab (cuộn đến cuối để "+ thêm"). */
 	private static void pickForTab(final Host h, final Session s, final Runnable refresh) {
 		final Context c = h.ctx();
 		final List<NetConfig> l = ProxyStore.list(h.prefs());

@@ -1,5 +1,5 @@
 /*
- *  Che779 Emulator - diagnostics written to a file (logcat tail is too short to catch game errors).
+ *  Che779 Emulator - chẩn đoán ghi ra tệp (logcat quá ngắn để bắt lỗi game).
  *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
  */
 package javax.microedition.shell;
@@ -21,7 +21,7 @@ import javax.microedition.util.ContextHolder;
 
 import ru.playsoftware.j2meloader.config.Config;
 
-/** Writes events and exceptions to J2ME-Che779/che779-diag.txt and shows errors as a toast. */
+/** Ghi sự kiện và ngoại lệ vào J2ME-Che779/che779-diag.txt và hiện lỗi dưới dạng toast. */
 public final class Che779Diag {
 	private static final String TAG = "Che779";
 	private static final Handler UI = new Handler(Looper.getMainLooper());
@@ -81,7 +81,7 @@ public final class Che779Diag {
 	private static final AtomicInteger totalDumps = new AtomicInteger();
 	private static final AtomicInteger noSessionDumps = new AtomicInteger();
 
-	/** Writes stacks after a delay; limits are per tab (3) and per process (20). */
+	/** Ghi stack sau một khoảng trễ; giới hạn theo tab (3) và theo tiến trình (20). */
 	public static void dumpThreadsLater(final String why, final long delayMs) {
 		final long safeDelayMs = Math.max(0L, Math.min(delayMs, 60_000L));
 		Session owner = Session.current();

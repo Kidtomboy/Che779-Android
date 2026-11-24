@@ -8,7 +8,7 @@ import androidx.annotation.RequiresApi;
 
 import javax.microedition.util.ContextHolder;
 
-/** Quick Settings tile: cycles the power mode of the running games (lives in the :midlet process). */
+/** Ô Cài đặt nhanh: đổi vòng các chế độ pin của game đang chạy (chạy trong tiến trình :midlet). */
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class PowerTileService extends TileService {
 	@Override

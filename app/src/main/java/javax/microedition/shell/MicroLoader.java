@@ -178,14 +178,14 @@ public class MicroLoader {
 			File codeCacheDir = ContextCompat.getCodeCacheDir(context);
 			File dexOptDir = new File(codeCacheDir, Config.DEX_OPT_CACHE_DIR);
 			if (dexOptDir.exists()) {
-				// other tabs may still use files in here
+				// các tab khác có thể còn dùng tệp trong đây
 				if (Session.count() <= 1) {
 					FileUtils.clearDirectory(dexOptDir);
 				}
 			} else if (!dexOptDir.mkdir()) {
 				throw new IOException("Can't create directory: [" + dexOptDir + ']');
 			}
-			// converted.dex, converted2.dex, ... (big merged games are split by the installer)
+			// converted.dex, converted2.dex, ... (game gộp lớn được trình cài đặt tách ra)
 			StringBuilder dexPaths = new StringBuilder();
 			for (int i = 1; ; i++) {
 				File dex = new File(appDir, i == 1 ? Config.MIDLET_DEX_FILE : "/converted" + i + ".dex");
@@ -258,7 +258,7 @@ public class MicroLoader {
 		System.setProperty("user.home", Config.getFsInternalDir());
 	}
 
-	/** Display-related statics of the engine; re-applied whenever this game's tab is brought to front. */
+	/** Các static liên quan hiển thị của engine; áp dụng lại mỗi khi tab của game này được đưa lên trước. */
 	void applyDisplayConfiguration() {
 		try {
 			int screenWidth = params.screenWidth;

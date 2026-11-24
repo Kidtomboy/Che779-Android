@@ -77,14 +77,14 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 
 	@Override
 	protected void onLooperPrepared() {
-		// every thread the game starts from here on inherits this session
+		// mọi luồng game khởi động từ đây trở đi đều kế thừa phiên này
 		session.bindCurrentThread();
 	}
 
 	public static void notifyDestroyed() {
 		Session closing = Session.current();
 		if (closing != null && (Session.count() > 1 || closing.restartAfter != null)) {
-			// other tabs are alive (or this tab is being restarted): close only this one
+			// các tab khác còn sống (hoặc tab này đang khởi động lại): chỉ đóng tab này
 			MicroActivity activity = ContextHolder.getActivity();
 			if (closing.thread != null) {
 				closing.thread.state = DESTROYED;
@@ -110,9 +110,9 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 	}
 
 	/**
-	 * The last tab is gone (its game ended): leave the activity and end the process, exactly like the
-	 * single-tab exit of {@link #notifyDestroyed()}. Used as the rescue when the last tab is removed
-	 * through the multi-tab path, which would otherwise leave an empty window on screen.
+	 * Tab cuối đã mất (game của nó đã kết thúc): rời activity và kết thúc tiến trình, giống hệt
+	 * thoát một tab của {@link #notifyDestroyed()}. Dùng làm cách cứu khi tab cuối bị gỡ
+	 * qua đường nhiều tab, nếu không sẽ để lại cửa sổ trống trên màn hình.
 	 */
 	static void finishApp() {
 		Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);

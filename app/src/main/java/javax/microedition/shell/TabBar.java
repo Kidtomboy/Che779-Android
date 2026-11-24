@@ -1,7 +1,6 @@
 /*
- *  Che779 Emulator - tab bar (numbered tabs only; the function icons live in the bottom BottomBar).
- *  Licensed under the Apache License, Version 2.0 (same as J2ME Loader).
- *  Layout idea: J2ME_NST (NST Tien).
+ *  Che779 Emulator - thanh tab (chỉ gồm các tab đánh số; các biểu tượng chức năng nằm ở thanh dưới BottomBar).
+ *  Giấy phép Apache License 2.0 (cùng giấy phép J2ME Loader).
  */
 package javax.microedition.shell;
 
@@ -16,7 +15,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-/** Top bar: only the tab numbers [1][2][3]. Tap selects, long press renames. */
+/** Thanh trên: chỉ có số tab [1][2][3]. Chạm để chọn, nhấn giữ để đổi tên. */
 final class TabBar extends LinearLayout {
 	interface Listener {
 		void onSelect(Session s);

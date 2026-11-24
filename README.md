@@ -259,7 +259,7 @@ Muốn góp sức? Đọc [`CONTRIBUTING.md`](CONTRIBUTING.md). Tìm thấy lỗ
 
 ## 🙏 Ghi công và giấy phép
 
-Che779 Android kế thừa **[J2ME Loader](https://github.com/nikita36078/J2ME-Loader)** của Nikita Shakarun và các cộng tác viên (Apache License 2.0). Một số ý tưởng giao diện và tính năng đến từ các bản mod cộng đồng: **Hùng Hero** (J2ME Loader v10) và **NST Tiến** (J2ME_NST). Giữ nguyên các thông báo bản quyền khi phân phối lại; xem [`LICENSE`](LICENSE).
+Che779 Android kế thừa **[J2ME Loader](https://github.com/nikita36078/J2ME-Loader)** của Nikita Shakarun và các cộng tác viên (Apache License 2.0). Giữ nguyên các thông báo bản quyền khi phân phối lại; xem [`LICENSE`](LICENSE).
 
 <div align="center">
 
