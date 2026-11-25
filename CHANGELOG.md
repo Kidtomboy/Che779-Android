@@ -10,7 +10,7 @@ Gói `com.che779.emulator`, `versionCode 134`. Mọi thứ của 1.3.3, thêm c�
 - Bỏ bàn phím J2ME gốc và mục "Sửa bàn phím ảo"; dùng bàn phím Che779.
 - Tùy biến bàn phím Che779 trong Cài đặt: độ trong suốt, cỡ nút, giao diện, ảnh nền.
 - Bàn phím Che779 gõ chữ vào ô nhập (TextBox/TextField).
-- Macro phím có cảnh báo lần đầu; phát tối đa 10 phút mỗi lần.
+- Macro phím có cảnh báo lần đầu; cửa sổ nổi nhỏ kéo thả được (Ghi, Phát, lặp ×1/×10/∞, Xóa); phát không giới hạn thời gian cho tới khi bấm Dừng.
 
 ## [1.3.3] — Bản phát hành
 

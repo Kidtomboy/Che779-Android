@@ -1611,7 +1611,6 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	public void onPause() {
-		macro.stop();
 		visible = false;
 		uiHandler.removeCallbacks(sleepRunnable);
 		hideSoftInput();
@@ -1980,7 +1979,7 @@ public class MicroActivity extends AppCompatActivity {
 					.setTitle("Cảnh báo về macro")
 					.setMessage("Dùng macro (tự động bấm phím) trong game online có thể vi phạm điều khoản của game "
 							+ "và có thể bị khóa tài khoản. Bạn tự chịu trách nhiệm khi dùng. "
-							+ "Macro chỉ ghi các phím bấm từ bàn phím Che779 và chạy tối đa 10 phút mỗi lần phát.")
+							+ "Macro chỉ ghi các phím bấm từ bàn phím Che779 và chạy cho tới khi bạn bấm Dừng.")
 					.setPositiveButton("Tôi hiểu", (d, w) -> {
 						macro.setWarned();
 						showMacroMenu();
@@ -1991,41 +1990,39 @@ public class MicroActivity extends AppCompatActivity {
 		showMacroMenu();
 	}
 
+	private MacroPanel macroPanel;
+
+	/** Hiện (hoặc đưa lên trước) cửa sổ nổi nhỏ điều khiển macro. */
 	private void showMacroMenu() {
-		Session a = Session.active();
-		if (a == null) {
+		if (binding == null) {
 			return;
 		}
-		final int slot = a.slot;
-		final java.util.ArrayList<String> names = new java.util.ArrayList<>();
-		final java.util.ArrayList<Runnable> acts = new java.util.ArrayList<>();
-		if (macro.isRecording()) {
-			names.add("Dừng ghi macro");
-			acts.add(() -> Toast.makeText(this, "Đã ghi " + macro.stopRecording(slot) + " thao tác cho tab " + slot,
-					Toast.LENGTH_SHORT).show());
-		} else if (macro.isPlaying()) {
-			names.add("Dừng phát macro");
-			acts.add(macro::stop);
-		} else {
-			names.add("Ghi macro mới (tab " + slot + ")");
-			acts.add(() -> {
-				macro.startRecording();
-				Toast.makeText(this, "Đang ghi: hãy bấm phím trên bàn phím Che779", Toast.LENGTH_LONG).show();
-			});
-			if (macro.has(slot)) {
-				names.add("Phát 1 lần");
-				acts.add(() -> macro.play(slot, 1));
-				names.add("Lặp 10 lần");
-				acts.add(() -> macro.play(slot, 10));
-				names.add("Lặp liên tục (tối đa 10 phút)");
-				acts.add(() -> macro.play(slot, 0));
-				names.add("Xóa macro của tab " + slot);
-				acts.add(() -> macro.clear(slot));
-			}
+		if (macroPanel != null && macroPanel.getParent() != null) {
+			macroPanel.refresh();
+			return;
 		}
-		showDlg(new DialogGate.Builder(dctx())
-				.setTitle("Macro phím" + (Session.syncKeys ? " (sẽ chạy cho cả nhóm đồng bộ)" : ""))
-				.setItems(names.toArray(new CharSequence[0]), (d, which) -> acts.get(which).run()));
+		macroPanel = new MacroPanel(this, macro, new MacroPanel.Host() {
+			@Override
+			public int slot() {
+				Session a = Session.active();
+				return a == null ? -1 : a.slot;
+			}
+
+			@Override
+			public void close() {
+				macro.stop();
+				if (macroPanel != null && macroPanel.getParent() instanceof ViewGroup) {
+					((ViewGroup) macroPanel.getParent()).removeView(macroPanel);
+				}
+				macroPanel = null;
+			}
+		});
+		android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+				android.view.Gravity.TOP | android.view.Gravity.END);
+		int m = (int) (8 * getResources().getDisplayMetrics().density);
+		lp.setMargins(m, m * 14, m, 0);
+		((ViewGroup) binding.getRoot()).addView(macroPanel, lp);
 	}
 
 	void sendKeys(int[] codes, boolean down) {
@@ -2117,6 +2114,7 @@ public class MicroActivity extends AppCompatActivity {
 	/** Đóng mọi tab và kết thúc tiến trình (sau đó không tốn pin). */
 	public void exitAll() {
 		exiting = true;
+		macro.stop();
 		FloatingController.get(this).hide();
 		hideSoftInput();
 		hideKeypad();

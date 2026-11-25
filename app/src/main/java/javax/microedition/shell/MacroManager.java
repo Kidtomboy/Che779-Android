@@ -16,8 +16,6 @@ import java.util.Set;
 
 /** Ghi và phát macro phím cho tab đang chọn. Chạy trên luồng giao diện. */
 final class MacroManager {
-	/** Thời gian phát liên tục tối đa (an toàn): 10 phút. */
-	private static final long MAX_PLAY_MS = 10 * 60 * 1000L;
 	private static final long LOOP_GAP_MS = 300;
 
 	private final MicroActivity act;
@@ -28,7 +26,6 @@ final class MacroManager {
 	private boolean recording;
 	private boolean playing;
 	private long startedAt;
-	private long playUntil;
 
 	MacroManager(MicroActivity act) {
 		this.act = act;
@@ -56,11 +53,27 @@ final class MacroManager {
 		recording = true;
 	}
 
-	/** Dừng ghi và lưu cho tab có số {@code slot}. @return số sự kiện đã ghi */
+	/** Dừng ghi và lưu cho tab có số {@code slot}. @return số lần bấm đã ghi (mỗi lần bấm gồm nhấn và nhả) */
 	int stopRecording(int slot) {
 		recording = false;
 		save(slot);
-		return events.size();
+		return presses();
+	}
+
+	private int presses() {
+		int n = 0;
+		for (long[] e : events) {
+			if (e[2] == 1) {
+				n++;
+			}
+		}
+		return n;
+	}
+
+	/** Số lần bấm của macro đã lưu cho tab {@code slot}. */
+	int pressCount(int slot) {
+		load(slot);
+		return presses();
 	}
 
 	boolean has(int slot) {
@@ -74,7 +87,7 @@ final class MacroManager {
 		prefs().edit().remove(key(slot)).apply();
 	}
 
-	/** @param times số lần phát; 0 = lặp liên tục tới khi dừng hoặc hết 10 phút */
+	/** @param times số lần phát; 0 = lặp liên tục tới khi bấm dừng */
 	void play(int slot, int times) {
 		stop();
 		load(slot);
@@ -82,7 +95,6 @@ final class MacroManager {
 			return;
 		}
 		playing = true;
-		playUntil = SystemClock.uptimeMillis() + MAX_PLAY_MS;
 		round(times);
 	}
 
@@ -111,7 +123,7 @@ final class MacroManager {
 			if (!playing) {
 				return;
 			}
-			if (times == 1 || SystemClock.uptimeMillis() >= playUntil) {
+			if (times == 1) {
 				stop();
 				return;
 			}

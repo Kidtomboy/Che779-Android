@@ -69,5 +69,5 @@ Ghi chú: `GridPanel.post()` gọi `rebuild` có thể chạy sau khi view bị 
 | N3 | Vào game ở chế độ danh sách | Không có bàn phím J2ME gốc; bàn phím Che779 mở được |
 | N4 | Đổi độ trong suốt/cỡ nút/giao diện/ảnh nền trong Cài đặt | Bàn phím áp dụng khi mở lại |
 | N5 | Gõ chữ từ bàn phím Che779 vào TextBox | Ký tự, xóa lùi, xuống dòng hoạt động |
-| N6 | Macro: lần đầu hiện cảnh báo; ghi, phát 1 lần, lặp, dừng, xóa | Cảnh báo chỉ một lần; phát dừng sau 10 phút hoặc khi rời màn hình |
+| N6 | Macro: lần đầu hiện cảnh báo; ghi 10 lần bấm → báo "10 lần bấm"; phát 1 lần, ×10, ∞, dừng, xóa; kéo cửa sổ macro | Cảnh báo chỉ một lần; số lần bấm đúng; phát liên tục không tự dừng | thủ công | NOT_RUN |
 | N7 | Bản V2 (chưa build): các mục trên | Hành vi giống bản chính |
