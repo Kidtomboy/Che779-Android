@@ -2092,7 +2092,46 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
+	/**
+	 * Gõ từ bàn phím Che779 vào ô nhập đang được chọn (TextBox/TextField). Chỉ xử lý ký tự, xóa lùi và xuống dòng;
+	 * mũi tên và OK vẫn đi theo đường phím điều hướng.
+	 */
+	private boolean typeIntoFocus(int code, boolean down) {
+		View f = getCurrentFocus();
+		if (!(f instanceof android.widget.EditText) || !(code >= 32 || code == -8 || code == 10)) {
+			return false;
+		}
+		if (!down) {
+			return true;
+		}
+		android.widget.EditText et = (android.widget.EditText) f;
+		android.text.Editable e = et.getText();
+		int s = Math.max(0, et.getSelectionStart());
+		int t = Math.max(0, et.getSelectionEnd());
+		int a = Math.min(s, t);
+		int b = Math.max(s, t);
+		if (code == -8) {
+			if (a != b) {
+				e.delete(a, b);
+			} else if (a > 0) {
+				e.delete(a - 1, a);
+			}
+		} else if (code == 10) {
+			if ((et.getInputType() & android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0) {
+				e.replace(a, b, "\n");
+			} else {
+				et.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
+			}
+		} else {
+			e.replace(a, b, String.valueOf((char) code));
+		}
+		return true;
+	}
+
 	private void sendKey(int code, boolean down) {
+		if (typeIntoFocus(code, down)) {
+			return;
+		}
 		Session a = Session.active();
 		Displayable d = a == null ? null : a.current;
 		if (d instanceof Canvas) {
