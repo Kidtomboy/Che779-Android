@@ -121,3 +121,9 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **Chức năng:** không đổi so với 1.3.2.
 - **Chưa chạy:** build CI và cài thử (`NOT_RUN`); tag `v1.3.3` chưa có, Cherry tạo.
 - **Còn mở:** tag `v1.3.2` lệch commit; tag/Release `dev-2.0.0`; `ACCEPTED_RISK` khoá ký; `GridPanel.post()` (MEDIUM CONFIDENCE).
+
+### [2026-11-25 13:55] Claude → Darling, Cherry — P4 nâng 1.3.4
+- **Phạm vi Cherry duyệt:** menu theo nhóm, đồng bộ phím theo nhóm màu, bỏ bàn phím J2ME gốc, tùy biến bàn phím, gõ chữ từ bàn phím Che779, macro phím; bản chính nâng `1.3.4` (`versionCode 134`).
+- **V2:** giữ `dev-2.0.1`; file `MicroActivity` của overlay phải đổi theo để biên dịch (mục `action_fix_vk` đã bị xóa), V2 chưa build lại (`NOT_RUN`).
+- **Đã chạy:** CI build bản chính (`CI_VERIFIED`). **Chưa chạy:** mọi thứ trên máy thật (`NOT_RUN`), bảng kiểm thử N1–N7.
+- **Cần Cherry:** tạo tag `v1.3.4`, xóa nhánh `giao-dien-menu-nhom`.

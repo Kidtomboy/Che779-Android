@@ -6,10 +6,14 @@
 - `che779-termux.sh`: chạy Emulator V2 trong Termux
 - `SHA256SUMS.txt`: mã kiểm tra file tải về
 
-**Điểm mới so với 1.3.2**
-- Việt hóa comment trong mã và dọn tài liệu (không đổi chức năng)
+**Điểm mới so với 1.3.3**
+- Menu xếp lại theo nhóm; đồng bộ phím theo nhóm màu
+- Bỏ bàn phím J2ME gốc (hết "bàn phím ma"); dùng bàn phím Che779, có thể gõ chữ vào ô nhập
+- Tùy biến bàn phím: độ trong suốt, cỡ nút, giao diện, ảnh nền
+- Macro phím (có cảnh báo cho game online)
 
-**Các bản trước (1.3.2)**
+**Các bản trước (1.3.2, 1.3.3)**
+- Việt hóa comment trong mã, dọn tài liệu
 - Kiểm tra cập nhật trong Cài đặt
 - Sửa lỗi bấm dồn nút công cụ làm chồng nhiều hộp thoại
 - Công tắc "Lấp đầy ô lưới" và "Lấp đầy cửa sổ nổi" trong Cài đặt (mặc định tắt)

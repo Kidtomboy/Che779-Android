@@ -2,9 +2,9 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
-## [Chưa phát hành] — trên `main`, sau 1.3.3
+## [1.3.4] — Bản phát hành
 
-Chưa có tag/Release, chưa kiểm chứng trên máy thật (`DEVICE_VERIFIED` chưa có); CI build bản chính xanh (`CI_VERIFIED`), bản V2 chưa build.
+Gói `com.che779.emulator`, `versionCode 134`. Mọi thứ của 1.3.3, thêm các mục dưới đây. Chưa kiểm chứng trên máy thật (`DEVICE_VERIFIED` chưa có); CI build bản chính xanh (`CI_VERIFIED`). Bản V2 (thử nghiệm) giữ nguyên `dev-2.0.1`, chưa build lại.
 - Menu xếp lại theo nhóm; sửa chữ "Khóa hướng màn hình".
 - Đồng bộ phím theo nhóm màu (chấm màu trong hộp thoại, dải màu dưới tab).
 - Bỏ bàn phím J2ME gốc và mục "Sửa bàn phím ảo"; dùng bàn phím Che779.
