@@ -127,3 +127,8 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **V2:** giữ `dev-2.0.1`; file `MicroActivity` của overlay phải đổi theo để biên dịch (mục `action_fix_vk` đã bị xóa), V2 chưa build lại (`NOT_RUN`).
 - **Đã chạy:** CI build bản chính (`CI_VERIFIED`). **Chưa chạy:** mọi thứ trên máy thật (`NOT_RUN`), bảng kiểm thử N1–N7.
 - **Cần Cherry:** tạo tag `v1.3.4`, xóa nhánh `giao-dien-menu-nhom`.
+
+### [2026-11-25 22:10] Claude → Darling, Cherry — P4 nâng 1.3.5
+- **Lý do (Cherry):** bỏ tag v1.3.4 (trỏ commit cũ), qua 1.3.5 để thử luôn kiểm tra cập nhật từ bản cũ. Chỉ đổi số phiên bản (`versionCode 135`), không đổi mã.
+- **Cần Cherry:** tạo tag `v1.3.5` ở head `main`; V2 giữ dev-2.0.1/201.
+- **Chưa kiểm chứng:** `NOT_RUN` trên máy thật (mục U1).
