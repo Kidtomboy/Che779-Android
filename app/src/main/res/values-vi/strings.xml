@@ -152,7 +152,7 @@
     <string name="screenshot_saved">Ảnh chụp màn hình đã được lưu đến</string>
     <string name="log_saved">Log đã được lưu</string>
     <string name="action_keyboard_ime">Bàn phím (IME)</string>
-    <string name="action_lock_orientation">tỏa định màn hình xoay tròn</string>
+    <string name="action_lock_orientation">Khóa hướng màn hình</string>
     <string name="pref_vk_save_alert">Bàn phím tùy chỉnh sẽ được thay thế bằng hiện tại\nLưu?</string>
     <string name="opt_save_screen_params">lưu thông số màn hình</string>
     <string name="cmd_menu">Menu</string>

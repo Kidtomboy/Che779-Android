@@ -1,30 +1,39 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/action_exit_midlet"
+        android:orderInCategory="20"
         android:title="@string/exit" />
     <item
         android:id="@+id/action_restart_tab"
+        android:orderInCategory="10"
         android:title="@string/action_restart_tab" />
     <item
         android:id="@+id/action_proxy"
+        android:orderInCategory="30"
         android:title="@string/action_proxy" />
     <item
         android:id="@+id/action_redirect"
+        android:orderInCategory="40"
         android:title="@string/action_redirect" />
     <item
         android:id="@+id/action_fix_vk"
+        android:orderInCategory="95"
         android:title="@string/action_fix_vk" />
     <item
         android:id="@+id/action_power"
+        android:orderInCategory="80"
         android:title="@string/action_power" />
     <item
         android:id="@+id/action_sleep_now"
+        android:orderInCategory="70"
         android:title="@string/action_sleep_now" />
     <item
         android:id="@+id/action_save_log"
+        android:orderInCategory="100"
         android:title="@string/save_log" />
     <item
         android:id="@+id/action_lock_orientation"
+        android:orderInCategory="60"
         android:title="@string/action_lock_orientation"
         android:checkable="true"
         android:checked="false"
@@ -33,18 +42,22 @@
         <item
             android:icon="@drawable/ic_action_keyboard"
             android:id="@+id/action_ime_keyboard"
+        android:orderInCategory="85"
             android:title="@string/action_keyboard_ime" />
         <item
             android:icon="@drawable/ic_action_screenshot"
             android:id="@+id/action_take_screenshot"
+        android:orderInCategory="87"
             android:title="@string/take_screenshot" />
 
         <item
             android:id="@+id/action_limit_fps"
+        android:orderInCategory="50"
             android:title="@string/PREF_LIMIT_FPS" />
 
         <item
             android:id="@+id/action_submenu_vk"
+        android:orderInCategory="90"
             android:title="@string/PREF_VIRTUAL_KEYBOARD_OPTIONS">
             <menu>
                 <item

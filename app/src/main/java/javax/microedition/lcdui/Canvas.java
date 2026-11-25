@@ -256,7 +256,7 @@ public abstract class Canvas extends Displayable {
 			return;
 		}
 		for (Session o : Session.all()) {
-			if (o == session || !o.sync) {
+			if (o == session || !o.sync || o.syncGroup != session.syncGroup) {
 				continue;
 			}
 			Displayable d = o.current;

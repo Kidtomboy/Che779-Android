@@ -66,6 +66,25 @@ public final class Session {
 	public volatile String label;
 	/** True khi tab này tham gia đồng bộ phím (chế độ lưới). */
 	public volatile boolean sync;
+	/** Nhóm đồng bộ phím (0 = không đồng bộ; 1..6 = số nhóm, mỗi nhóm một màu). */
+	public volatile int syncGroup;
+
+	/** Màu của từng nhóm (chỉ số 0 = không đồng bộ). */
+	public static final int[] GROUP_COLORS = {0xFF9E9E9E, 0xFFE53935, 0xFF1E88E5, 0xFF43A047, 0xFFFB8C00, 0xFF8E24AA, 0xFF00ACC1};
+
+	/** Chia nhóm tự động theo game: các tab cùng game vào cùng một nhóm. */
+	public static void autoGroup(java.util.List<Session> list) {
+		java.util.List<String> apps = new java.util.ArrayList<>();
+		for (Session t : list) {
+			String k = t.appPath == null ? "" : t.appPath;
+			int i = apps.indexOf(k);
+			if (i < 0) {
+				apps.add(k);
+				i = apps.size() - 1;
+			}
+			t.syncGroup = Math.min(i + 1, GROUP_COLORS.length - 1);
+		}
+	}
 	/** Số tab cố định (từ 1); số đã đóng sẽ được tab mới kế tiếp dùng lại. */
 	public volatile int slot;
 	/** Tên các lớp game do tab này nạp (dùng để tìm các luồng của nó khi đóng). */
