@@ -1606,6 +1606,7 @@ public class MicroActivity extends AppCompatActivity {
 		visible = true;
 		resetSleepTimer();
 		MidletThread.resumeApp();
+		uiHandler.postDelayed(this::autoShowKeypad, 600);
 	}
 
 	@Override
@@ -1881,6 +1882,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	/** Biểu tượng thanh dưới: mở bàn phím Nokia hoặc Android, hoặc đóng nếu đang mở. */
 	private void openKeypad(int type) {
+		keypadClosedByUser = false;
 		if (keypad != null && keypadType == type) {
 			closeKeypad();
 			return;
@@ -1891,6 +1893,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	/** Đóng bàn phím; ở chế độ danh sách, bàn phím ảo J2ME hiện lại. */
 	private void closeKeypad() {
+		keypadClosedByUser = true;
 		// J2ME VK stays hidden after a keypad was used (ghost-button fix)
 		hideKeypad();
 	}
@@ -1920,14 +1923,33 @@ public class MicroActivity extends AppCompatActivity {
 			binding.overlayView.removeLayer(a.vk);
 		}
 		keypadType = KeypadFactory.type(this);
-		keypad = KeypadFactory.create(this, keypadType, 50, 22, keypadSink(), this::rebuildKeypad);
-		android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
-				ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-				android.view.Gravity.BOTTOM);
-		lp.bottomMargin = BottomBar.heightPx(this);
-		((ViewGroup) binding.getRoot()).addView(keypad, lp);
+		keypad = KeypadFactory.create(this, keypadType, 44, 20, keypadSink(), this::rebuildKeypad);
+		// gắn phía trên thanh dưới: khung game co lại thay vì bị bàn phím che
+		binding.virtualDisplay.addView(keypad, Math.max(0, binding.virtualDisplay.getChildCount() - 1),
+				new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 		if (bottomBar != null) {
 			bottomBar.setKeypad(keypadType, true);
+		}
+	}
+
+	/** Người dùng đã tự đóng bàn phím: không tự hiện lại cho tới khi họ mở. */
+	private boolean keypadClosedByUser;
+
+	/** Chế độ danh sách: tự hiện bàn phím Che779 khi vào game (trừ khi người dùng đã đóng). */
+	private void autoShowKeypad() {
+		autoShowKeypad(0);
+	}
+
+	private void autoShowKeypad(final int attempt) {
+		if (keypad != null || gridMode || keypadClosedByUser || floating || binding == null) {
+			return;
+		}
+		Session a = Session.active();
+		if (a != null && a.current != null) {
+			showListKeypad();
+		} else if (attempt < 10) {
+			// game chưa hiện xong: thử lại
+			uiHandler.postDelayed(() -> autoShowKeypad(attempt + 1), 700);
 		}
 	}
 
