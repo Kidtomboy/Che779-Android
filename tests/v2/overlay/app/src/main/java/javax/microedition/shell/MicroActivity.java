@@ -1176,16 +1176,6 @@ public class MicroActivity extends AppCompatActivity {
 		}
 	}
 
-	/** Menu "Sửa bàn phím ảo": re-attach the virtual keyboard and rebuild the screen layout. */
-	private void repairVk() {
-		Session a = Session.active();
-		if (a == null) {
-			return;
-		}
-		ViewHandler.postEvent(new SetCurrentEvent(a.current, a.current));
-		showListKeypad();
-	}
-
 	private void attachVk(Session s) {
 		VirtualKeyboard vk = s.vk;
 		if (vk != null && (!gridMode || gridVkOn)) {
@@ -2274,8 +2264,6 @@ public class MicroActivity extends AppCompatActivity {
 			showProxyDialog();
 		} else if (id == R.id.action_redirect) {
 			editRedirects();
-		} else if (id == R.id.action_fix_vk) {
-			repairVk();
 		} else if (id == R.id.action_power) {
 			showPowerDialog();
 		} else if (id == R.id.action_sleep_now) {

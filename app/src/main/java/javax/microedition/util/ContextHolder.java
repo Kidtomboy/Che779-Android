@@ -67,10 +67,14 @@ public class ContextHolder {
 		return s != null ? s.vk : null;
 	}
 
+	/**
+	 * Bàn phím ảo J2ME gốc đã bị loại bỏ: luôn để null để không bao giờ hiện bàn phím "ma".
+	 * Bàn phím Che779 (KeypadFactory) thay thế hoàn toàn.
+	 */
 	public static void setVk(VirtualKeyboard vk) {
 		Session s = Session.current();
 		if (s != null) {
-			s.vk = vk;
+			s.vk = null;
 		}
 	}
 
