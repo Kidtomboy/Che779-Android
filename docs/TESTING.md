@@ -60,3 +60,14 @@ Mã: `GridPanel.onSizeChanged/rebuild`, `MicroActivity` (grid, cửa sổ nổi)
 | L9 | Tham chiếu view cũ (`GridPanel.lastSessions`, `post` trễ) | Callback chạy sau `destroy` không làm crash (rủi ro đã nêu trong audit, chưa xác nhận) |
 | L10 | Chồng hộp thoại khi bấm dồn thanh công cụ | Chỉ một hộp thoại tại một thời điểm (`DialogGate`) |
 Ghi chú: `GridPanel.post()` gọi `rebuild` có thể chạy sau khi view bị gỡ; hiện có kiểm tra `getWidth()>0` nhưng chưa có kiểm tra `isAttachedToWindow()` — rủi ro `MEDIUM CONFIDENCE`, chưa tái hiện được.
+
+## Kiểm thử bản sau 1.3.3 (tất cả `NOT_RUN`)
+| ID | Việc | Kết quả mong đợi |
+|---|---|---|
+| N1 | Mở menu | 6 nhóm đúng thứ tự, có "Khóa hướng màn hình", không còn "Sửa bàn phím ảo" |
+| N2 | Đồng bộ phím: đặt 2 màu cho 4 tab | Chỉ tab cùng màu nhận phím; dải màu hiện dưới tab |
+| N3 | Vào game ở chế độ danh sách | Không có bàn phím J2ME gốc; bàn phím Che779 mở được |
+| N4 | Đổi độ trong suốt/cỡ nút/giao diện/ảnh nền trong Cài đặt | Bàn phím áp dụng khi mở lại |
+| N5 | Gõ chữ từ bàn phím Che779 vào TextBox | Ký tự, xóa lùi, xuống dòng hoạt động |
+| N6 | Macro: lần đầu hiện cảnh báo; ghi, phát 1 lần, lặp, dừng, xóa | Cảnh báo chỉ một lần; phát dừng sau 10 phút hoặc khi rời màn hình |
+| N7 | Bản V2 (chưa build): các mục trên | Hành vi giống bản chính |

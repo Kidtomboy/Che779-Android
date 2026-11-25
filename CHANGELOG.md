@@ -2,6 +2,16 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
+## [Chưa phát hành] — trên `main`, sau 1.3.3
+
+Chưa có tag/Release, chưa kiểm chứng trên máy thật (`DEVICE_VERIFIED` chưa có); CI build bản chính xanh (`CI_VERIFIED`), bản V2 chưa build.
+- Menu xếp lại theo nhóm; sửa chữ "Khóa hướng màn hình".
+- Đồng bộ phím theo nhóm màu (chấm màu trong hộp thoại, dải màu dưới tab).
+- Bỏ bàn phím J2ME gốc và mục "Sửa bàn phím ảo"; dùng bàn phím Che779.
+- Tùy biến bàn phím Che779 trong Cài đặt: độ trong suốt, cỡ nút, giao diện, ảnh nền.
+- Bàn phím Che779 gõ chữ vào ô nhập (TextBox/TextField).
+- Macro phím có cảnh báo lần đầu; phát tối đa 10 phút mỗi lần.
+
 ## [1.3.3] — Bản phát hành
 
 Gói `com.che779.emulator`, `versionCode 133`. Mọi thứ của 1.3.2, thêm:
