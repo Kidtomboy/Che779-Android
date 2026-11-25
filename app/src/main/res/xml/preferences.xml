@@ -89,6 +89,36 @@
             android:title="@string/pref_fill_float_title"
             android:summary="@string/pref_fill_float_summary" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_cat_keypad">
+        <SeekBarPreference
+            android:defaultValue="100"
+            android:key="pref_kp_opacity"
+            android:title="@string/pref_kp_opacity_title"
+            app:min="30"
+            android:max="100"
+            app:showSeekBarValue="true" />
+        <SeekBarPreference
+            android:defaultValue="100"
+            android:key="pref_kp_size"
+            android:title="@string/pref_kp_size_title"
+            app:min="70"
+            android:max="140"
+            app:showSeekBarValue="true" />
+        <ListPreference
+            android:defaultValue="light"
+            android:entries="@array/kp_theme_entries"
+            android:entryValues="@array/kp_theme_values"
+            android:key="pref_kp_theme"
+            android:title="@string/pref_kp_theme_title"
+            app:useSimpleSummaryProvider="true" />
+        <Preference
+            android:key="pref_kp_bg_pick"
+            android:title="@string/pref_kp_bg_pick_title"
+            android:summary="@string/pref_kp_bg_pick_summary" />
+        <Preference
+            android:key="pref_kp_bg_clear"
+            android:title="@string/pref_kp_bg_clear_title" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_cat_update">
         <Preference
             android:key="pref_check_update"

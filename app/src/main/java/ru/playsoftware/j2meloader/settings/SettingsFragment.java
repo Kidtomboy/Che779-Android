@@ -51,6 +51,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 			new androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
 			this::onPickBackgroundResult);
 
+	private final ActivityResultLauncher<String[]> pickKeypadBgLauncher = registerForActivityResult(
+			new androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+			uri -> {
+				if (uri != null) {
+					boolean ok = javax.microedition.shell.KeypadStyle.saveBackground(requireContext(), uri);
+					android.widget.Toast.makeText(requireContext(),
+							ok ? R.string.kp_bg_saved : R.string.kp_bg_failed, android.widget.Toast.LENGTH_SHORT).show();
+				}
+			});
+
 	private void onPickBackgroundResult(Uri uri) {
 		if (uri == null) {
 			return;
@@ -70,6 +80,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 		addPreferencesFromResource(R.xml.preferences);
 		findPreference("pref_custom_background").setOnPreferenceClickListener(preference -> {
 			pickBackgroundLauncher.launch(new String[]{"image/*"});
+			return true;
+		});
+		findPreference("pref_kp_bg_pick").setOnPreferenceClickListener(preference -> {
+			pickKeypadBgLauncher.launch(new String[]{"image/*"});
+			return true;
+		});
+		findPreference("pref_kp_bg_clear").setOnPreferenceClickListener(preference -> {
+			javax.microedition.shell.KeypadStyle.clearBackground(requireContext());
 			return true;
 		});
 		findPreference("pref_check_update").setOnPreferenceClickListener(preference -> {

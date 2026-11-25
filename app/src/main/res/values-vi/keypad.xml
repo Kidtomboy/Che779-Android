@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pref_cat_keypad">Bàn phím Che779</string>
+    <string name="pref_kp_opacity_title">Độ trong suốt</string>
+    <string name="pref_kp_size_title">Cỡ nút (%)</string>
+    <string name="pref_kp_theme_title">Giao diện</string>
+    <string name="pref_kp_bg_pick_title">Chọn ảnh nền bàn phím</string>
+    <string name="pref_kp_bg_pick_summary">Ảnh được thu nhỏ và lưu trong ứng dụng</string>
+    <string name="pref_kp_bg_clear_title">Xóa ảnh nền bàn phím</string>
+    <string name="kp_theme_light">Sáng</string>
+    <string name="kp_theme_dark">Tối</string>
+    <string name="kp_theme_clear">Trong suốt</string>
+    <string name="kp_bg_saved">Đã lưu ảnh nền bàn phím</string>
+    <string name="kp_bg_failed">Không đọc được ảnh</string>
+    <string-array name="kp_theme_entries">
+        <item>@string/kp_theme_light</item>
+        <item>@string/kp_theme_dark</item>
+        <item>@string/kp_theme_clear</item>
+    </string-array>
+    <string-array name="kp_theme_values">
+        <item>light</item>
+        <item>dark</item>
+        <item>clear</item>
+    </string-array>
+</resources>

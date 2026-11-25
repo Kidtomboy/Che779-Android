@@ -51,8 +51,10 @@ final class KeypadFactory {
 		head.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
 		head.addView(Icons.view(c, R.drawable.ic_c_close, 0xFFB3261E, 6, v -> sink.close()), cell(dp));
 		col.addView(head, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		View pad = type == ANDROID ? new QwertyKeypadView(c, keyDp, textSp, sink) : new KeypadView(c, keyDp, textSp, sink);
+		final int kdp = KeypadStyle.scaledKeyDp(c, keyDp);
+		View pad = type == ANDROID ? new QwertyKeypadView(c, kdp, textSp, sink) : new KeypadView(c, kdp, textSp, sink);
 		col.addView(pad, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		KeypadStyle.apply(c, col, pad);
 		return col;
 	}
 
