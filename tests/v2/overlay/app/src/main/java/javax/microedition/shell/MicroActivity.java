@@ -1527,8 +1527,12 @@ public class MicroActivity extends AppCompatActivity {
 					}
 					if (n < 2 && a != null) {
 						n = 0;
+						Session.autoGroup(tabs);
 						for (Session t : tabs) {
-							t.sync = t.appPath.equals(a.appPath);
+							t.sync = t.syncGroup == a.syncGroup;
+							if (!t.sync) {
+								t.syncGroup = 0;
+							}
 							if (t.sync) {
 								n++;
 							}
@@ -1924,40 +1928,73 @@ public class MicroActivity extends AppCompatActivity {
 		}
 		boolean any = false;
 		for (Session t : list) {
-			any |= t.sync;
+			any |= t.syncGroup > 0;
 		}
-		Session act = Session.active();
-		final boolean[] checked = new boolean[list.size()];
-		final String[] items = new String[list.size()];
+		if (!any) {
+			Session.autoGroup(list);
+		}
+		final int[] grp = new int[list.size()];
+		LinearLayout box = new LinearLayout(dctx());
+		box.setOrientation(LinearLayout.VERTICAL);
+		int pad = (int) (16 * getResources().getDisplayMetrics().density);
+		box.setPadding(pad, pad / 2, pad, 0);
 		for (int i = 0; i < list.size(); i++) {
+			final int idx = i;
 			Session t = list.get(i);
-			checked[i] = any ? t.sync : (act != null && t.appPath.equals(act.appPath));
+			grp[i] = t.syncGroup;
 			String nm = t.label != null && !t.label.isEmpty() ? " · " + t.label : "";
-			items[i] = "Tab " + (i + 1) + nm + " — " + (t.appName == null ? "" : t.appName);
+			final android.widget.TextView row = new android.widget.TextView(dctx());
+			row.setTextSize(16);
+			row.setPadding(0, pad / 2, 0, pad / 2);
+			row.setText("Tab " + (i + 1) + nm + " — " + (t.appName == null ? "" : t.appName));
+			final android.graphics.drawable.GradientDrawable dot = new android.graphics.drawable.GradientDrawable();
+			dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+			int sz = (int) (22 * getResources().getDisplayMetrics().density);
+			dot.setSize(sz, sz);
+			dot.setColor(Session.GROUP_COLORS[grp[i]]);
+			row.setCompoundDrawablesWithIntrinsicBounds(null, null, dot, null);
+			row.setCompoundDrawablePadding(pad);
+			row.setOnClickListener(v -> {
+				grp[idx] = (grp[idx] + 1) % Session.GROUP_COLORS.length;
+				dot.setColor(Session.GROUP_COLORS[grp[idx]]);
+				row.invalidate();
+			});
+			box.addView(row);
 		}
 		showDlg(new DialogGate.Builder(dctx())
-				.setTitle("Đồng bộ phím: chọn các tab")
-				.setMultiChoiceItems(items, checked, (d, w, on) -> checked[w] = on)
+				.setTitle("Đồng bộ phím: chạm số tab để đổi màu nhóm")
+				.setView(box)
 				.setPositiveButton("Áp dụng", (d, w) -> {
-					int n = 0;
+					int[] cnt = new int[Session.GROUP_COLORS.length];
 					for (int i = 0; i < list.size(); i++) {
-						list.get(i).sync = checked[i];
-						if (checked[i]) {
-							n++;
-						}
+						Session t = list.get(i);
+						t.syncGroup = grp[i];
+						t.sync = grp[i] > 0;
+						cnt[grp[i]]++;
 					}
-					Session.syncKeys = n >= 2;
+					boolean ok = false;
+					for (int g = 1; g < cnt.length; g++) {
+						ok |= cnt[g] >= 2;
+					}
+					Session.syncKeys = ok;
 					if (bottomBar != null) {
 						bottomBar.setSyncOn(Session.syncKeys);
 					}
-					if (n == 1) {
-						Toast.makeText(this, "Cần chọn ít nhất 2 tab để đồng bộ", Toast.LENGTH_SHORT).show();
+					if (tabBar != null) {
+						tabBar.update(tabs, Session.active());
+					}
+					if (!ok) {
+						Toast.makeText(this, "Cần ít nhất 2 tab cùng một màu để đồng bộ", Toast.LENGTH_SHORT).show();
 					}
 				})
 				.setNeutralButton("Tắt đồng bộ", (d, w) -> {
 					Session.syncKeys = false;
 					for (Session t : list) {
 						t.sync = false;
+						t.syncGroup = 0;
+					}
+					if (tabBar != null) {
+						tabBar.update(tabs, Session.active());
 					}
 					if (bottomBar != null) {
 						bottomBar.setSyncOn(false);

@@ -66,7 +66,18 @@ final class TabBar extends LinearLayout {
 			t.setGravity(Gravity.CENTER);
 			t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
 			t.setTextColor(s == active ? Color.WHITE : 0xFF9AA4B2);
-			t.setBackgroundColor(s == active ? SELECTED : 0x00000000);
+			int base = s == active ? SELECTED : 0x00000000;
+			if (s.sync && s.syncGroup > 0 && s.syncGroup < Session.GROUP_COLORS.length) {
+				// dải màu nhóm đồng bộ ở cạnh dưới của tab
+				android.graphics.drawable.LayerDrawable ld = new android.graphics.drawable.LayerDrawable(
+						new android.graphics.drawable.Drawable[]{
+								new android.graphics.drawable.ColorDrawable(base),
+								new android.graphics.drawable.ColorDrawable(Session.GROUP_COLORS[s.syncGroup])});
+				ld.setLayerInset(1, 0, dp(31), 0, 0);
+				t.setBackground(ld);
+			} else {
+				t.setBackgroundColor(base);
+			}
 			t.setOnClickListener((View v) -> listener.onSelect(s));
 			tabs.addView(t, new LayoutParams(s.label != null && !s.label.isEmpty() ? dp(88) : dp(44), dp(36)));
 		}

@@ -1840,6 +1840,9 @@ public class MicroActivity extends AppCompatActivity {
 					if (bottomBar != null) {
 						bottomBar.setSyncOn(Session.syncKeys);
 					}
+					if (tabBar != null) {
+						tabBar.update(tabs, Session.active());
+					}
 					if (!ok) {
 						Toast.makeText(this, "Cần ít nhất 2 tab cùng một màu để đồng bộ", Toast.LENGTH_SHORT).show();
 					}
@@ -1849,6 +1852,9 @@ public class MicroActivity extends AppCompatActivity {
 					for (Session t : list) {
 						t.sync = false;
 						t.syncGroup = 0;
+					}
+					if (tabBar != null) {
+						tabBar.update(tabs, Session.active());
 					}
 					if (bottomBar != null) {
 						bottomBar.setSyncOn(false);
