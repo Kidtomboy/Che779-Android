@@ -16,6 +16,10 @@
         android:orderInCategory="40"
         android:title="@string/action_redirect" />
     <item
+        android:id="@+id/action_macro"
+        android:orderInCategory="92"
+        android:title="@string/action_macro" />
+    <item
         android:id="@+id/action_power"
         android:orderInCategory="80"
         android:title="@string/action_power" />

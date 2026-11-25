@@ -1610,6 +1610,7 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	public void onPause() {
+		macro.stop();
 		visible = false;
 		uiHandler.removeCallbacks(sleepRunnable);
 		hideSoftInput();
@@ -1946,8 +1947,68 @@ public class MicroActivity extends AppCompatActivity {
 	}
 
 	/** Gửi mã phím J2ME (đường chéo là hai phím) tới tab đang chọn. */
+	// ------------------------------------------------------------ macro phím
+
+	private final MacroManager macro = new MacroManager(this);
+
+	/** Menu Macro: lần đầu có cảnh báo cho game online, các lần sau vào thẳng. */
+	private void showMacroDialog() {
+		if (!macro.warned()) {
+			showDlg(new DialogGate.Builder(dctx())
+					.setTitle("Cảnh báo về macro")
+					.setMessage("Dùng macro (tự động bấm phím) trong game online có thể vi phạm điều khoản của game "
+							+ "và có thể bị khóa tài khoản. Bạn tự chịu trách nhiệm khi dùng. "
+							+ "Macro chỉ ghi các phím bấm từ bàn phím Che779 và chạy tối đa 10 phút mỗi lần phát.")
+					.setPositiveButton("Tôi hiểu", (d, w) -> {
+						macro.setWarned();
+						showMacroMenu();
+					})
+					.setNegativeButton("Hủy", null));
+			return;
+		}
+		showMacroMenu();
+	}
+
+	private void showMacroMenu() {
+		Session a = Session.active();
+		if (a == null) {
+			return;
+		}
+		final int slot = a.slot;
+		final java.util.ArrayList<String> names = new java.util.ArrayList<>();
+		final java.util.ArrayList<Runnable> acts = new java.util.ArrayList<>();
+		if (macro.isRecording()) {
+			names.add("Dừng ghi macro");
+			acts.add(() -> Toast.makeText(this, "Đã ghi " + macro.stopRecording(slot) + " thao tác cho tab " + slot,
+					Toast.LENGTH_SHORT).show());
+		} else if (macro.isPlaying()) {
+			names.add("Dừng phát macro");
+			acts.add(macro::stop);
+		} else {
+			names.add("Ghi macro mới (tab " + slot + ")");
+			acts.add(() -> {
+				macro.startRecording();
+				Toast.makeText(this, "Đang ghi: hãy bấm phím trên bàn phím Che779", Toast.LENGTH_LONG).show();
+			});
+			if (macro.has(slot)) {
+				names.add("Phát 1 lần");
+				acts.add(() -> macro.play(slot, 1));
+				names.add("Lặp 10 lần");
+				acts.add(() -> macro.play(slot, 10));
+				names.add("Lặp liên tục (tối đa 10 phút)");
+				acts.add(() -> macro.play(slot, 0));
+				names.add("Xóa macro của tab " + slot);
+				acts.add(() -> macro.clear(slot));
+			}
+		}
+		showDlg(new DialogGate.Builder(dctx())
+				.setTitle("Macro phím" + (Session.syncKeys ? " (sẽ chạy cho cả nhóm đồng bộ)" : ""))
+				.setItems(names.toArray(new CharSequence[0]), (d, which) -> acts.get(which).run()));
+	}
+
 	void sendKeys(int[] codes, boolean down) {
 		for (int c : codes) {
+			macro.onKey(c, down);
 			sendKey(c, down);
 		}
 	}
@@ -1988,7 +2049,7 @@ public class MicroActivity extends AppCompatActivity {
 		return true;
 	}
 
-	private void sendKey(int code, boolean down) {
+	void sendKey(int code, boolean down) {
 		if (typeIntoFocus(code, down)) {
 			return;
 		}
@@ -2197,6 +2258,8 @@ public class MicroActivity extends AppCompatActivity {
 			showProxyDialog();
 		} else if (id == R.id.action_redirect) {
 			editRedirects();
+		} else if (id == R.id.action_macro) {
+			showMacroDialog();
 		} else if (id == R.id.action_power) {
 			showPowerDialog();
 		} else if (id == R.id.action_sleep_now) {
