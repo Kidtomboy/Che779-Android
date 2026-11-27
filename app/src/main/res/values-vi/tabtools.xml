@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_lock_tab">Khóa / mở khóa tab</string>
+    <string name="action_guide">Hướng dẫn sử dụng</string>
+    <string name="pref_auto_restart_title">Tự khởi động lại tab</string>
+    <string name="pref_auto_restart_summary">Khi tab bị treo (một thao tác chạy quá 45 giây) hoặc game tự thoát ngoài ý muốn thì mở lại. Tối đa 5 lần liên tiếp mỗi tab, quá thì dừng.</string>
+    <string name="pref_guide_title">Hướng dẫn sử dụng</string>
+    <string name="pref_guide_summary">Cách dùng tab, bàn phím, macro, proxy, khóa tab</string>
+    <string name="guide_prompt_title">Chào mừng đến với Che779</string>
+    <string name="guide_prompt_message">Xem hướng dẫn sử dụng nhanh không? Bạn có thể xem lại sau trong Thiết lập hoặc menu trong game.</string>
+    <string name="guide_prompt_yes">Xem</string>
+    <string name="guide_prompt_no">Để sau</string>
+    <string name="guide_title">Hướng dẫn sử dụng</string>
+    <string name="guide_body">CHẠY GAME
+• Chọn game trong danh sách để mở. Nút + thêm tab mới để chạy nhiều game cùng lúc.
+• Chạm tên tab để chuyển; nhấn giữ để đổi tên (nếu có).
+
+MENU TRONG GAME
+• Khởi động lại tab: nhập số tab, hoặc nhiều tab như 1-6 hay 1,3,5.
+• Khóa / mở khóa tab: tab khóa (có biểu tượng khóa) không bị đóng hoặc khởi động lại nhầm. Thoát hết cả app vẫn đóng được.
+• Proxy, Macro phím, Tiết kiệm pin, Lưu log nằm trong cùng menu.
+
+ĐỒNG BỘ PHÍM
+• Ở chế độ lưới, bật đồng bộ để gửi một phím cho nhiều tab. Mỗi nhóm có một màu, ví dụ 3 tab game A cùng màu đỏ, 3 tab game B cùng màu xanh.
+
+BÀN PHÍM CHE779
+• Tùy chỉnh độ trong suốt, cỡ nút, giao diện, ảnh nền trong Thiết lập.
+• Có thể gõ chữ vào ô nhập của game.
+
+MACRO PHÍM
+• Ghi các phím bấm rồi phát lại, lặp ×1, ×10 hoặc vô hạn. Có cửa sổ nổi nhỏ kéo thả.
+• Lần đầu có cảnh báo: dùng macro với game online có thể vi phạm quy định của game.
+
+TỰ KHỞI ĐỘNG LẠI
+• Bật trong Thiết lập. Chỉ mở lại khi tab treo hoặc game tự thoát ngoài ý muốn, tối đa 5 lần liên tiếp mỗi tab.
+
+CẬP NHẬT
+• Thiết lập → Kiểm tra cập nhật để tải bản mới và cài đè, dữ liệu giữ nguyên.</string>
+    <string name="pref_cat_tabtools">Tab và hướng dẫn</string>
+</resources>

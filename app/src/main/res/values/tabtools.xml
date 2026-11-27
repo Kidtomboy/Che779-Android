@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_lock_tab">Lock / unlock tab</string>
+    <string name="action_guide">User guide</string>
+    <string name="pref_auto_restart_title">Auto-restart tabs</string>
+    <string name="pref_auto_restart_summary">Reopen a tab when it hangs (an action runs over 45 s) or the game quits unexpectedly. At most 5 times in a row per tab.</string>
+    <string name="pref_guide_title">User guide</string>
+    <string name="pref_guide_summary">How to use tabs, keypad, macro, proxy, tab lock</string>
+    <string name="guide_prompt_title">Welcome to Che779</string>
+    <string name="guide_prompt_message">Open the quick user guide? You can read it again in Settings or the in-game menu.</string>
+    <string name="guide_prompt_yes">Open</string>
+    <string name="guide_prompt_no">Later</string>
+    <string name="guide_title">User guide</string>
+    <string name="guide_body">RUNNING GAMES
+• Pick a game from the list. The + button adds another tab to run several games at once.
+
+IN-GAME MENU
+• Restart tab: enter a tab number, or several such as 1-6 or 1,3,5.
+• Lock / unlock tab: a locked tab (lock icon) cannot be closed or restarted by accident. Exit all still works.
+• Proxy, Key macro, Power saving and Save log are in the same menu.
+
+KEY SYNC
+• In grid mode, turn on sync to send one key to many tabs. Each group has its own colour.
+
+CHE779 KEYPAD
+• Opacity, key size, theme and background image are in Settings. It can type into text fields.
+
+KEY MACRO
+• Record key presses and play them back x1, x10 or forever. A small floating panel can be dragged. A warning shows on first use: macros in online games may break the game rules.
+
+AUTO-RESTART
+• Turn it on in Settings. It only reopens a tab that hangs or quits unexpectedly, at most 5 times in a row per tab.
+
+UPDATES
+• Settings → Check for updates downloads the new version and installs over the old one; your data is kept.</string>
+    <string name="pref_cat_tabtools">Tabs and guide</string>
+</resources>

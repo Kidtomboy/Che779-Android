@@ -96,6 +96,12 @@ public final class Session {
 
 	/** Chạy khi tab này đã bị gỡ (dùng để mở lại: "khởi động lại tab"). */
 	volatile Runnable restartAfter;
+	/** Tab đang khóa: không đóng/khởi động lại nhầm. */
+	public volatile boolean locked;
+	/** Người dùng chủ động đóng/khởi động lại (khác với game tự thoát hoặc bị treo). */
+	public volatile boolean userClosing;
+	/** Lúc tab được tạo (để biết tab đã chạy ổn định chưa). */
+	public final long startedAt = android.os.SystemClock.elapsedRealtime();
 	/** Socket và kết nối HTTP do game của tab này mở, để khi khởi động lại có thể đóng hết. */
 	private final java.util.Set<Object> connections =
 			java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<Object, Boolean>()));

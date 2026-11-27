@@ -83,7 +83,9 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 
 	public static void notifyDestroyed() {
 		Session closing = Session.current();
-		if (closing != null && (Session.count() > 1 || closing.restartAfter != null)) {
+		MicroActivity auto = ContextHolder.getActivity();
+		if (closing != null && (Session.count() > 1 || closing.restartAfter != null
+				|| (auto != null && auto.canAutoRestart(closing)))) {
 			// các tab khác còn sống (hoặc tab này đang khởi động lại): chỉ đóng tab này
 			MicroActivity activity = ContextHolder.getActivity();
 			if (closing.thread != null) {
@@ -165,6 +167,10 @@ public class MidletThread extends HandlerThread implements Handler.Callback {
 	}
 
 	static void destroyApp() {
+		Session user = Session.active();
+		if (user != null) {
+			user.userClosing = true; // người dùng chủ động thoát: không tự khởi động lại
+		}
 		if (Session.count() > 1) {
 			MidletThread self = instance();
 			if (self != null) {

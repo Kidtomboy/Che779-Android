@@ -8,6 +8,14 @@
         android:orderInCategory="10"
         android:title="@string/action_restart_tab" />
     <item
+        android:id="@+id/action_lock_tab"
+        android:orderInCategory="11"
+        android:title="@string/action_lock_tab" />
+    <item
+        android:id="@+id/action_guide"
+        android:orderInCategory="95"
+        android:title="@string/action_guide" />
+    <item
         android:id="@+id/action_proxy"
         android:orderInCategory="30"
         android:title="@string/action_proxy" />

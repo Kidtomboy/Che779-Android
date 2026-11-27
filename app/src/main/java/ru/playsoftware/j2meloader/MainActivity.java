@@ -71,6 +71,7 @@ public class MainActivity extends BaseActivity {
 			permissionsLauncher.launch(STORAGE_PERMISSIONS);
 		}
 		appListModel = new ViewModelProvider(this).get(AppListModel.class);
+		offerGuideOnce();
 		if (savedInstanceState == null) {
 			Intent intent = getIntent();
 			Uri uri = null;
@@ -256,6 +257,25 @@ public class MainActivity extends BaseActivity {
 		Uri uri = intent.getData();
 		if (uri != null) {
 			InstallerDialog.newInstance(uri).show(getSupportFragmentManager(), "installer");
+		}
+	}
+
+	/** Lần mở đầu tiên: hỏi có muốn xem hướng dẫn không (chỉ hỏi một lần). */
+	private void offerGuideOnce() {
+		try {
+			android.content.SharedPreferences sp = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this);
+			if (sp.getBoolean("che779_guide_seen", false)) {
+				return;
+			}
+			sp.edit().putBoolean("che779_guide_seen", true).apply();
+			new androidx.appcompat.app.AlertDialog.Builder(this)
+					.setTitle(R.string.guide_prompt_title)
+					.setMessage(R.string.guide_prompt_message)
+					.setPositiveButton(R.string.guide_prompt_yes, (d, w) ->
+							startActivity(new Intent(this, GuideActivity.class)))
+					.setNegativeButton(R.string.guide_prompt_no, null)
+					.show();
+		} catch (Exception ignored) {
 		}
 	}
 }

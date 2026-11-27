@@ -55,7 +55,8 @@ final class TabBar extends LinearLayout {
 		for (int i = 0; i < order.size(); i++) {
 			final Session s = order.get(i);
 			TextView t = new TextView(getContext());
-			t.setText(s.label != null && !s.label.isEmpty() ? s.slot + "·" + s.label : String.valueOf(s.slot));
+			String caption = s.label != null && !s.label.isEmpty() ? s.slot + "·" + s.label : String.valueOf(s.slot);
+			t.setText(s.locked ? "\uD83D\uDD12" + caption : caption);
 			t.setSingleLine(true);
 			t.setEllipsize(android.text.TextUtils.TruncateAt.END);
 			t.setPadding(dp(6), 0, dp(6), 0);

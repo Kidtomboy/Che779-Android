@@ -391,6 +391,154 @@ public class MicroActivity extends AppCompatActivity {
 
 	private int pendingSlot;
 	private String pendingLabel;
+	private boolean pendingLock;
+	/** Số lần tự khởi động lại liên tiếp theo số tab (tối đa LIMIT_AUTO). */
+	private final android.util.SparseIntArray autoCount = new android.util.SparseIntArray();
+	private static final int LIMIT_AUTO = 5;
+	/** Tab bị coi là treo khi một sự kiện chạy quá lâu như vậy. */
+	private static final long HANG_MS = 45000;
+	/** Tab chạy ổn định quá thời gian này thì đếm lại số lần tự khởi động lại. */
+	private static final long STABLE_MS = 5 * 60 * 1000;
+	/** Bước kế tiếp của đợt khởi động lại hàng loạt. */
+	private Runnable batchNext;
+	private boolean watchdogOn;
+
+	private boolean autoRestartOn() {
+		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_auto_restart", false);
+	}
+
+	/** Tab này có được tự khởi động lại không (chưa tiêu hạn mức). */
+	boolean canAutoRestart(Session s) {
+		if (s == null || exiting || s.userClosing || s.restartAfter != null || !autoRestartOn()) {
+			return false;
+		}
+		int n = autoCount.get(slotOf(s), 0);
+		if (android.os.SystemClock.elapsedRealtime() - s.startedAt > STABLE_MS) {
+			n = 0;
+		}
+		return n < LIMIT_AUTO;
+	}
+
+	/** Tiêu một lần tự khởi động lại; false nếu đã hết hạn mức (tránh vòng lặp vô tận). */
+	private boolean useAutoBudget(Session s) {
+		int no = slotOf(s);
+		int n = autoCount.get(no, 0);
+		if (android.os.SystemClock.elapsedRealtime() - s.startedAt > STABLE_MS) {
+			n = 0;
+		}
+		if (n >= LIMIT_AUTO) {
+			Toast.makeText(this, "Tab " + no + " lỗi lặp lại " + LIMIT_AUTO + " lần: không tự khởi động lại nữa", Toast.LENGTH_LONG).show();
+			return false;
+		}
+		autoCount.put(no, n + 1);
+		return true;
+	}
+
+	/** Mỗi 5 giây tìm tab bị treo (một sự kiện chạy quá lâu) để tự khởi động lại. */
+	private void startWatchdog() {
+		if (watchdogOn) {
+			return;
+		}
+		watchdogOn = true;
+		uiHandler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				if (isFinishing() || exiting) {
+					watchdogOn = false;
+					return;
+				}
+				if (autoRestartOn()) {
+					long now = android.os.SystemClock.elapsedRealtime();
+					for (Session t : new java.util.ArrayList<>(tabs)) {
+						javax.microedition.lcdui.event.EventQueue q = t.queue;
+						if (q == null || t.restartAfter != null || t.userClosing) {
+							continue;
+						}
+						long b = q.busySince;
+						if (b > 0 && now - b > HANG_MS && useAutoBudget(t)) {
+							Toast.makeText(MicroActivity.this, "Tab " + slotOf(t) + " bị treo: đang khởi động lại", Toast.LENGTH_SHORT).show();
+							restartSession(t, true);
+						}
+					}
+				}
+				uiHandler.postDelayed(this, 5000);
+			}
+		}, 5000);
+	}
+
+	private void toggleLock() {
+		Session a = Session.active();
+		if (a == null) {
+			return;
+		}
+		a.locked = !a.locked;
+		Toast.makeText(this, "Tab " + slotOf(a) + (a.locked ? " đã khóa: không đóng/khởi động lại nhầm" : " đã mở khóa"), Toast.LENGTH_SHORT).show();
+		refreshTabBar();
+		saveTabs();
+	}
+
+	/** Tab đang khóa thì chặn thao tác đóng; có báo cho người dùng. */
+	private boolean blockedByLock(Session s) {
+		if (s != null && s.locked) {
+			Toast.makeText(this, "Tab " + slotOf(s) + " đang khóa. Mở khóa trong menu trước", Toast.LENGTH_SHORT).show();
+			return true;
+		}
+		return false;
+	}
+
+	/** Đọc "3", "1-6", "1,3,5", "1-3,7" thành danh sách số tab (không trùng); null nếu sai cú pháp. */
+	static java.util.ArrayList<Integer> parseSlots(String text) {
+		java.util.ArrayList<Integer> out = new java.util.ArrayList<>();
+		try {
+			for (String part : text.split("[,;\\s]+")) {
+				if (part.isEmpty()) {
+					continue;
+				}
+				int dash = part.indexOf('-');
+				int a = Integer.parseInt(dash < 0 ? part : part.substring(0, dash).trim());
+				int b = dash < 0 ? a : Integer.parseInt(part.substring(dash + 1).trim());
+				if (a > b) {
+					int x = a;
+					a = b;
+					b = x;
+				}
+				if (b - a > 99) {
+					return null;
+				}
+				for (int i = a; i <= b; i++) {
+					if (i > 0 && !out.contains(i)) {
+						out.add(i);
+					}
+				}
+			}
+		} catch (NumberFormatException e) {
+			return null;
+		}
+		return out.isEmpty() ? null : out;
+	}
+
+	/** Khởi động lại lần lượt từng tab trong danh sách; bỏ qua tab không có hoặc đang khóa. */
+	private void restartBatch(final java.util.ArrayList<Integer> nos) {
+		while (!nos.isEmpty()) {
+			int no = nos.remove(0);
+			Session target = null;
+			for (Session x : tabs) {
+				if (slotOf(x) == no) {
+					target = x;
+				}
+			}
+			if (target == null || target.locked) {
+				continue;
+			}
+			batchNext = () -> restartBatch(nos);
+			if (restartSession(target, false)) {
+				return;
+			}
+			batchNext = null;
+		}
+		batchNext = null;
+		Toast.makeText(this, "Đã khởi động lại xong", Toast.LENGTH_SHORT).show();
+	}
 
 	private int slotOf(Session s) {
 		return s.slot > 0 ? s.slot : tabs.indexOf(s) + 1;
@@ -434,6 +582,8 @@ public class MicroActivity extends AppCompatActivity {
 		if (pendingLabel != null && !pendingLabel.isEmpty()) {
 			session.label = pendingLabel;
 		}
+		session.locked = pendingLock;
+		pendingLock = false;
 		pendingSlot = 0;
 		pendingLabel = null;
 		loadNet(session, session.slot);
@@ -481,6 +631,7 @@ public class MicroActivity extends AppCompatActivity {
 			rebuildGrid();
 		}
 		showInAppBubble();
+		startWatchdog();
 		try {
 			loadMIDlet();
 		} catch (Exception e) {
@@ -505,6 +656,7 @@ public class MicroActivity extends AppCompatActivity {
 				o.put("p", t.appPath);
 				o.put("s", slotOf(t));
 				o.put("l", t.label == null ? "" : t.label);
+				o.put("k", t.locked);
 				arr.put(o);
 			}
 		} catch (org.json.JSONException ignored) {
@@ -536,11 +688,13 @@ public class MicroActivity extends AppCompatActivity {
 			if (!lb.isEmpty()) {
 				f.label = lb;
 			}
+			f.locked = f0.optBoolean("k", false);
 			refreshTabBar();
 			for (int i = 1; i < arr.length(); i++) {
 				org.json.JSONObject o = arr.getJSONObject(i);
 				rest.add(new String[]{o.getString("n"), o.getString("p"),
-						String.valueOf(o.optInt("s", 0)), o.optString("l", "")});
+						String.valueOf(o.optInt("s", 0)), o.optString("l", ""),
+						String.valueOf(o.optBoolean("k", false))});
 			}
 		} catch (org.json.JSONException e) {
 			return;
@@ -565,6 +719,7 @@ public class MicroActivity extends AppCompatActivity {
 				String[] g = rest.get(k[0]++);
 				pendingSlot = Integer.parseInt(g[2]);
 				pendingLabel = g[3];
+				pendingLock = "true".equals(g[4]);
 				addSession(g[0], g[1], null);
 				uiHandler.postDelayed(this, 2500);
 			}
@@ -818,6 +973,9 @@ public class MicroActivity extends AppCompatActivity {
 			}
 			return;
 		}
+		if (blockedByLock(s)) {
+			return;
+		}
 		final int no = slotOf(s);
 		new DialogGate.Builder(this)
 				.setTitle(R.string.CONFIRMATION_REQUIRED)
@@ -859,33 +1017,35 @@ public class MicroActivity extends AppCompatActivity {
 			return;
 		}
 		final EditText input = new EditText(this);
-		input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-		input.setHint("Số tab (để trống = tab " + slotOf(act) + ")");
+		input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+		input.setHint("Số tab, vd 3 hoặc 1-6 hoặc 1,3,5 (trống = tab " + slotOf(act) + ")");
 		showDlg(new DialogGate.Builder(dctx())
 				.setTitle("Khởi động lại tab")
 				.setMessage("Tab cũ thoát hẳn và ngắt mọi kết nối cũ, rồi mới mở lại game ở cùng số tab.")
 				.setView(input)
 				.setPositiveButton("Khởi động lại", (d, w) -> {
 					String t = input.getText().toString().trim();
-					int no = slotOf(act);
-					if (!t.isEmpty()) {
-						try {
-							no = Integer.parseInt(t);
-						} catch (NumberFormatException e) {
-							no = -1;
+					java.util.ArrayList<Integer> nos = new java.util.ArrayList<>();
+					if (t.isEmpty()) {
+						nos.add(slotOf(act));
+					} else {
+						nos = parseSlots(t);
+						if (nos == null) {
+							Toast.makeText(this, "Nhập sai. Ví dụ: 3 hoặc 1-6 hoặc 1,3,5", Toast.LENGTH_SHORT).show();
+							return;
 						}
 					}
-					Session target = null;
+					int found = 0;
 					for (Session x : tabs) {
-						if (slotOf(x) == no) {
-							target = x;
+						if (nos.contains(slotOf(x))) {
+							found++;
 						}
 					}
-					if (target == null) {
+					if (found == 0) {
 						Toast.makeText(this, "Không có tab " + t, Toast.LENGTH_SHORT).show();
 						return;
 					}
-					restartSession(target);
+					restartBatch(nos);
 				})
 				.setNeutralButton("Đổi proxy", (d, w) -> showProxyDialog())
 				.setNegativeButton(android.R.string.cancel, null)
@@ -897,19 +1057,29 @@ public class MicroActivity extends AppCompatActivity {
 	 * connections, ask the game to exit, remove the tab (event queue and threads stopped), and only
 	 * then start the new session.
 	 */
-	private void restartSession(final Session s) {
+	private boolean restartSession(final Session s, boolean auto) {
 		if (!tabs.contains(s) || s.restartAfter != null) {
-			return;
+			return false;
+		}
+		if (!auto && blockedByLock(s)) {
+			return false;
 		}
 		final String name = s.appName;
 		final String path = s.appPath;
 		final int slotNo = slotOf(s);
 		final String lbl = s.label;
+		final boolean lk = s.locked;
 		s.closeNet();
 		s.restartAfter = () -> {
 			pendingSlot = slotNo;
 			pendingLabel = lbl;
+			pendingLock = lk;
 			addSession(name, path, null);
+			Runnable n = batchNext;
+			batchNext = null;
+			if (n != null) {
+				uiHandler.postDelayed(n, 1500); // đợt hàng loạt: chờ tab mới lên rồi mới sang tab kế
+			}
 		};
 		Toast.makeText(this, "Đang khởi động lại tab " + slotNo + "…", Toast.LENGTH_SHORT).show();
 		closeSession(s);
@@ -919,10 +1089,12 @@ public class MicroActivity extends AppCompatActivity {
 				removeSession(s);
 			}
 		}, 3500);
+		return true;
 	}
 
 	/** Asks the game of a tab to exit; the tab disappears when it does. */
 	private void closeSession(Session s) {
+		s.userClosing = true;
 		MidletThread t = s.thread;
 		if (t != null) {
 			t.requestDestroy();
@@ -960,8 +1132,24 @@ public class MicroActivity extends AppCompatActivity {
 				s.thread.quitSession();
 			}
 			final Session dead = s;
-			final Runnable again = s.restartAfter;
+			Runnable again0 = s.restartAfter;
 			s.restartAfter = null;
+			if (again0 == null && canAutoRestart(s) && useAutoBudget(s)) {
+				// tab thoát ngoài ý muốn (game tự thoát/lỗi): tự mở lại, tối đa LIMIT_AUTO lần liên tiếp
+				final String an = s.appName;
+				final String ap = s.appPath;
+				final String lb = s.label;
+				final int sn = slotOf(s);
+				final boolean lk = s.locked;
+				again0 = () -> {
+					pendingSlot = sn;
+					pendingLabel = lb;
+					pendingLock = lk;
+					Toast.makeText(MicroActivity.this, "Tab " + sn + " thoát ngoài ý muốn: tự khởi động lại", Toast.LENGTH_SHORT).show();
+					addSession(an, ap, null);
+				};
+			}
+			final Runnable again = again0;
 			new Thread(() -> {
 				try {
 					Thread.sleep(800);
@@ -2285,7 +2473,7 @@ public class MicroActivity extends AppCompatActivity {
 					.setPositiveButton("Thoát hết", (d, w) -> exitAll())
 					.setNeutralButton("Đóng tab này", (d, w) -> {
 						Session a = Session.active();
-						if (a != null) {
+						if (a != null && !blockedByLock(a)) {
 							closeSession(a);
 						}
 					})
@@ -2415,6 +2603,10 @@ public class MicroActivity extends AppCompatActivity {
 		int id = item.getItemId();
 		if (id == R.id.action_exit_midlet) {
 			showExitConfirmation();
+		} else if (id == R.id.action_lock_tab) {
+			toggleLock();
+		} else if (id == R.id.action_guide) {
+			startActivity(new Intent(this, ru.playsoftware.j2meloader.GuideActivity.class));
 		} else if (id == R.id.action_restart_tab) {
 			showRestartDialog();
 		} else if (id == R.id.action_proxy) {

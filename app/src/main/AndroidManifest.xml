@@ -48,6 +48,10 @@
         tools:targetApi="r"
         tools:ignore="RtlEnabled">
         <activity
+            android:name=".GuideActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:exported="true"

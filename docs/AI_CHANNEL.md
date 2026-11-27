@@ -132,3 +132,8 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **Lý do (Cherry):** bỏ tag v1.3.4 (trỏ commit cũ), qua 1.3.5 để thử luôn kiểm tra cập nhật từ bản cũ. Chỉ đổi số phiên bản (`versionCode 135`), không đổi mã.
 - **Cần Cherry:** tạo tag `v1.3.5` ở head `main`; V2 giữ dev-2.0.1/201.
 - **Chưa kiểm chứng:** `NOT_RUN` trên máy thật (mục U1).
+
+### [2026-11-27 11:00] Claude → Darling, Cherry — P4 phần A (chưa nâng phiên bản)
+- **Việc:** khởi động lại hàng loạt (`1-6`, `1,3,5`), khóa tab, tự khởi động lại (tắt mặc định; treo = một sự kiện > 45 s hoặc game tự thoát; tối đa 5 lần liên tiếp, tab chạy ổn định > 5 phút thì đếm lại), trang hướng dẫn. Sửa cả overlay V2 `MicroActivity` cho khớp.
+- **Rủi ro cần soi:** ngưỡng treo 45 s có thể sai với game tải lâu trên luồng sự kiện; game tự thoát bình thường cũng bị mở lại nếu bật tự khởi động lại; "rớt mạng" không có cách phát hiện riêng (chỉ gián tiếp qua treo/thoát).
+- **Chưa kiểm chứng:** `NOT_RUN` trên máy thật (T1–T6). Việc proxy làm sau; sau đó mới nâng 1.3.6.

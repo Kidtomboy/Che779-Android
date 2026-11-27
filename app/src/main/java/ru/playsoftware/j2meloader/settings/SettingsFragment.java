@@ -90,6 +90,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 			javax.microedition.shell.KeypadStyle.clearBackground(requireContext());
 			return true;
 		});
+		findPreference("pref_guide").setOnPreferenceClickListener(preference -> {
+			startActivity(new android.content.Intent(requireContext(), ru.playsoftware.j2meloader.GuideActivity.class));
+			return true;
+		});
 		findPreference("pref_check_update").setOnPreferenceClickListener(preference -> {
 			ru.playsoftware.j2meloader.update.UpdateManager.check(requireActivity(), true);
 			return true;

@@ -71,3 +71,13 @@ Ghi chú: `GridPanel.post()` gọi `rebuild` có thể chạy sau khi view bị 
 | N5 | Gõ chữ từ bàn phím Che779 vào TextBox | Ký tự, xóa lùi, xuống dòng hoạt động |
 | N6 | Macro: lần đầu hiện cảnh báo; ghi 10 lần bấm → báo "10 lần bấm"; phát 1 lần, ×10, ∞, dừng, xóa; kéo cửa sổ macro | Cảnh báo chỉ một lần; số lần bấm đúng; phát liên tục không tự dừng |
 | N7 | Bản V2 (chưa build): các mục trên | Hành vi giống bản chính |
+
+## Kiểm thử phần "công cụ tab" (sau 1.3.5, tất cả `NOT_RUN`)
+| ID | Việc | Kết quả mong đợi |
+|---|---|---|
+| T1 | Khởi động lại tab: nhập `1-3`, rồi `1,3`, rồi `abc` | 1-3 mở lại lần lượt tab 1, 2, 3; `abc` báo nhập sai; số không có thì báo không có tab |
+| T2 | Khóa tab rồi thử đóng tab, khởi động lại tab đó | Bị chặn, có thông báo; tab khóa hiện biểu tượng khóa; đợt hàng loạt bỏ qua tab khóa |
+| T3 | Bật "Tự khởi động lại", cho game tự thoát | Tab mở lại; sau 5 lần liên tiếp thì dừng và báo |
+| T4 | Bật "Tự khởi động lại", cho một sự kiện treo > 45 giây | Tab bị khởi động lại, không lặp quá 5 lần |
+| T5 | Người dùng chủ động đóng/thoát khi đang bật tự khởi động lại | Không bị mở lại |
+| T6 | Trang hướng dẫn: lần mở app đầu có hỏi; Thiết lập và menu game mở được | Hiện nội dung, cuộn được; chỉ hỏi một lần |

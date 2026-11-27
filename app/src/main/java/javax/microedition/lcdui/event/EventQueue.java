@@ -168,6 +168,8 @@ public class EventQueue implements Runnable {
 	 * Here is the main event loop.
 	 */
 	@Override
+	public volatile long busySince;
+
 	public void run() {
 		synchronized (interlock) {
 			running = true;
@@ -181,10 +183,13 @@ public class EventQueue implements Runnable {
 
 				if (event != null) {
 					synchronized (callbackLock) {
+						busySince = android.os.SystemClock.elapsedRealtime();
 						try {
 							event.run();
 						} catch (Throwable t) {
 							javax.microedition.shell.Che779Diag.error("event " + event.getClass().getSimpleName(), t);
+						} finally {
+							busySince = 0;
 						}
 					}
 				} else {
