@@ -143,3 +143,8 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **Rủi ro cần soi:** kiểm tra proxy nối tới 1.1.1.1:443 (một số proxy chặn đích này sẽ bị tính là chết); danh sách rất lớn lưu một chuỗi trong SharedPreferences; nguyên nhân bấm + chậm chỉ suy ra từ mã (quét thư mục game mỗi lần bấm), chưa đo trên máy.
 - **Chưa kiểm chứng:** `NOT_RUN` trên máy thật (P1–P6, T1–T6). V2 overlay chưa build.
 - **Cần Cherry:** xóa tag `v1.3.6` cũ (đang trỏ `7a09734`, VERSION lúc đó 1.3.5) và tạo lại ở head `main`.
+
+### [2026-11-27 16:00] Claude → Darling, Cherry — P4 sau 1.3.6 (giữ nguyên số phiên bản 1.3.6)
+- **Việc:** hướng dẫn từng trang, kiểu bàn phím "Phím tắt" (`ShortcutPad`), cập nhật thủ công (`UpdateManager` viết lại, bỏ tải/cài trong app), sao lưu `Che779Data` (`Che779Backup`), menu khóa tab đổi tên động, làm đẹp quản lý proxy.
+- **Rủi ro cần soi:** khôi phục chỉ chạy khi thư mục dữ liệu đọc được (Android 11+ có thể cần quyền bộ nhớ); hai tiến trình cùng ghi `backup.json` (ghi qua file tạm); `ShortcutPad` dùng chuỗi phím tên tiếng Việt lưu trong cài đặt.
+- **Chưa kiểm chứng:** `NOT_RUN` trên máy thật (S1–S5). V2 chưa build. Tag `v1.3.6` đang trỏ `a101e15`, chưa có các thay đổi này.

@@ -91,3 +91,12 @@ Ghi chú: `GridPanel.post()` gọi `rebuild` có thể chạy sau khi view bị 
 | P4 | Xóa đã chọn / proxy chết / tất cả đang lọc | Có hỏi xác nhận, xóa đúng, danh sách lưu lại khi mở lại |
 | P5 | Vào game: danh sách proxy theo tab có thấy proxy vừa nhập | Có (kể cả khi đã mở game trước đó) |
 | P6 | Nút + với nhiều game | Hiện danh sách nhanh, lần bấm sau không chậm hơn |
+
+## Kiểm thử đợt sau 1.3.6 (tất cả `NOT_RUN`)
+| ID | Việc | Kết quả mong đợi |
+|---|---|---|
+| S1 | Bàn phím → ★ Phím tắt → + thêm nút "Chào" = 1 2 3; nhấn giữ để sửa/xóa | Bấm nút gửi 1,2,3 lần lượt; sửa/xóa được; còn sau khi mở lại |
+| S2 | Thiết lập → Kiểm tra cập nhật | Hộp thoại có đường dẫn; Mở trình duyệt và Sao chép hoạt động |
+| S3 | Đổi cài đặt, thêm proxy, macro, phím tắt, ảnh nền → gỡ app, cài lại (cho phép bộ nhớ) | Thư mục Che779Data có backup.json; mở lại app thì khôi phục (có thể cần mở app lần 2 nếu cấp quyền bộ nhớ sau) |
+| S4 | Hướng dẫn: vuốt trái/phải, Tiếp, Quay lại, Bỏ qua | Đúng 10 trang, dấu chấm đúng trang |
+| S5 | Menu game: tab chưa khóa / đã khóa | "Khóa tab" / "Mở khóa tab"; mục khởi động lại chỉ ghi "Khởi động lại tab" |

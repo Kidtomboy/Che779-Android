@@ -9,6 +9,11 @@ Gói `com.che779.emulator`, `versionCode 136`. Mọi thứ của 1.3.3, thêm c�
 - Trang hướng dẫn sử dụng (hỏi một lần lúc mở app đầu; có trong Thiết lập và menu game).
 - Quản lý proxy ở Thiết lập: không giới hạn số lượng, lọc HTTP/SOCKS4/SOCKS5, nhập file hoặc dán, kiểm tra hàng loạt (có chế độ Tự động), xóa đã chọn/chết/theo bộ lọc.
 - Nút +: nhớ danh sách game, không quét lại mỗi lần bấm.
+- Hướng dẫn sử dụng làm lại thành từng trang (vuốt hoặc Tiếp/Quay lại).
+- Bàn phím Che779 thêm kiểu "Phím tắt": thêm/sửa/xóa nút, mỗi nút bấm một chuỗi phím.
+- Cập nhật chuyển sang thủ công: mở trang tải bản mới nhất trong trình duyệt (bỏ tải/cài trong app và công tắc tự kiểm tra).
+- Cài đặt, proxy, macro, phím tắt, ảnh nền bàn phím sao lưu vào thư mục Che779Data cạnh thư mục game, cài lại app tự khôi phục.
+- Menu game: "Khởi động lại tab"; "Khóa tab" tự đổi thành "Mở khóa tab" khi tab đang khóa. Giao diện quản lý proxy làm lại.
 - Menu xếp lại theo nhóm; sửa chữ "Khóa hướng màn hình".
 - Đồng bộ phím theo nhóm màu (chấm màu trong hộp thoại, dải màu dưới tab).
 - Bỏ bàn phím J2ME gốc và mục "Sửa bàn phím ảo"; dùng bàn phím Che779.
