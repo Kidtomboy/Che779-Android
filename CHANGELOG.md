@@ -2,9 +2,13 @@
 
 Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản trước không còn được lưu ở đây.
 
-## [1.3.5] — Bản phát hành
+## [1.3.6] — Bản phát hành
 
-Gói `com.che779.emulator`, `versionCode 135`. Mọi thứ của 1.3.3, thêm các mục dưới đây. Chưa kiểm chứng trên máy thật (`DEVICE_VERIFIED` chưa có); CI build bản chính xanh (`CI_VERIFIED`). Bản V2 (thử nghiệm) giữ nguyên `dev-2.0.1`, chưa build lại.
+Gói `com.che779.emulator`, `versionCode 136`. Mọi thứ của 1.3.3, thêm các mục dưới đây. Chưa kiểm chứng trên máy thật (`DEVICE_VERIFIED` chưa có); CI build bản chính xanh (`CI_VERIFIED`). Bản V2 (thử nghiệm) giữ nguyên `dev-2.0.1`, chưa build lại.
+- Khởi động lại tab hàng loạt (nhập 1-6, 1,3,5); khóa tab; tự khởi động lại tab treo hoặc thoát ngoài ý muốn (tắt mặc định, tối đa 5 lần liên tiếp).
+- Trang hướng dẫn sử dụng (hỏi một lần lúc mở app đầu; có trong Thiết lập và menu game).
+- Quản lý proxy ở Thiết lập: không giới hạn số lượng, lọc HTTP/SOCKS4/SOCKS5, nhập file hoặc dán, kiểm tra hàng loạt (có chế độ Tự động), xóa đã chọn/chết/theo bộ lọc.
+- Nút +: nhớ danh sách game, không quét lại mỗi lần bấm.
 - Menu xếp lại theo nhóm; sửa chữ "Khóa hướng màn hình".
 - Đồng bộ phím theo nhóm màu (chấm màu trong hộp thoại, dải màu dưới tab).
 - Bỏ bàn phím J2ME gốc và mục "Sửa bàn phím ảo"; dùng bàn phím Che779.

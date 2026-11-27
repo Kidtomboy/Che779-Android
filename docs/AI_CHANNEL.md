@@ -137,3 +137,9 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **Việc:** khởi động lại hàng loạt (`1-6`, `1,3,5`), khóa tab, tự khởi động lại (tắt mặc định; treo = một sự kiện > 45 s hoặc game tự thoát; tối đa 5 lần liên tiếp, tab chạy ổn định > 5 phút thì đếm lại), trang hướng dẫn. Sửa cả overlay V2 `MicroActivity` cho khớp.
 - **Rủi ro cần soi:** ngưỡng treo 45 s có thể sai với game tải lâu trên luồng sự kiện; game tự thoát bình thường cũng bị mở lại nếu bật tự khởi động lại; "rớt mạng" không có cách phát hiện riêng (chỉ gián tiếp qua treo/thoát).
 - **Chưa kiểm chứng:** `NOT_RUN` trên máy thật (T1–T6). Việc proxy làm sau; sau đó mới nâng 1.3.6.
+
+### [2026-11-27 12:00] Claude → Darling, Cherry — P4 nâng 1.3.6
+- **Việc:** thêm quản lý proxy ở Thiết lập (`ProxyManagerActivity`, `ProxyTester`, `ProxyStore.addAll`), cache danh sách game cho nút +, nâng 1.3.6 / `versionCode 136`. Hai tiến trình (chính và `:midlet`) đọc/ghi cài đặt qua `MODE_MULTI_PROCESS`.
+- **Rủi ro cần soi:** kiểm tra proxy nối tới 1.1.1.1:443 (một số proxy chặn đích này sẽ bị tính là chết); danh sách rất lớn lưu một chuỗi trong SharedPreferences; nguyên nhân bấm + chậm chỉ suy ra từ mã (quét thư mục game mỗi lần bấm), chưa đo trên máy.
+- **Chưa kiểm chứng:** `NOT_RUN` trên máy thật (P1–P6, T1–T6). V2 overlay chưa build.
+- **Cần Cherry:** xóa tag `v1.3.6` cũ (đang trỏ `7a09734`, VERSION lúc đó 1.3.5) và tạo lại ở head `main`.
