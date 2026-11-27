@@ -126,6 +126,10 @@
             android:title="@string/pref_auto_restart_title"
             android:summary="@string/pref_auto_restart_summary" />
         <Preference
+            android:key="pref_proxy_manager"
+            android:title="@string/pref_proxy_manager_title"
+            android:summary="@string/pref_proxy_manager_summary" />
+        <Preference
             android:key="pref_guide"
             android:title="@string/pref_guide_title"
             android:summary="@string/pref_guide_summary" />

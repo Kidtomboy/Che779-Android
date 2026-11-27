@@ -81,6 +81,26 @@ final class ProxyStore {
 		saveList(sp, l);
 	}
 
+	/** Thêm hàng loạt, bỏ trùng; trả về số proxy mới được thêm. */
+	static int addAll(SharedPreferences sp, List<NetConfig> add) {
+		List<NetConfig> l = list(sp);
+		java.util.HashSet<String> have = new java.util.HashSet<>();
+		for (NetConfig o : l) {
+			have.add(o.serialize());
+		}
+		int n = 0;
+		for (NetConfig c : add) {
+			if (have.add(c.serialize())) {
+				l.add(c);
+				n++;
+			}
+		}
+		if (n > 0) {
+			saveList(sp, l);
+		}
+		return n;
+	}
+
 	static void remove(SharedPreferences sp, String key) {
 		List<NetConfig> l = list(sp);
 		for (int i = l.size() - 1; i >= 0; i--) {

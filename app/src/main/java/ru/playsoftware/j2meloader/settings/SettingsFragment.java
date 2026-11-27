@@ -90,6 +90,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 			javax.microedition.shell.KeypadStyle.clearBackground(requireContext());
 			return true;
 		});
+		findPreference("pref_proxy_manager").setOnPreferenceClickListener(preference -> {
+			startActivity(new android.content.Intent(requireContext(), javax.microedition.shell.ProxyManagerActivity.class));
+			return true;
+		});
 		findPreference("pref_guide").setOnPreferenceClickListener(preference -> {
 			startActivity(new android.content.Intent(requireContext(), ru.playsoftware.j2meloader.GuideActivity.class));
 			return true;

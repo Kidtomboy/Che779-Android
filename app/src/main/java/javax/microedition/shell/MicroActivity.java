@@ -400,7 +400,7 @@ public class MicroActivity extends AppCompatActivity {
 	private boolean watchdogOn;
 
 	private boolean autoRestartOn() {
-		return PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_auto_restart", false);
+		return getSharedPreferences(getPackageName() + "_preferences", MODE_MULTI_PROCESS).getBoolean("pref_auto_restart", false);
 	}
 
 	/** Tab này có được tự khởi động lại không (chưa tiêu hạn mức). */
@@ -1128,7 +1128,8 @@ public class MicroActivity extends AppCompatActivity {
 	// ------------------------------------------------------------ proxy / IP redirect
 
 	private SharedPreferences netPrefs() {
-		return PreferenceManager.getDefaultSharedPreferences(this);
+		// tiến trình game đọc cài đặt do tiến trình chính ghi (quản lý proxy ở Thiết lập)
+		return getSharedPreferences(getPackageName() + "_preferences", MODE_MULTI_PROCESS);
 	}
 
 	private void loadNet(Session s, int tabNo) {

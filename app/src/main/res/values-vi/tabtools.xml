@@ -37,4 +37,6 @@ TỰ KHỞI ĐỘNG LẠI
 CẬP NHẬT
 • Thiết lập → Kiểm tra cập nhật để tải bản mới và cài đè, dữ liệu giữ nguyên.</string>
     <string name="pref_cat_tabtools">Tab và hướng dẫn</string>
+    <string name="pref_proxy_manager_title">Quản lý proxy</string>
+    <string name="pref_proxy_manager_summary">Nhập, chia loại HTTP/SOCKS4/SOCKS5, kiểm tra và xóa hàng loạt</string>
 </resources>

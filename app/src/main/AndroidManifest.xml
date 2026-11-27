@@ -48,6 +48,10 @@
         tools:targetApi="r"
         tools:ignore="RtlEnabled">
         <activity
+            android:name="javax.microedition.shell.ProxyManagerActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".GuideActivity"
             android:exported="false" />
 

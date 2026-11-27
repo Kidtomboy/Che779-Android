@@ -34,4 +34,6 @@ AUTO-RESTART
 UPDATES
 • Settings → Check for updates downloads the new version and installs over the old one; your data is kept.</string>
     <string name="pref_cat_tabtools">Tabs and guide</string>
+    <string name="pref_proxy_manager_title">Proxy manager</string>
+    <string name="pref_proxy_manager_summary">Import, split by HTTP/SOCKS4/SOCKS5, bulk test and delete</string>
 </resources>
