@@ -436,6 +436,7 @@ public class MicroActivity extends AppCompatActivity {
 			return;
 		}
 		watchdogOn = true;
+		new Thread(() -> scanGames(new java.util.ArrayList<>(), new java.util.ArrayList<>()), "che779-games").start(); // quét sẵn danh sách game
 		uiHandler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
@@ -860,31 +861,53 @@ public class MicroActivity extends AppCompatActivity {
 		addSession(first.appName, first.appPath, null);
 	}
 
+	private java.util.ArrayList<String> gameNames;
+	private java.util.ArrayList<String> gamePaths;
+	private long gameStamp = -1;
+	private int gameCount = -1;
+
+	/** Danh sách game để thêm tab. Có nhớ lại: chỉ quét lại khi thư mục game đổi (bấm + không phải đọc lại hết). */
+	private synchronized void scanGames(java.util.List<String> names, java.util.List<String> paths) {
+		File appsDir = new File(Config.getAppDir());
+		long stamp = appsDir.lastModified();
+		String[] list = appsDir.list();
+		int count = list == null ? 0 : list.length;
+		if (gameNames == null || stamp != gameStamp || count != gameCount) {
+			java.util.ArrayList<String> n = new java.util.ArrayList<>();
+			java.util.ArrayList<String> p = new java.util.ArrayList<>();
+			if (list != null) {
+				java.util.Arrays.sort(list);
+				for (String folder : list) {
+					File dir = new File(appsDir, folder);
+					if (!new File(dir, Config.MIDLET_DEX_FILE).isFile()) {
+						continue;
+					}
+					String title = folder;
+					try {
+						title = new ru.woesss.j2me.jar.Descriptor(
+								new File(dir, Config.MIDLET_MANIFEST_FILE), false).getName();
+					} catch (Exception ignored) {
+					}
+					n.add(title);
+					p.add(dir.getAbsolutePath());
+				}
+			}
+			gameNames = n;
+			gamePaths = p;
+			gameStamp = stamp;
+			gameCount = count;
+		}
+		names.addAll(gameNames);
+		paths.addAll(gamePaths);
+	}
+
 	private void pickGameForNewTab() {
 		if (DialogGate.busy()) {
 			return; // đang có hộp thoại: bỏ qua lần bấm dồn
 		}
 		final java.util.ArrayList<String> names = new java.util.ArrayList<>();
 		final java.util.ArrayList<String> paths = new java.util.ArrayList<>();
-		File appsDir = new File(Config.getAppDir());
-		String[] list = appsDir.list();
-		if (list != null) {
-			java.util.Arrays.sort(list);
-			for (String folder : list) {
-				File dir = new File(appsDir, folder);
-				if (!new File(dir, Config.MIDLET_DEX_FILE).isFile()) {
-					continue;
-				}
-				String title = folder;
-				try {
-					title = new ru.woesss.j2me.jar.Descriptor(
-							new File(dir, Config.MIDLET_MANIFEST_FILE), false).getName();
-				} catch (Exception ignored) {
-				}
-				names.add(title);
-				paths.add(dir.getAbsolutePath());
-			}
-		}
+		scanGames(names, paths);
 		new DialogGate.Builder(this)
 				.setTitle("Chọn game mở ở tab mới")
 				.setItems(names.toArray(new String[0]), (d, which) ->
