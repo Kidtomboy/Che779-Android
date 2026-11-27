@@ -167,9 +167,10 @@ public class EventQueue implements Runnable {
 	/**
 	 * Here is the main event loop.
 	 */
-	@Override
+	/** Lúc sự kiện đang chạy bắt đầu (0 = đang rảnh); dùng để phát hiện tab treo. */
 	public volatile long busySince;
 
+	@Override
 	public void run() {
 		synchronized (interlock) {
 			running = true;
