@@ -17,7 +17,7 @@ import androidx.preference.PreferenceManager;
 import ru.playsoftware.j2meloader.R;
 
 final class KeypadFactory {
-	static final int NOKIA = 0, ANDROID = 1;
+	static final int NOKIA = 0, ANDROID = 1, SHORTCUT = 2;
 	private static final String PREF = "che779_keypad_type";
 	private static final int BG = 0xFFD3D3D6;
 
@@ -25,7 +25,8 @@ final class KeypadFactory {
 	}
 
 	static int type(Context c) {
-		return PreferenceManager.getDefaultSharedPreferences(c).getInt(PREF, NOKIA) == ANDROID ? ANDROID : NOKIA;
+		int t = PreferenceManager.getDefaultSharedPreferences(c).getInt(PREF, NOKIA);
+		return t == ANDROID ? ANDROID : t == SHORTCUT ? SHORTCUT : NOKIA;
 	}
 
 	static void setType(Context c, int type) {
@@ -47,12 +48,14 @@ final class KeypadFactory {
 		head.setGravity(Gravity.CENTER_VERTICAL);
 		head.addView(switchIcon(c, R.drawable.ic_c_dialpad, type == NOKIA, v -> pick(c, NOKIA, type, rebuild)), cell(dp));
 		head.addView(switchIcon(c, R.drawable.ic_c_keyboard, type == ANDROID, v -> pick(c, ANDROID, type, rebuild)), cell(dp));
+		head.addView(shortcutIcon(c, type == SHORTCUT, v -> pick(c, SHORTCUT, type, rebuild)), cell(dp));
 		View spacer = new View(c);
 		head.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
 		head.addView(Icons.view(c, R.drawable.ic_c_close, 0xFFB3261E, 6, v -> sink.close()), cell(dp));
 		col.addView(head, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 		final int kdp = KeypadStyle.scaledKeyDp(c, keyDp);
-		View pad = type == ANDROID ? new QwertyKeypadView(c, kdp, textSp, sink) : new KeypadView(c, kdp, textSp, sink);
+		View pad = type == ANDROID ? new QwertyKeypadView(c, kdp, textSp, sink)
+				: type == SHORTCUT ? new ShortcutPad(c, kdp, textSp, sink) : new KeypadView(c, kdp, textSp, sink);
 		col.addView(pad, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 		KeypadStyle.apply(c, col, pad);
 		return col;
@@ -68,6 +71,17 @@ final class KeypadFactory {
 
 	private static LinearLayout.LayoutParams cell(float dp) {
 		return new LinearLayout.LayoutParams((int) (44 * dp), (int) (34 * dp));
+	}
+
+	private static android.widget.TextView shortcutIcon(Context c, boolean active, View.OnClickListener l) {
+		android.widget.TextView t = new android.widget.TextView(c);
+		t.setText("★");
+		t.setTextSize(20);
+		t.setGravity(Gravity.CENTER);
+		t.setTextColor(active ? 0xFF1565D8 : 0xFF8A8A94);
+		t.setContentDescription("Phím tắt");
+		t.setOnClickListener(l);
+		return t;
 	}
 
 	private static ImageView switchIcon(Context c, int res, boolean active, View.OnClickListener l) {

@@ -199,4 +199,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 				.apply();
 		prefFolder.setSummary(path);
 	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		javax.microedition.shell.Che779Backup.saveAsync(requireContext());
+	}
 }

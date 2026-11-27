@@ -213,7 +213,7 @@
     <string name="pref_auto_sleep_title">Tự ngủ màn hình đen</string>
     <string name="action_proxy">Proxy</string>
     <string name="action_redirect">Chuyển hướng IP</string>
-    <string name="action_restart_tab">Khởi động lại tab/nhập số tab</string>
+    <string name="action_restart_tab">Khởi động lại tab</string>
     <string name="action_import_zip">Nhập game từ file ZIP</string>
     <string name="action_power">Chế độ pin</string>
     <string name="pref_restore_tabs">Tự khôi phục các tab lần chạy trước</string>

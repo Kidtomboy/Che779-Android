@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,7 +22,6 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -79,6 +79,12 @@ public class ProxyManagerActivity extends Activity {
 	}
 
 	@Override
+	protected void onPause() {
+		super.onPause();
+		Che779Backup.saveAsync(this);
+	}
+
+	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		stopTest();
@@ -88,31 +94,44 @@ public class ProxyManagerActivity extends Activity {
 		return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
 	}
 
-	private TextView button(String text, View.OnClickListener l) {
+	private static final int BLUE = 0xFF3F7FD8;
+
+	private GradientDrawable pill(int color, int radiusDp) {
+		GradientDrawable g = new GradientDrawable();
+		g.setCornerRadius(dp(radiusDp));
+		g.setColor(color);
+		return g;
+	}
+
+	/** Nút bo tròn chiếm đều bề rộng hàng (weight 1). */
+	private TextView button(String text, int color, int textColor, View.OnClickListener l) {
 		TextView t = new TextView(this);
 		t.setText(text);
 		t.setGravity(Gravity.CENTER);
-		t.setPadding(dp(12), dp(8), dp(12), dp(8));
-		t.setBackgroundColor(0x33888888);
+		t.setTextSize(13);
+		t.setTextColor(textColor);
+		t.setPadding(dp(6), dp(9), dp(6), dp(9));
+		t.setBackground(pill(color, 18));
 		t.setSingleLine(true);
 		t.setOnClickListener(l);
-		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-		lp.setMargins(0, 0, dp(6), dp(6));
+		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+		lp.setMargins(dp(3), dp(3), dp(3), dp(3));
 		t.setLayoutParams(lp);
 		return t;
 	}
 
-	private HorizontalScrollView row() {
-		HorizontalScrollView sv = new HorizontalScrollView(this);
-		sv.setHorizontalScrollBarEnabled(false);
-		LinearLayout l = new LinearLayout(this);
-		l.setOrientation(LinearLayout.HORIZONTAL);
-		sv.addView(l);
-		return sv;
+	private TextView button(String text, View.OnClickListener l) {
+		return button(text, 0x22888888, 0xFF555555, l);
 	}
 
-	private LinearLayout inner(HorizontalScrollView sv) {
-		return (LinearLayout) sv.getChildAt(0);
+	private LinearLayout row() {
+		LinearLayout l = new LinearLayout(this);
+		l.setOrientation(LinearLayout.HORIZONTAL);
+		return l;
+	}
+
+	private static int badgeColor(int type) {
+		return type == NetConfig.HTTP ? 0xFF3F7FD8 : type == NetConfig.SOCKS4 ? 0xFFE08A1E : 0xFF8A55D6;
 	}
 
 	private void buildUi() {
@@ -120,7 +139,7 @@ public class ProxyManagerActivity extends Activity {
 		root.setOrientation(LinearLayout.VERTICAL);
 		root.setPadding(dp(10), dp(10), dp(10), dp(6));
 
-		HorizontalScrollView r1 = row();
+		LinearLayout r1 = row();
 		chips = new TextView[FILTERS.length];
 		for (int i = 0; i < FILTERS.length; i++) {
 			final int f = i;
@@ -128,42 +147,48 @@ public class ProxyManagerActivity extends Activity {
 				filter = f;
 				applyFilter();
 			});
-			inner(r1).addView(chips[i]);
+			r1.addView(chips[i]);
 		}
 		root.addView(r1);
 
-		HorizontalScrollView r2 = row();
-		inner(r2).addView(button("Nhập", v -> showImport()));
-		inner(r2).addView(button("Kiểm tra", v -> startTest()));
-		inner(r2).addView(button("Dừng", v -> stopTest()));
+		LinearLayout r2 = row();
+		r2.addView(button("Nhập", BLUE, 0xFFFFFFFF, v -> showImport()));
+		r2.addView(button("Kiểm tra", 0xFF2E9E4F, 0xFFFFFFFF, v -> startTest()));
+		r2.addView(button("Dừng", v -> stopTest()));
 		modeBtn = button("Kiểu: " + MODES[0], v -> {
 			mode = (mode + 1) % MODES.length;
 			modeBtn.setText("Kiểu: " + MODES[mode]);
 		});
-		inner(r2).addView(modeBtn);
+		r2.addView(modeBtn);
 		root.addView(r2);
 
-		HorizontalScrollView r3 = row();
-		inner(r3).addView(button("Chọn tất cả", v -> {
+		LinearLayout r3 = row();
+		r3.addView(button("Chọn tất cả", v -> {
 			for (NetConfig c : shown) {
 				sel.add(c.serialize());
 			}
 			refresh();
 		}));
-		inner(r3).addView(button("Bỏ chọn", v -> {
+		r3.addView(button("Bỏ chọn", v -> {
 			sel.clear();
 			refresh();
 		}));
-		inner(r3).addView(button("Xóa đã chọn", v -> deleteSelected()));
-		inner(r3).addView(button("Xóa proxy chết", v -> deleteDead()));
-		inner(r3).addView(button("Xóa tất cả (đang lọc)", v -> deleteShown()));
 		root.addView(r3);
 
+		LinearLayout r4 = row();
+		r4.addView(button("Xóa đã chọn", 0x33D04040, 0xFFB02A2A, v -> deleteSelected()));
+		r4.addView(button("Xóa chết", 0x33D04040, 0xFFB02A2A, v -> deleteDead()));
+		r4.addView(button("Xóa đang lọc", 0x33D04040, 0xFFB02A2A, v -> deleteShown()));
+		root.addView(r4);
+
 		status = new TextView(this);
-		status.setPadding(0, dp(4), 0, dp(4));
+		status.setTextSize(13);
+		status.setPadding(dp(4), dp(6), 0, dp(6));
 		root.addView(status);
 
 		ListView lv = new ListView(this);
+		lv.setDividerHeight(0);
+		lv.setSelector(android.R.color.transparent);
 		adapter = new BaseAdapter() {
 			@Override
 			public int getCount() {
@@ -184,39 +209,56 @@ public class ProxyManagerActivity extends Activity {
 			public View getView(int i, View convert, ViewGroup parent) {
 				LinearLayout l;
 				CheckBox cb;
+				TextView badge;
 				TextView label;
 				TextView st;
 				if (convert == null) {
 					l = new LinearLayout(ProxyManagerActivity.this);
 					l.setGravity(Gravity.CENTER_VERTICAL);
-					l.setPadding(0, dp(4), 0, dp(4));
+					l.setPadding(dp(8), dp(8), dp(10), dp(8));
 					cb = new CheckBox(ProxyManagerActivity.this);
 					cb.setFocusable(false);
 					cb.setClickable(false);
+					badge = new TextView(ProxyManagerActivity.this);
+					badge.setTextSize(11);
+					badge.setTextColor(0xFFFFFFFF);
+					badge.setGravity(Gravity.CENTER);
+					badge.setPadding(dp(6), dp(2), dp(6), dp(2));
 					label = new TextView(ProxyManagerActivity.this);
 					label.setSingleLine(true);
+					label.setTextSize(15);
 					label.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
 					st = new TextView(ProxyManagerActivity.this);
+					st.setTextSize(13);
 					st.setPadding(dp(8), 0, 0, 0);
 					l.addView(cb);
-					l.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+					l.addView(badge);
+					LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+					llp.leftMargin = dp(8);
+					l.addView(label, llp);
 					l.addView(st);
+					FrameLayoutHolder.wrap(l);
 				} else {
 					l = (LinearLayout) convert;
 					cb = (CheckBox) l.getChildAt(0);
-					label = (TextView) l.getChildAt(1);
-					st = (TextView) l.getChildAt(2);
+					badge = (TextView) l.getChildAt(1);
+					label = (TextView) l.getChildAt(2);
+					st = (TextView) l.getChildAt(3);
 				}
 				NetConfig c = shown.get(i);
 				String k = c.serialize();
-				cb.setChecked(sel.contains(k));
-				label.setText(c.label());
+				boolean on = sel.contains(k);
+				cb.setChecked(on);
+				l.setBackground(pill(on ? 0x223F7FD8 : (i % 2 == 0 ? 0x0F888888 : 0x00000000), 10));
+				badge.setText(NetConfig.scheme(c.type).toUpperCase());
+				badge.setBackground(pill(badgeColor(c.type), 6));
+				label.setText(c.host + ":" + c.port + (c.user != null && !c.user.isEmpty() ? "  (" + c.user + ")" : ""));
 				Result r = res.get(k);
 				if (r == null) {
 					st.setText("");
 				} else if (r.ms >= 0) {
 					st.setText("✓ " + r.ms + " ms");
-					st.setTextColor(0xFF2E9E4F);
+					st.setTextColor(r.ms < 600 ? 0xFF2E9E4F : 0xFFE08A1E);
 				} else {
 					st.setText("✗ chết");
 					st.setTextColor(0xFFD04040);
@@ -234,6 +276,12 @@ public class ProxyManagerActivity extends Activity {
 		});
 		root.addView(lv, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 		setContentView(root);
+	}
+
+	/** Chỗ dành cho tinh chỉnh bố cục từng dòng (không làm gì thêm). */
+	private static final class FrameLayoutHolder {
+		static void wrap(View v) {
+		}
 	}
 
 	private void reload() {
@@ -260,7 +308,8 @@ public class ProxyManagerActivity extends Activity {
 		}
 		for (int i = 0; i < chips.length; i++) {
 			chips[i].setText(FILTERS[i] + " (" + cnt[i] + ")");
-			chips[i].setBackgroundColor(i == filter ? 0x663F7FD8 : 0x33888888);
+			chips[i].setBackground(pill(i == filter ? BLUE : 0x22888888, 18));
+			chips[i].setTextColor(i == filter ? 0xFFFFFFFF : 0xFF555555);
 		}
 		refresh();
 	}

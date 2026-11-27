@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="action_lock_tab">Khóa / mở khóa tab</string>
+    <string name="action_lock_tab">Khóa tab</string>
     <string name="action_guide">Hướng dẫn sử dụng</string>
     <string name="pref_auto_restart_title">Tự khởi động lại tab</string>
     <string name="pref_auto_restart_summary">Khi tab bị treo (một thao tác chạy quá 45 giây) hoặc game tự thoát ngoài ý muốn thì mở lại. Tối đa 5 lần liên tiếp mỗi tab, quá thì dừng.</string>
@@ -11,32 +11,35 @@
     <string name="guide_prompt_yes">Xem</string>
     <string name="guide_prompt_no">Để sau</string>
     <string name="guide_title">Hướng dẫn sử dụng</string>
-    <string name="guide_body">CHẠY GAME
-• Chọn game trong danh sách để mở. Nút + thêm tab mới để chạy nhiều game cùng lúc.
-• Chạm tên tab để chuyển; nhấn giữ để đổi tên (nếu có).
-
-MENU TRONG GAME
-• Khởi động lại tab: nhập số tab, hoặc nhiều tab như 1-6 hay 1,3,5.
-• Khóa / mở khóa tab: tab khóa (có biểu tượng khóa) không bị đóng hoặc khởi động lại nhầm. Thoát hết cả app vẫn đóng được.
-• Proxy, Macro phím, Tiết kiệm pin, Lưu log nằm trong cùng menu.
-
-ĐỒNG BỘ PHÍM
-• Ở chế độ lưới, bật đồng bộ để gửi một phím cho nhiều tab. Mỗi nhóm có một màu, ví dụ 3 tab game A cùng màu đỏ, 3 tab game B cùng màu xanh.
-
-BÀN PHÍM CHE779
-• Tùy chỉnh độ trong suốt, cỡ nút, giao diện, ảnh nền trong Thiết lập.
-• Có thể gõ chữ vào ô nhập của game.
-
-MACRO PHÍM
-• Ghi các phím bấm rồi phát lại, lặp ×1, ×10 hoặc vô hạn. Có cửa sổ nổi nhỏ kéo thả.
-• Lần đầu có cảnh báo: dùng macro với game online có thể vi phạm quy định của game.
-
-TỰ KHỞI ĐỘNG LẠI
-• Bật trong Thiết lập. Chỉ mở lại khi tab treo hoặc game tự thoát ngoài ý muốn, tối đa 5 lần liên tiếp mỗi tab.
-
-CẬP NHẬT
-• Thiết lập → Kiểm tra cập nhật để tải bản mới và cài đè, dữ liệu giữ nguyên.</string>
     <string name="pref_cat_tabtools">Tab và hướng dẫn</string>
     <string name="pref_proxy_manager_title">Quản lý proxy</string>
     <string name="pref_proxy_manager_summary">Nhập, chia loại HTTP/SOCKS4/SOCKS5, kiểm tra và xóa hàng loạt</string>
+    <string-array name="guide_titles">
+        <item>Chào mừng đến với Che779</item>
+        <item>Chạy nhiều game cùng lúc</item>
+        <item>Menu trong game</item>
+        <item>Khởi động lại và khóa tab</item>
+        <item>Đồng bộ phím theo nhóm màu</item>
+        <item>Bàn phím Che779 và phím tắt</item>
+        <item>Macro phím</item>
+        <item>Proxy</item>
+        <item>Tự khởi động lại</item>
+        <item>Dữ liệu và cập nhật</item>
+    </string-array>
+    <string-array name="guide_bodies">
+        <item>Che779 chạy game J2ME (.jar) trên Android, mở được nhiều game cùng lúc trong nhiều tab.\n\nHướng dẫn này có %1$d trang. Vuốt sang trái hoặc bấm Tiếp để đi tiếp, bấm Bỏ qua nếu đã biết dùng.</item>
+        <item>• Chọn game trong danh sách để mở.\n• Nút + ở thanh dưới thêm một tab mới, chọn game cho tab đó.\n• Chạm vào số tab để chuyển qua lại.\n• Nút lưới hiện nhiều tab cùng lúc trên màn hình.</item>
+        <item>Bấm nút ⋮ (ba chấm) ở thanh dưới để mở menu:\n• Khởi động lại tab\n• Khóa tab\n• Proxy, Chuyển hướng IP\n• Giới hạn FPS, Chế độ pin, Ngủ màn hình\n• Bàn phím ảo, Macro phím\n• Hướng dẫn sử dụng, Lưu log</item>
+        <item>Khởi động lại tab: để trống là tab đang mở. Có thể nhập nhiều tab: 1-6 (tab 1 đến 6), 1,3,5 hoặc 1-3,7. Các tab được mở lại lần lượt.\n\nKhóa tab: tab khóa có biểu tượng 🔒, không bị đóng hoặc khởi động lại nhầm. Mục menu tự đổi thành Mở khóa tab khi tab đang khóa. Thoát cả app vẫn đóng được mọi tab.</item>
+        <item>Ở chế độ lưới, bật đồng bộ phím để một phím bấm gửi tới nhiều tab.\n\nMỗi nhóm có một màu riêng, ví dụ 3 tab game A màu đỏ, 3 tab game B màu xanh. Phím chỉ gửi tới các tab cùng nhóm, nên chơi nhiều game khác nhau không bị lẫn.</item>
+        <item>Bàn phím Che779 có 3 kiểu: số kiểu Nokia, Android (QWERTY) và Phím tắt.\n\nPhím tắt: bấm dấu + để thêm nút, đặt tên và chọn chuỗi phím sẽ bấm. Nhấn giữ một nút để sửa hoặc xóa. Có thể gõ chữ vào ô nhập của game.\n\nĐộ trong suốt, cỡ nút, nền, ảnh nền chỉnh trong Thiết lập.</item>
+        <item>Ghi lại các phím đã bấm rồi phát lại: lặp ×1, ×10 hoặc vô hạn. Bảng điều khiển nhỏ nổi trên màn hình, kéo bằng biểu tượng ⠿.\n\nLần đầu dùng có cảnh báo: macro trong game online có thể vi phạm quy định của game. Hãy cân nhắc.</item>
+        <item>Thiết lập → Quản lý proxy:\n• Không giới hạn số lượng, nhập từ file hoặc dán văn bản.\n• Lọc theo HTTP, SOCKS4, SOCKS5.\n• Kiểm tra hàng loạt, chế độ Tự động sẽ tự nhận ra loại đúng.\n• Xóa hàng loạt: đã chọn, proxy chết, hoặc tất cả đang lọc.\n\nGắn proxy cho từng tab trong menu game → Proxy.</item>
+        <item>Bật trong Thiết lập. Tab sẽ được mở lại khi bị treo (một thao tác chạy quá 45 giây) hoặc game tự thoát ngoài ý muốn.\n\nTối đa 5 lần liên tiếp cho mỗi tab; lặp quá thì dừng để tránh vòng lặp vô tận. Tab chạy ổn định hơn 5 phút thì đếm lại.</item>
+        <item>Cài đặt, proxy, macro, phím tắt và ảnh nền bàn phím được lưu trong thư mục Che779Data cạnh thư mục game, nên gỡ app cài lại vẫn khôi phục được.\n\nCập nhật: Thiết lập → Kiểm tra cập nhật, bấm Mở trình duyệt để tải file APK mới nhất rồi cài đè lên bản cũ.</item>
+    </string-array>
+    <string name="guide_next">Tiếp</string>
+    <string name="guide_back">Quay lại</string>
+    <string name="guide_skip">Bỏ qua</string>
+    <string name="guide_done">Xong</string>
 </resources>

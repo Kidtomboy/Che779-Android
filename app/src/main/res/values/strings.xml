@@ -275,7 +275,7 @@
     <string name="pref_auto_sleep_title">Auto black screen</string>
     <string name="action_proxy">Proxy</string>
     <string name="action_redirect">IP redirect</string>
-    <string name="action_restart_tab">Restart tab / enter tab number</string>
+    <string name="action_restart_tab">Restart tab</string>
     <string name="action_import_zip">Import game from ZIP</string>
     <string name="action_power">Power mode</string>
     <string name="pref_restore_tabs">Restore tabs of the last run</string>

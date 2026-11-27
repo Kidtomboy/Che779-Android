@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="action_lock_tab">Lock / unlock tab</string>
+    <string name="action_lock_tab">Lock tab</string>
     <string name="action_guide">User guide</string>
     <string name="pref_auto_restart_title">Auto-restart tabs</string>
     <string name="pref_auto_restart_summary">Reopen a tab when it hangs (an action runs over 45 s) or the game quits unexpectedly. At most 5 times in a row per tab.</string>
@@ -11,29 +11,35 @@
     <string name="guide_prompt_yes">Open</string>
     <string name="guide_prompt_no">Later</string>
     <string name="guide_title">User guide</string>
-    <string name="guide_body">RUNNING GAMES
-• Pick a game from the list. The + button adds another tab to run several games at once.
-
-IN-GAME MENU
-• Restart tab: enter a tab number, or several such as 1-6 or 1,3,5.
-• Lock / unlock tab: a locked tab (lock icon) cannot be closed or restarted by accident. Exit all still works.
-• Proxy, Key macro, Power saving and Save log are in the same menu.
-
-KEY SYNC
-• In grid mode, turn on sync to send one key to many tabs. Each group has its own colour.
-
-CHE779 KEYPAD
-• Opacity, key size, theme and background image are in Settings. It can type into text fields.
-
-KEY MACRO
-• Record key presses and play them back x1, x10 or forever. A small floating panel can be dragged. A warning shows on first use: macros in online games may break the game rules.
-
-AUTO-RESTART
-• Turn it on in Settings. It only reopens a tab that hangs or quits unexpectedly, at most 5 times in a row per tab.
-
-UPDATES
-• Settings → Check for updates downloads the new version and installs over the old one; your data is kept.</string>
     <string name="pref_cat_tabtools">Tabs and guide</string>
     <string name="pref_proxy_manager_title">Proxy manager</string>
     <string name="pref_proxy_manager_summary">Import, split by HTTP/SOCKS4/SOCKS5, bulk test and delete</string>
+    <string-array name="guide_titles">
+        <item>Welcome to Che779</item>
+        <item>Run several games at once</item>
+        <item>In-game menu</item>
+        <item>Restart and lock tabs</item>
+        <item>Key sync by colour group</item>
+        <item>Che779 keypad and shortcuts</item>
+        <item>Key macro</item>
+        <item>Proxy</item>
+        <item>Auto-restart</item>
+        <item>Data and updates</item>
+    </string-array>
+    <string-array name="guide_bodies">
+        <item>Che779 runs J2ME games (.jar) on Android in several tabs at once.\n\nThis guide has %1$d pages. Swipe left or tap Next; tap Skip if you already know the app.</item>
+        <item>• Pick a game from the list.\n• The + button on the bottom bar adds a tab and lets you choose its game.\n• Tap a tab number to switch.\n• The grid button shows many tabs at once.</item>
+        <item>Tap the three-dot button on the bottom bar:\n• Restart tab\n• Lock tab\n• Proxy, IP redirect\n• FPS limit, Power mode, Screen sleep\n• Virtual keypad, Key macro\n• User guide, Save log</item>
+        <item>Restart tab: leave empty for the current tab, or enter several: 1-6, 1,3,5 or 1-3,7. Tabs reopen one after another.\n\nLock tab: a locked tab shows a lock icon and cannot be closed or restarted by accident. The menu item becomes Unlock tab when the tab is locked.</item>
+        <item>In grid mode, turn key sync on to send one key press to several tabs.\n\nEach group has its own colour, e.g. 3 tabs of game A red and 3 of game B blue. Keys only reach tabs in the same group.</item>
+        <item>The Che779 keypad has 3 styles: Nokia numeric, Android (QWERTY) and Shortcuts.\n\nShortcuts: tap + to add a button, name it and pick the key sequence. Long-press a button to edit or delete. You can also type into game text fields.\n\nOpacity, key size and background are in Settings.</item>
+        <item>Record key presses and play them back x1, x10 or forever. A small panel floats on screen; drag it by the handle.\n\nA warning shows on first use: macros in online games may break the game rules.</item>
+        <item>Settings → Proxy manager:\n• Unlimited proxies; import from a file or paste text.\n• Filter by HTTP, SOCKS4, SOCKS5.\n• Bulk test; Auto mode detects the right type.\n• Bulk delete: selected, dead, or everything filtered.\n\nAssign a proxy per tab in the game menu → Proxy.</item>
+        <item>Turn it on in Settings. A tab reopens when it hangs (an action runs over 45 s) or the game quits unexpectedly.\n\nAt most 5 times in a row per tab to avoid endless loops. A tab that runs stably for over 5 minutes resets the count.</item>
+        <item>Settings, proxies, macros, shortcuts and the keypad background are kept in the Che779Data folder next to your games, so a reinstall restores them.\n\nUpdates: Settings → Check for updates, tap Open browser to download the latest APK and install it over the old one.</item>
+    </string-array>
+    <string name="guide_next">Next</string>
+    <string name="guide_back">Back</string>
+    <string name="guide_skip">Skip</string>
+    <string name="guide_done">Done</string>
 </resources>

@@ -19,7 +19,7 @@ import java.io.InputStream;
 
 /** Đọc cấu hình kiểu dáng từ Cài đặt (tiến trình khác) và áp dụng lên bàn phím. */
 public final class KeypadStyle {
-	private static final String FILE = "keypad_bg.png";
+	static final String FILE = "keypad_bg.png";
 	private static final int MAX_SIDE = 1080;
 
 	private KeypadStyle() {

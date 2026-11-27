@@ -1824,6 +1824,7 @@ public class MicroActivity extends AppCompatActivity {
 	@Override
 	public void onPause() {
 		visible = false;
+		Che779Backup.saveAsync(this);
 		uiHandler.removeCallbacks(sleepRunnable);
 		hideSoftInput();
 		if (!floating && !bubbleAllowed()) {
@@ -2466,6 +2467,11 @@ public class MicroActivity extends AppCompatActivity {
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
+		MenuItem lockItem = menu.findItem(R.id.action_lock_tab);
+		if (lockItem != null) {
+			Session cs = Session.active();
+			lockItem.setTitle(cs != null && cs.locked ? "Mở khóa tab" : "Khóa tab");
+		}
 		if (cur() instanceof Canvas) {
 			menu.setGroupVisible(R.id.action_group_canvas, true);
 			VirtualKeyboard vk = ContextHolder.getVk();

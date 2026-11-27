@@ -82,12 +82,12 @@ public class MainActivity extends BaseActivity {
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.container, fragment).commit();
 		}
+		javax.microedition.shell.Che779Backup.restoreIfFresh(this);
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		if (!preferences.contains(PREF_TOOLBAR)) {
 			boolean enable = !ViewConfiguration.get(this).hasPermanentMenuKey();
 			preferences.edit().putBoolean(PREF_TOOLBAR, enable).apply();
 		}
-		ru.playsoftware.j2meloader.update.UpdateManager.autoCheck(this);
 		boolean warningShown = preferences.getBoolean(PREF_STORAGE_WARNING_SHOWN, false);
 		if (!FileUtils.isExternalStorageLegacy() && !warningShown) {
 			showScopedStorageDialog();
@@ -277,5 +277,11 @@ public class MainActivity extends BaseActivity {
 					.show();
 		} catch (Exception ignored) {
 		}
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		javax.microedition.shell.Che779Backup.saveAsync(this);
 	}
 }
