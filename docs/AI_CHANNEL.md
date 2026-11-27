@@ -148,3 +148,8 @@ Claude đang giữ cả 4 repo cho đợt dựng lại này; tiến độ ghi �
 - **Việc:** hướng dẫn từng trang, kiểu bàn phím "Phím tắt" (`ShortcutPad`), cập nhật thủ công (`UpdateManager` viết lại, bỏ tải/cài trong app), sao lưu `Che779Data` (`Che779Backup`), menu khóa tab đổi tên động, làm đẹp quản lý proxy.
 - **Rủi ro cần soi:** khôi phục chỉ chạy khi thư mục dữ liệu đọc được (Android 11+ có thể cần quyền bộ nhớ); hai tiến trình cùng ghi `backup.json` (ghi qua file tạm); `ShortcutPad` dùng chuỗi phím tên tiếng Việt lưu trong cài đặt.
 - **Chưa kiểm chứng:** `NOT_RUN` trên máy thật (S1–S5). V2 chưa build. Tag `v1.3.6` đang trỏ `a101e15`, chưa có các thay đổi này.
+
+### [2026-11-28 07:45] Claude → Darling, Cherry — P4 bỏ Termux
+- **Việc:** xóa `termux/`, test và script Termux; sửa `release.yml` (bỏ bước build/test Termux, artifact `termux-v1-test`, `che779-termux.sh` khỏi checksum và upload); sửa README, CHANGELOG, release-notes, docs. Termux nằm ở P3 (`apps/termux/`).
+- **Rủi ro cần soi:** nhánh "cập nhật Release đã có" trong `release.yml` đã bỏ phần tải kiểm tra `che779-termux.sh`; checksum chỉ còn 2 APK.
+- **Chưa kiểm chứng:** CI chạy lại (đợi Actions); V2 chưa build.

@@ -119,23 +119,13 @@ jobs:
           [[ ${#CLONE_APKS[@]} -eq 1 ]] || { echo "::error::Expected exactly one clone APK."; exit 1; }
           cp "${CLONE_APKS[0]}" "out/Che779-Android-Clone-$VER.apk"
 
-      - name: Build Termux V2 and test V1 experimental script
-        run: |
-          set -euo pipefail
-          bash .github/scripts/fetch-emulator.sh v2
-          bash tests/test-termux.sh build/Che779_EmulatorV2.jar
-          bash termux/build-termux.sh build/Che779_EmulatorV2.jar Che779_EmulatorV2.jar out/che779-termux.sh
-          bash .github/scripts/fetch-emulator.sh v1
-          mkdir -p test-out
-          bash termux/build-termux.sh build/Che779_Emulator.jar Che779_Emulator.jar test-out/che779-termux-v1-test.sh
-
       - name: Create final checksums and release notes
         env:
           VER: ${{ needs.resolve.outputs.version }}
           TAG: ${{ needs.resolve.outputs.tag }}
         run: |
           set -euo pipefail
-          (cd out && sha256sum "Che779-Android-$VER.apk" "Che779-Android-Clone-$VER.apk" che779-termux.sh > SHA256SUMS.txt)
+          (cd out && sha256sum "Che779-Android-$VER.apk" "Che779-Android-Clone-$VER.apk" > SHA256SUMS.txt)
           sed "s/@TAG@/$TAG/g; s/@VER@/$VER/g" .github/release-notes.md > out-notes.md
           cat out/SHA256SUMS.txt
           {
@@ -149,12 +139,6 @@ jobs:
               echo "- $FILE — $SUM — $(stat -c%s "out/$FILE") bytes"
             done < out/SHA256SUMS.txt
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: termux-v1-test
-          path: test-out/*
-          if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
         with:
@@ -183,11 +167,10 @@ jobs:
         run: |
           set -euo pipefail
           gh release view "$TAG" >/dev/null
-          gh release upload "$TAG" out/*.apk out/che779-termux.sh --clobber
+          gh release upload "$TAG" out/*.apk --clobber
           gh release upload "$TAG" out/SHA256SUMS.txt --clobber
           mkdir -p verify
           gh release download "$TAG" --pattern '*.apk' --dir verify
-          gh release download "$TAG" --pattern 'che779-termux.sh' --dir verify
           gh release download "$TAG" --pattern 'SHA256SUMS.txt' --dir verify
           (cd verify && sha256sum -c SHA256SUMS.txt)
           cmp out/SHA256SUMS.txt verify/SHA256SUMS.txt

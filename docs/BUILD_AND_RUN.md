@@ -6,7 +6,7 @@
 2. Cho phép cài từ nguồn ngoài Play Store khi Android hỏi.
 3. Cấp quyền **hiển thị trên ứng dụng khác** nếu muốn dùng bong bóng nổi.
 
-**Termux (chỉ V2):** tải `che779-termux.sh` rồi `bash che779-termux.sh` (xem `termux/README.md`). Bản clone: `Che779-Android-Clone-<phiên bản>.apk`.
+**Termux:** đã chuyển sang repo Che779-Linux (`apps/termux/`). Bản clone: `Che779-Android-Clone-<phiên bản>.apk`.
 
 Cần Android 5.0 trở lên (`minSdk 21`, `targetSdk 29`, `compileSdk 34`). Thư mục dữ liệu: `J2ME-Che779` trong bộ nhớ máy (Android 10 trở xuống); Android 11 trở lên nằm trong `Android/data/<tên gói>/files`.
 

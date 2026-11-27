@@ -9,6 +9,7 @@ Gói `com.che779.emulator`, `versionCode 136`. Mọi thứ của 1.3.3, thêm c�
 - Trang hướng dẫn sử dụng (hỏi một lần lúc mở app đầu; có trong Thiết lập và menu game).
 - Quản lý proxy ở Thiết lập: không giới hạn số lượng, lọc HTTP/SOCKS4/SOCKS5, nhập file hoặc dán, kiểm tra hàng loạt (có chế độ Tự động), xóa đã chọn/chết/theo bộ lọc.
 - Nút +: nhớ danh sách game, không quét lại mỗi lần bấm.
+- Termux chuyển sang repo Che779-Linux: Release của repo này chỉ còn APK chính, APK clone, V2 (dev) và `SHA256SUMS.txt`.
 - Hướng dẫn sử dụng làm lại thành từng trang (vuốt hoặc Tiếp/Quay lại).
 - Bàn phím Che779 thêm kiểu "Phím tắt": thêm/sửa/xóa nút, mỗi nút bấm một chuỗi phím.
 - Cập nhật chuyển sang thủ công: mở trang tải bản mới nhất trong trình duyệt (bỏ tải/cài trong app và công tắc tự kiểm tra).
@@ -72,8 +73,8 @@ Nền: J2ME Loader 1.8.2. Gói `com.che779.emulator`, `versionCode 131`.
 - **Thông báo** có nút "Chế độ" và "Dừng", hiện chế độ pin hiện tại.
 - **Nhập game từ file ZIP** ở menu chính.
 - Sửa lỗi treo giao diện khi thoát tab cuối.
-- **Termux (chỉ V2):** thư mục `termux/` với script một file `che779-termux.sh` (chuyển từ Che779-Linux, bỏ phần Linux). Mã V2 không chép vào repo: Actions lấy từ Che779-EmulatorV2 đúng commit ghim ở `termux/EMULATOR_V2_REF`. V1 thử nghiệm ở `termux/test/` (không hỗ trợ chính thức, không đăng ở Releases).
-- **Phát hành tự động** khi gắn thẻ `vX.Y.Z`: APK chính, APK clone (`com.che779.emulatorv2`, dữ liệu `J2ME-Che779v2`), `che779-termux.sh` và `SHA256SUMS.txt` (tính sau cùng trên đúng các file đăng).
+- **Termux** đã chuyển sang repo Che779-Linux (`apps/termux/`).
+- **Phát hành tự động** khi gắn thẻ `vX.Y.Z`: APK chính, APK clone (`com.che779.emulatorv2`, dữ liệu `J2ME-Che779v2`) và `SHA256SUMS.txt` (tính sau cùng trên đúng các file đăng).
 
 ### Tính năng của ứng dụng
 

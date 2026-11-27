@@ -5,9 +5,9 @@
 **Chạy game J2ME (`.jar`) ngay trên điện thoại — nhiều game cùng lúc, mỗi game một tab.**
 
 Dựa trên J2ME Loader, thêm lớp vỏ Che779: đa tab, chế độ lưới, bong bóng nổi, proxy theo tab và tiết kiệm pin.
-Cài một file APK là dùng. Nếu thích dùng Termux, repo này còn có script chạy **Emulator V2** trong Termux.
+Cài một file APK là dùng. Script Termux đã chuyển sang repo **Che779-Linux** (thư mục `apps/termux/`, [Releases](https://github.com/Kidtomboy/Che779-Linux/releases), thẻ `termux-v*`).
 
-> **Nền tảng: Android.** Quy ước 4 repo: **P1 và P2 = Windows · P3 = Linux · P4 = Android (kèm Termux)**.
+> **Nền tảng: Android.** Quy ước 4 repo: **P1 và P2 = Windows · P3 = Linux · P4 = Android**.
 
 [![Phiên bản](https://img.shields.io/github/v/release/Kidtomboy/Che779-Android?label=phi%C3%AAn%20b%E1%BA%A3n&color=blue)](../../releases/latest)
 [![Lượt tải](https://img.shields.io/github/downloads/Kidtomboy/Che779-Android/total?label=l%C6%B0%E1%BB%A3t%20t%E1%BA%A3i&color=brightgreen)](../../releases)
@@ -30,7 +30,7 @@ Vào mục **[Releases](../../releases/latest)** và tải file:
 | `Che779-Android-<phiên bản>.apk` | Cài ứng dụng lên điện thoại Android |
 | `Che779-Android-Clone-<phiên bản>.apk` | Bản clone (gói `com.che779.emulator2`, dữ liệu `J2ME-Che779Clone`) để cài song song với bản chính |
 | `Che779-AndroidV2-<phiên bản>.apk` | Bản **V2** (dev-2.0.1): tên *Che779 Emulator V2*, gói `com.che779.emulatorv2`, dữ liệu `J2ME-Che779v2`; cài song song được với bản chính và bản clone. Nằm ở tag [`dev-2.0.1`](../../releases/tag/dev-2.0.1), kèm `SHA256SUMS.txt` riêng (bản thử, chưa phải bản ổn định) |
-| `che779-termux.sh` | Chạy Emulator **V2** trong Termux (xem [mục Termux](#-termux-emulator-v2)) |
+| *(Termux)* | Đã chuyển sang Che779-Linux: `che779-termux.sh` ở Releases của repo đó |
 | `SHA256SUMS.txt` | Mã SHA-256 của các file trên (tính sau cùng, trên đúng file đăng). Kiểm tra: `sha256sum -c SHA256SUMS.txt` |
 
 Mục Releases còn có bản **"thử mới nhất (dev, tự động)"** — cập nhật mỗi khi mã nguồn thay đổi, có thể chưa ổn định. Muốn dùng ổn định, hãy tải bản `vX.Y.Z`.
@@ -48,7 +48,7 @@ Che779 gồm 4 dự án, mỗi dự án một repo. Bạn đang xem **Project 4*
 | 1 | [**Che779-Emulator**](https://github.com/Kidtomboy/Che779-Emulator) | Windows | Mỗi tab một cửa sổ, điều khiển bằng Remoter |
 | 2 | [**Che779-EmulatorV2**](https://github.com/Kidtomboy/Che779-EmulatorV2) | Windows | Nhiều tab trong một cửa sổ, một tiến trình |
 | 3 | [**Che779-Linux**](https://github.com/Kidtomboy/Che779-Linux) | Linux | Gói `.deb` / `.tar.gz`: V2 + V1 + Remoter Linux |
-| 4 | **Che779-Android** ← *bạn đang ở đây* | Android (kèm Termux) | APK chạy trực tiếp; Termux chạy V2 |
+| 4 | **Che779-Android** ← *bạn đang ở đây* | Android | APK chạy trực tiếp |
 
 > 📌 Tên `Che779-Emulator` từng là tên của repo này. Nay bản Windows dùng tên đó; bản Android là **Che779-Android**. Link tải APK cũ (`…/Che779-Emulator.apk`) không còn dùng được — hãy tải từ [Releases](../../releases/latest).
 
@@ -121,18 +121,9 @@ Mỗi tab có dữ liệu riêng; bản clone có thư mục dữ liệu tách h
 
 ---
 
-## 💻 Termux (Emulator V2)
+## 💻 Termux
 
-Dành cho ai thích chạy trong Termux. **Chỉ V2** (nhiều tab một cửa sổ) được hỗ trợ; Termux thao tác khó hơn APK, nên APK vẫn là cách khuyên dùng.
-
-1. Cài **Termux** và **Termux:X11** (từ F-Droid hoặc GitHub của họ).
-2. Tải `che779-termux.sh` ở Releases, rồi trong Termux: `bash che779-termux.sh`. Script cài `proot-distro` + Ubuntu, Java, Openbox và mở emulator qua Termux:X11; một file, jar nhúng sẵn, tự kiểm tra SHA-256.
-3. Game đặt ở `Download/Che779Games`, dữ liệu ở `Download/Che779Data`.
-
-Chủ dự án đã thử bản Termux này trước khi chuyển repo: chạy được và chơi được game. Bản **V1 thử nghiệm** (không hỗ trợ chính thức) ở [`termux/test/`](termux/test/). Chi tiết: [`termux/README.md`](termux/README.md).
-
----
-
+Đã chuyển sang repo **Che779-Linux** (`apps/termux/`), tải `che779-termux.sh` ở Releases của repo đó (thẻ `termux-v*`). Hướng dẫn: `apps/termux/README.md` trong repo đó.
 ## 🧬 Tạo bản clone
 
 Muốn có thêm một bản cài độc lập (tên gói, tên ứng dụng và dữ liệu riêng)? Vào **Actions → Tạo bản clone → Run workflow** và điền ba ô:
@@ -236,8 +227,6 @@ Che779-Android/
 ├─ README.md  CONTRIBUTING.md  SECURITY.md  LICENSE  CHANGELOG.md  VERSION
 ├─ app/            Ứng dụng Android (lớp vỏ Che779 ở javax/microedition/shell)
 ├─ dexlib/         Module Gradle phụ (thư viện nội bộ mà app phụ thuộc)
-├─ termux/         Script Termux chạy Emulator V2 (+ test/: V1 thử nghiệm); mã V2 ghim từ Che779-EmulatorV2
-├─ tests/          test-termux.sh
 ├─ gradle/  build.gradle  settings.gradle  gradlew*   ← Gradle bắt buộc nằm ở gốc
 ├─ docs/           Tài liệu kỹ thuật (có mục lục)
 └─ .github/        Workflow build dev, phát hành bản chính, phát hành bản V2, tạo clone; mẫu Issue và Pull Request

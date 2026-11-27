@@ -100,3 +100,7 @@ Nguồn đối chiếu: source/Gradle, docs, tag, Release (APK thực tế chưa
 | Release | `v1.3.6` chưa có (Cherry tạo tag; `v1.3.4` bỏ qua, `v1.3.5` đã phát hành); `v1.3.3` đã phát hành (tag trỏ commit trước khi dọn lịch sử tác giả); `v1.3.2` target `c7d5f9c`, APK build từ `715daca` (workflow cũ build mã mới nhất khi chạy tay) | `dev-2.0.1` target `715daca` |
 - **Version inconsistency còn mở:** Release `v1.3.2` có tag ở `c7d5f9c` nhưng APK lấy từ `715daca` (các commit giữa hai mốc đổi code, gồm cập nhật cửa sổ nổi và kiểm tra cập nhật). Cần Cherry quyết định dời tag `v1.3.2` về `715daca` (Cherry tự thực hiện) hoặc phát hành lại.
 - Tag `v1.3.6` do Cherry tạo trên commit chứa version 1.3.6; Claude không tự tạo hay dời tag. Workflow đã được trả về hành vi "luôn build đúng commit của tag, không tạo/dời/xoá tag".
+
+## Cập nhật 2026-11-28
+- Termux đã bỏ khỏi P4 (thư mục `termux/`, `tests/test-termux.sh`, `.github/scripts/fetch-emulator.sh`, các bước Termux trong `release.yml`). `SHA256SUMS.txt` giờ chỉ gồm 2 APK. Release v1.3.6 đã phát hành trước đó còn `che779-termux.sh` (cũ), bản mới sẽ không có.
+- Cần Cherry: tạo lại thẻ khi muốn phát hành bản có thay đổi này. Chưa nâng phiên bản (vẫn 1.3.6).

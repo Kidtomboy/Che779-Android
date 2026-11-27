@@ -3,7 +3,6 @@
 **Tải về**
 - `Che779-Android-@VER@.apk`: ứng dụng chính
 - `Che779-Android-Clone-@VER@.apk`: bản clone, cài song song (tên "Che779 Emulator 2", gói `com.che779.emulator2`, dữ liệu `J2ME-Che779Clone`)
-- `che779-termux.sh`: chạy Emulator V2 trong Termux
 - `SHA256SUMS.txt`: mã kiểm tra file tải về
 
 **Điểm mới so với 1.3.3**

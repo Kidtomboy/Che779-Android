@@ -59,3 +59,6 @@ Do Cherry quyết, Claude ghi lại. Áp dụng cho cả 4 repo; Claude và Darl
 7. Mỗi README bắt đầu bằng dòng "Nền tảng: …" và bảng 4 repo giống nhau; mô tả repo trên GitHub ghi dạng "[Windows] …", "[Linux] …", "[Android] …".
 
 - **Việc của repo này ở 1.3.0:** thêm `termux/` (script Termux tách từ P3, chỉ V2, ghim commit P2, thư mục `test/` cho V1); workflow Phát hành đính thêm `che779-termux.sh`; giữ APK và bản clone.
+
+## 2026-11-28 — Termux rời P4, về P3
+- **Quyết định (Cherry):** `termux/` chuyển về Che779-Linux (`apps/termux/`, thẻ `termux-v*`, workflow riêng). Lý do: Termux ít người dùng và cập nhật theo nhịp riêng; Actions của P4 chỉ còn APK chính, APK clone, V2 và `SHA256SUMS.txt`. Các mục cũ ở trên về Termux ở P4 là lịch sử, không còn đúng.
