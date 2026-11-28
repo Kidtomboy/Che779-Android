@@ -4,6 +4,7 @@ Chỉ ghi những gì **phiên bản hiện tại** có. Lịch sử các bản 
 
 ## [1.3.6] — Bản phát hành
 
+- **Workflow:** CI trên main build thêm bản clone (artifact `Che779-Android-Clone-APK`) để clone luôn đi theo bản chính; Termux đã chuyển sang Che779-Linux.
 Gói `com.che779.emulator`, `versionCode 136`. Mọi thứ của 1.3.3, thêm các mục dưới đây. Chưa kiểm chứng trên máy thật (`DEVICE_VERIFIED` chưa có); CI build bản chính xanh (`CI_VERIFIED`). Bản V2 (thử nghiệm) giữ nguyên `dev-2.0.1`, chưa build lại.
 - Khởi động lại tab hàng loạt (nhập 1-6, 1,3,5); khóa tab; tự khởi động lại tab treo hoặc thoát ngoài ý muốn (tắt mặc định, tối đa 5 lần liên tiếp).
 - Trang hướng dẫn sử dụng (hỏi một lần lúc mở app đầu; có trong Thiết lập và menu game).

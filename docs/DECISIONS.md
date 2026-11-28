@@ -62,3 +62,9 @@ Do Cherry quyết, Claude ghi lại. Áp dụng cho cả 4 repo; Claude và Darl
 
 ## 2026-11-28 — Termux rời P4, về P3
 - **Quyết định (Cherry):** `termux/` chuyển về Che779-Linux (`apps/termux/`, thẻ `termux-v*`, workflow riêng). Lý do: Termux ít người dùng và cập nhật theo nhịp riêng; Actions của P4 chỉ còn APK chính, APK clone, V2 và `SHA256SUMS.txt`. Các mục cũ ở trên về Termux ở P4 là lịch sử, không còn đúng.
+
+## 2026-11-28 — Quy tắc đồng bộ giữa 4 repo (Cherry, 2026-11-28)
+- **P1 hoặc P2 có bản cập nhật → P3 phải theo ngay:** đổi `EMULATOR_V1_REF` / `EMULATOR_V2_REF` ở Che779-Linux sang commit mới, chạy test, cập nhật CHANGELOG/docs của P3. Nhật ký build của P3 có dòng "ghim … CHƯA theo kịp" khi P3 chậm hơn main của P1/P2.
+- **P4 bản chính có cập nhật → bản clone cũng có** (CI main và Release `v*` build cả hai). **Bản V2 (`dev-*`) chỉ làm khi Cherry yêu cầu.**
+- Termux nằm ở P3 (`apps/termux/`), không còn ở P4.
+- **Nhật ký build:** P1, P2, P3 (Linux và Termux riêng), P4 đều đăng log lên Release tiền-phát-hành tên `buildlog` (P3: `buildlog-linux`, `buildlog-termux`) sau mỗi lần push vào main; xem ở trang Releases.

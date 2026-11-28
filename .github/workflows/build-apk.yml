@@ -43,11 +43,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Run unit tests and build APK
+      - name: Run unit tests and build main + clone APK
         run: |
           set -euo pipefail
           chmod +x gradlew
           ./gradlew testDevDebugUnitTest assembleDevDebug --stacktrace 2>&1 | tee build.log
+          # Bản chính xong thì cất APK, rồi build luôn bản clone từ cùng commit (clone luôn đi theo bản chính)
+          shopt -s nullglob
+          MAIN=(app/build/outputs/apk/dev/debug/*.apk)
+          [[ ${#MAIN[@]} -eq 1 ]] || { echo "::error::Expected exactly one main dev APK, found ${#MAIN[@]}."; exit 1; }
+          mkdir -p dist
+          cp "${MAIN[0]}" dist/Che779-Android.apk
+          rm -rf app/build/outputs
+          ./gradlew assembleDevDebug "-PcloneId=com.che779.emulator2" "-PcloneName=Che779 Emulator 2" "-PcloneDir=J2ME-Che779Clone" --stacktrace 2>&1 | tee -a build.log
+          CLONE=(app/build/outputs/apk/dev/debug/*.apk)
+          [[ ${#CLONE[@]} -eq 1 ]] || { echo "::error::Expected exactly one clone dev APK, found ${#CLONE[@]}."; exit 1; }
+          cp "${CLONE[0]}" dist/Che779-Android-Clone.apk
 
       - name: Prepare build log
         if: always()
@@ -100,18 +111,10 @@ jobs:
           gh release download buildlog --pattern build-tail.log --dir verify
           cmp build-tail.log verify/build-tail.log
 
-      - name: Collect APK
+      - name: Create checksums
         run: |
           set -euo pipefail
-          shopt -s nullglob
-          APKS=(app/build/outputs/apk/dev/debug/*.apk)
-          if [[ ${#APKS[@]} -ne 1 ]]; then
-            echo "::error::Expected exactly one dev debug APK, found ${#APKS[@]}."
-            exit 1
-          fi
-          mkdir -p dist
-          cp "${APKS[0]}" dist/Che779-Android.apk
-          sha256sum dist/Che779-Android.apk > dist/SHA256SUMS.txt
+          (cd dist && sha256sum Che779-Android.apk Che779-Android-Clone.apk > SHA256SUMS.txt)
           ls -la dist
 
       - name: Upload APK artifact

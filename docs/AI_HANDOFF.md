@@ -102,3 +102,9 @@ Nguồn đối chiếu: source/Gradle, docs, tag, Release (APK thực tế chưa
 
 ## Cập nhật 2026-11-28
 - Chưa nâng phiên bản (vẫn 1.3.6). Cần Cherry: tạo lại thẻ khi muốn phát hành bản có các thay đổi mới.
+
+## Quy tắc đồng bộ giữa 4 repo (Cherry, 2026-11-28)
+- **P1 hoặc P2 có bản cập nhật → P3 phải theo ngay:** đổi `EMULATOR_V1_REF` / `EMULATOR_V2_REF` ở Che779-Linux sang commit mới, chạy test, cập nhật CHANGELOG/docs của P3. Nhật ký build của P3 có dòng "ghim … CHƯA theo kịp" khi P3 chậm hơn main của P1/P2.
+- **P4 bản chính có cập nhật → bản clone cũng có** (CI main và Release `v*` build cả hai). **Bản V2 (`dev-*`) chỉ làm khi Cherry yêu cầu.**
+- Termux nằm ở P3 (`apps/termux/`), không còn ở P4.
+- **Nhật ký build:** P1, P2, P3 (Linux và Termux riêng), P4 đều đăng log lên Release tiền-phát-hành tên `buildlog` (P3: `buildlog-linux`, `buildlog-termux`) sau mỗi lần push vào main; xem ở trang Releases.
