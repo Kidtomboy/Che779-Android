@@ -122,7 +122,7 @@ Mỗi tab có dữ liệu riêng; bản clone có thư mục dữ liệu tách h
 
 ## 💻 Termux
 
-Đã chuyển sang repo **Che779-Linux** (`apps/termux/`), tải `che779-termux.sh` ở Releases của repo đó (thẻ `termux-v*`). Hướng dẫn: `apps/termux/README.md` trong repo đó.
+Đã chuyển sang repo **Che779-Linux** (`apps/termux/`), tải `che779-termux-v2.sh` (V2) hoặc `che779-termux-v1.sh` (V1) ở Releases của repo đó (thẻ `termux-v*`). Hướng dẫn: `apps/termux/README.md` trong repo đó.
 ## 🧬 Tạo bản clone
 
 Muốn có thêm một bản cài độc lập (tên gói, tên ứng dụng và dữ liệu riêng)? Vào **Actions → Tạo bản clone → Run workflow** và điền ba ô:
