@@ -86,7 +86,6 @@ Cherry giao 10 mục (file yêu cầu "CHỈNH SỬA PROJECT 4"). Đã viết co
 ## Nâng lên 1.3.1 — 2026-11-18
 - Cherry yêu cầu nâng CHỈ Project 4: VERSION 1.3.1, versionCode 131, versionName 1.3.1. Cherry tự tạo tag v1.3.1. Release v1.3.0 đã bị ghi đè nhiều lần trước đó bằng workflow Phát hành (update_tag); từ nay bản mới đi theo thẻ v1.3.1.
 
-- termux/che779-termux.sh: sửa tên tệp trong trợ giúp/thông báo (che779.sh → che779-termux.sh), --help không in khung ASCII, cảnh báo khi chưa cấp quyền bộ nhớ (dữ liệu lưu tạm). Test tests/test-termux.sh đạt với jar giả; KHÔNG thử trên Termux thật.
 
 - Release: ghi chú lấy từ .github/release-notes.md (@TAG@/@VER@); workflow update_tag cũng sửa tên/pre-release/ghi chú và gỡ build-tail.log. Bản v1.3.1 từng bị đổi tên "Nhật ký build" + pre-release (trùng lúc Cherry tạo thẻ và workflow Build; nguyên nhân chính xác chưa rõ). Sandbox không có quyền sửa release qua API (403), phải qua workflow.
 
@@ -102,5 +101,4 @@ Nguồn đối chiếu: source/Gradle, docs, tag, Release (APK thực tế chưa
 - Tag `v1.3.6` do Cherry tạo trên commit chứa version 1.3.6; Claude không tự tạo hay dời tag. Workflow đã được trả về hành vi "luôn build đúng commit của tag, không tạo/dời/xoá tag".
 
 ## Cập nhật 2026-11-28
-- Termux đã bỏ khỏi P4 (thư mục `termux/`, `tests/test-termux.sh`, `.github/scripts/fetch-emulator.sh`, các bước Termux trong `release.yml`). `SHA256SUMS.txt` giờ chỉ gồm 2 APK. Release v1.3.6 đã phát hành trước đó còn `che779-termux.sh` (cũ), bản mới sẽ không có.
-- Cần Cherry: tạo lại thẻ khi muốn phát hành bản có thay đổi này. Chưa nâng phiên bản (vẫn 1.3.6).
+- Chưa nâng phiên bản (vẫn 1.3.6). Cần Cherry: tạo lại thẻ khi muốn phát hành bản có các thay đổi mới.

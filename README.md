@@ -5,9 +5,9 @@
 **Chạy game J2ME (`.jar`) ngay trên điện thoại — nhiều game cùng lúc, mỗi game một tab.**
 
 Dựa trên J2ME Loader, thêm lớp vỏ Che779: đa tab, chế độ lưới, bong bóng nổi, proxy theo tab và tiết kiệm pin.
-Cài một file APK là dùng. Script Termux đã chuyển sang repo **Che779-Linux** (thư mục `apps/termux/`, [Releases](https://github.com/Kidtomboy/Che779-Linux/releases), thẻ `termux-v*`).
+Cài một file APK là dùng.
 
-> **Nền tảng: Android.** Quy ước 4 repo: **P1 và P2 = Windows · P3 = Linux · P4 = Android**.
+> **Nền tảng: Android.** Quy ước 4 repo: **P1 và P2 = Windows · P3 = Linux + Termux · P4 = Android**.
 
 [![Phiên bản](https://img.shields.io/github/v/release/Kidtomboy/Che779-Android?label=phi%C3%AAn%20b%E1%BA%A3n&color=blue)](../../releases/latest)
 [![Lượt tải](https://img.shields.io/github/downloads/Kidtomboy/Che779-Android/total?label=l%C6%B0%E1%BB%A3t%20t%E1%BA%A3i&color=brightgreen)](../../releases)
@@ -30,7 +30,6 @@ Vào mục **[Releases](../../releases/latest)** và tải file:
 | `Che779-Android-<phiên bản>.apk` | Cài ứng dụng lên điện thoại Android |
 | `Che779-Android-Clone-<phiên bản>.apk` | Bản clone (gói `com.che779.emulator2`, dữ liệu `J2ME-Che779Clone`) để cài song song với bản chính |
 | `Che779-AndroidV2-<phiên bản>.apk` | Bản **V2** (dev-2.0.1): tên *Che779 Emulator V2*, gói `com.che779.emulatorv2`, dữ liệu `J2ME-Che779v2`; cài song song được với bản chính và bản clone. Nằm ở tag [`dev-2.0.1`](../../releases/tag/dev-2.0.1), kèm `SHA256SUMS.txt` riêng (bản thử, chưa phải bản ổn định) |
-| *(Termux)* | Đã chuyển sang Che779-Linux: `che779-termux.sh` ở Releases của repo đó |
 | `SHA256SUMS.txt` | Mã SHA-256 của các file trên (tính sau cùng, trên đúng file đăng). Kiểm tra: `sha256sum -c SHA256SUMS.txt` |
 
 Mục Releases còn có bản **"thử mới nhất (dev, tự động)"** — cập nhật mỗi khi mã nguồn thay đổi, có thể chưa ổn định. Muốn dùng ổn định, hãy tải bản `vX.Y.Z`.
